@@ -15,6 +15,7 @@ namespace KasraLoan.Application.Services
         private readonly ILoanCalculationService _loanCalculationService;
         private readonly LoanRuleEngine _loanRuleEngine;
         private readonly IEmployeeScoreRepository _employeeScoreRepository;
+        private readonly ILoanInstallmentRepository _loanInstallmentRepository;
 
         public LoanRequestService(
         ILoanRequestRepository loanRequestRepository,
@@ -22,7 +23,8 @@ namespace KasraLoan.Application.Services
         ILoanTypeRepository loanTypeRepository,
         ILoanCalculationService loanCalculationService,
         LoanRuleEngine loanRuleEngine,
-        IEmployeeScoreRepository employeeScoreRepository)
+        IEmployeeScoreRepository employeeScoreRepository,
+        ILoanInstallmentRepository loanInstallmentRepository)
         {
             _loanRequestRepository = loanRequestRepository;
             _employeeRepository = employeeRepository;
@@ -30,6 +32,7 @@ namespace KasraLoan.Application.Services
             _loanCalculationService = loanCalculationService;
             _loanRuleEngine = loanRuleEngine;
             _employeeScoreRepository = employeeScoreRepository;
+            _loanInstallmentRepository = loanInstallmentRepository;
         }
 
         public async Task<ApiResponse<int?>> CreateLoanRequestAsync(CreateLoanRequestDto dto)
@@ -96,6 +99,23 @@ namespace KasraLoan.Application.Services
 
             await _loanRequestRepository.AddAsync(loan);
             await _loanRequestRepository.SaveChangesAsync();
+
+            var installments = new List<LoanInstallment>();
+
+            for (int i = 1; i <= loan.InstallmentCount; i++)
+            {
+                installments.Add(new LoanInstallment
+                {
+                    LoanRequestId = loan.Id,
+                    InstallmentNumber = i,
+                    Amount = loan.MonthlyPaymentAmount,
+                    DueDate = DateTime.UtcNow.AddMonths(i),
+                    IsPaid = false
+                });
+            }
+
+            await _loanInstallmentRepository.AddRangeAsync(installments);
+            await _loanInstallmentRepository.SaveChangesAsync();
 
             return new ApiResponse<int?>
             {

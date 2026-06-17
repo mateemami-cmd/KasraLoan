@@ -11,7 +11,7 @@ namespace KasraLoan.Application.LoanRules.Implementations
     {
         public bool CanApply(LoanRuleContext context)
         {
-            return context.LoanTypeEnum == LoanTypeEnum.MarriageLoan;
+            return context.LoanType.Name == "Marriage Loan";
         }
 
         public LoanRuleResult Evaluate(LoanRuleContext context)

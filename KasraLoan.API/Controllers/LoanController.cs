@@ -28,7 +28,7 @@ namespace KasraLoan.API.Controllers
 
             return Ok(new
             {
-                result.LoanRequestId,
+                LoanRequestId = result.Data,
                 result.Message
             });
         }

@@ -28,11 +28,25 @@ namespace KasraLoan.API
             builder.Services.AddScoped<ILoanRule, SpecialCaseLoanRule>();
             builder.Services.AddScoped<ILoanTypeRepository, LoanTypeRepository>();
             builder.Services.AddScoped<IEmployeeScoreRepository, EmployeeScoreRepository>();
+            builder.Services.AddScoped<ILoanInstallmentRepository, LoanInstallmentRepository>();
 
             builder.Services.AddDbContext<KasraLoanDbContext>(options =>
             options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("AllowAll",
+                    policy =>
+                    {
+                        policy.AllowAnyOrigin()
+                               .AllowAnyMethod()
+                               .AllowAnyHeader();
+                    });
+            });
+
             var app = builder.Build();
+
+            app.UseCors("AllowAll");
 
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
@@ -44,7 +58,6 @@ namespace KasraLoan.API
             app.UseHttpsRedirection();
 
             app.UseAuthorization();
-
 
             app.MapControllers();
 

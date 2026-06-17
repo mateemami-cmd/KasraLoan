@@ -14,7 +14,7 @@ namespace KasraLoan.Application.LoanRules
 
         public LoanType LoanType { get; set; }
 
-        public LoanTypeEnum LoanTypeEnum => LoanType.Type;
+        public string LoanTypeName => LoanType.Name;
 
         public decimal RequestedAmount { get; set; }
 
