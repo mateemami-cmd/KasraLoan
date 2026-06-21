@@ -19,7 +19,7 @@ namespace KasraLoan.Infrastructure.Repositories
             _context = context;
         }
 
-        public async Task<Employee?> GetByIdAsync(int id)
+        public async Task<Employee?> GetByIdAsync(Guid id)
         {
             return await _context.Employees.FindAsync(id);
         }

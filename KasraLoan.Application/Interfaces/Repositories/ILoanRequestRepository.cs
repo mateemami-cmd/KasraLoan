@@ -11,9 +11,9 @@ namespace KasraLoan.Application.Interfaces.Repositories
     {
         Task AddAsync(LoanRequest request);
 
-        Task<LoanRequest?> GetByIdAsync(int id);
+        Task<LoanRequest?> GetByIdAsync(Guid id);
 
-        Task<List<LoanRequest>> GetByEmployeeIdAsync(int employeeId);
+        Task<List<LoanRequest>> GetByEmployeeIdAsync(Guid employeeId);
 
         Task SaveChangesAsync();
     }

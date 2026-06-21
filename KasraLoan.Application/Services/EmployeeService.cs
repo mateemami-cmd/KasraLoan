@@ -26,7 +26,7 @@ namespace KasraLoan.Application.Services
             return await _employeeRepository.GetByLoginTokenAsync(token);
         }
 
-        public async Task<Employee?> GetEmployeeByIdAsync(int id)
+        public async Task<Employee?> GetEmployeeByIdAsync(Guid id)
         {
             return await _employeeRepository.GetByIdAsync(id);
         }

@@ -10,6 +10,6 @@ namespace KasraLoan.Application.Interfaces.Services
 {
     public interface ILoanRequestService
     {
-        Task<ApiResponse<int?>> CreateLoanRequestAsync(CreateLoanRequestDto dto);
+        Task<ApiResponse<Guid>> CreateLoanRequestAsync(string employeeId,CreateLoanRequestDto dto);
     }
 }

@@ -1,11 +1,14 @@
 ﻿using KasraLoan.Application.DTOs.Loans;
 using KasraLoan.Application.Interfaces.Services;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
 
 namespace KasraLoan.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class LoanController : ControllerBase
     {
         private readonly ILoanRequestService _loanRequestService;
@@ -18,7 +21,9 @@ namespace KasraLoan.API.Controllers
         [HttpPost("request")]
         public async Task<IActionResult> CreateLoanRequest(CreateLoanRequestDto dto)
         {
-            var result = await _loanRequestService.CreateLoanRequestAsync(dto);
+            var employeeId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            var result = await _loanRequestService.CreateLoanRequestAsync(employeeId, dto);
 
             if (!result.IsSuccess)
                 return BadRequest(new

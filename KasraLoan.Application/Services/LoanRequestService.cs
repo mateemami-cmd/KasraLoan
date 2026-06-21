@@ -35,11 +35,30 @@ namespace KasraLoan.Application.Services
             _loanInstallmentRepository = loanInstallmentRepository;
         }
 
-        public async Task<ApiResponse<int?>> CreateLoanRequestAsync(CreateLoanRequestDto dto)
+        public async Task<ApiResponse<Guid>> CreateLoanRequestAsync(string employeeId, CreateLoanRequestDto dto)
         {
-            var employee = await _employeeRepository.GetByIdAsync(dto.EmployeeId);
+            if (dto.RequestedAmount <= 0)
+            {
+                return new ApiResponse<Guid>
+                {
+                    IsSuccess = false,
+                    Message = "مبلغ وام نامعتبر است"
+                };
+            }
+
+            if (dto.InstallmentCount <= 0)
+            {
+                return new ApiResponse<Guid>
+                {
+                    IsSuccess = false,
+                    Message = "تعداد اقساط نامعتبر است"
+                };
+            }
+
+            var employeeGuid = Guid.Parse(employeeId);
+            var employee = await _employeeRepository.GetByIdAsync(employeeGuid);
             if (employee == null)
-                return new ApiResponse<int?>
+                return new ApiResponse<Guid>
                 {
                     IsSuccess = false,
                     Message = "کاربر یافت نشد"
@@ -47,16 +66,16 @@ namespace KasraLoan.Application.Services
 
             var loanType = await _loanTypeRepository.GetByIdAsync(dto.LoanTypeId);
             if (loanType == null)
-                return new ApiResponse<int?>
+                return new ApiResponse<Guid>
                 {
                     IsSuccess = false,
                     Message = "نوع وام نامعتبر است"
                 };
 
-            var score = await _employeeScoreRepository.GetScoreByEmployeeIdAsync(dto.EmployeeId);
+            var score = await _employeeScoreRepository.GetScoreByEmployeeIdAsync(employeeGuid);
 
             if (score < 600)
-                return new ApiResponse<int?>
+                return new ApiResponse<Guid>
                 {
                     IsSuccess = false,
                     Message = "امتیاز کاربر کافی نیست"
@@ -74,16 +93,17 @@ namespace KasraLoan.Application.Services
 
             if (!ruleResult.IsAllowed)
             {
-                return new ApiResponse<int?>
+                return new ApiResponse<Guid>
                 {
                     IsSuccess = false,
                     Message = ruleResult.Message ?? "درخواست رد شد"
                 };
             }
 
+            var baseInstallment = dto.RequestedAmount / dto.InstallmentCount;
             var loan = new LoanRequest
             {
-                EmployeeId = dto.EmployeeId,
+                EmployeeId = employeeGuid,
                 LoanTypeId = dto.LoanTypeId,
                 RequestedAmount = dto.RequestedAmount,
                 ApprovedAmount = dto.RequestedAmount,
@@ -93,8 +113,8 @@ namespace KasraLoan.Application.Services
                 TotalPayableAmount = dto.RequestedAmount,
 
                 MonthlyPaymentAmount =
-                    (dto.RequestedAmount / dto.InstallmentCount) +
-                    ((dto.RequestedAmount * ruleResult.MonthlyFeePercent) / 100)
+                baseInstallment +
+                ((dto.RequestedAmount * ruleResult.MonthlyFeePercent) / 100)
             };
 
             await _loanRequestRepository.AddAsync(loan);
@@ -117,7 +137,7 @@ namespace KasraLoan.Application.Services
             await _loanInstallmentRepository.AddRangeAsync(installments);
             await _loanInstallmentRepository.SaveChangesAsync();
 
-            return new ApiResponse<int?>
+            return new ApiResponse<Guid>
             {
                 IsSuccess = true,
                 Message = "درخواست با موفقیت ثبت شد",

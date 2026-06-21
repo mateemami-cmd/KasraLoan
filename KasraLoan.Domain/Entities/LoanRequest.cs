@@ -8,9 +8,9 @@ namespace KasraLoan.Domain.Entities
 {
     public class LoanRequest
     {
-        public int Id { get; set; }
+        public Guid Id { get; set; }
 
-        public int EmployeeId { get; set; }
+        public Guid EmployeeId { get; set; }
 
         public int LoanTypeId { get; set; }
 

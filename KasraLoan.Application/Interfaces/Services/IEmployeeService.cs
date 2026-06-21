@@ -10,6 +10,6 @@ namespace KasraLoan.Application.Interfaces.Services
     public interface IEmployeeService
     {
         Task<Employee?> LoginWithTokenAsync(string token);
-        Task<Employee?> GetEmployeeByIdAsync(int id);
+        Task<Employee?> GetEmployeeByIdAsync(Guid id);
     }
 }

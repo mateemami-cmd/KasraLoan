@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace KasraLoan.Infrastructure.Migrations
 {
     [DbContext(typeof(KasraLoanDbContext))]
-    [Migration("20260616105446_AddLoanCoreSystem")]
-    partial class AddLoanCoreSystem
+    [Migration("20260620140614_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -27,17 +27,28 @@ namespace KasraLoan.Infrastructure.Migrations
 
             modelBuilder.Entity("KasraLoan.Domain.Entities.Employee", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+                        .HasColumnType("uuid");
 
                     b.Property<string>("FirstName")
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<DateTime>("HireDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
                     b.Property<string>("LastName")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("MarriageDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("PersonnelNumber")
                         .IsRequired()
                         .HasColumnType("text");
 
@@ -57,8 +68,8 @@ namespace KasraLoan.Infrastructure.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<int>("EmployeeId")
-                        .HasColumnType("integer");
+                    b.Property<Guid>("EmployeeId")
+                        .HasColumnType("uuid");
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean");
@@ -74,7 +85,7 @@ namespace KasraLoan.Infrastructure.Migrations
                     b.ToTable("EmployeeLoginTokens");
                 });
 
-            modelBuilder.Entity("KasraLoan.Domain.Entities.LoanInstallment", b =>
+            modelBuilder.Entity("KasraLoan.Domain.Entities.EmployeeScore", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -82,8 +93,33 @@ namespace KasraLoan.Infrastructure.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("Amount")
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("EmployeeId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Score")
                         .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EmployeeId");
+
+                    b.ToTable("EmployeeScores");
+                });
+
+            modelBuilder.Entity("KasraLoan.Domain.Entities.LoanInstallment", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("numeric");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<DateTime>("DueDate")
                         .HasColumnType("timestamp with time zone");
@@ -94,14 +130,11 @@ namespace KasraLoan.Infrastructure.Migrations
                     b.Property<bool>("IsPaid")
                         .HasColumnType("boolean");
 
-                    b.Property<int>("LoanRequestId")
-                        .HasColumnType("integer");
+                    b.Property<Guid>("LoanRequestId")
+                        .HasColumnType("uuid");
 
                     b.Property<DateTime?>("PaidAt")
                         .HasColumnType("timestamp with time zone");
-
-                    b.Property<int>("PenaltyAmount")
-                        .HasColumnType("integer");
 
                     b.HasKey("Id");
 
@@ -112,11 +145,9 @@ namespace KasraLoan.Infrastructure.Migrations
 
             modelBuilder.Entity("KasraLoan.Domain.Entities.LoanRequest", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+                        .HasColumnType("uuid");
 
                     b.Property<int>("ApprovedAmount")
                         .HasColumnType("integer");
@@ -127,8 +158,8 @@ namespace KasraLoan.Infrastructure.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<int>("EmployeeId")
-                        .HasColumnType("integer");
+                    b.Property<Guid>("EmployeeId")
+                        .HasColumnType("uuid");
 
                     b.Property<int>("InstallmentCount")
                         .HasColumnType("integer");
@@ -136,8 +167,8 @@ namespace KasraLoan.Infrastructure.Migrations
                     b.Property<int>("LoanTypeId")
                         .HasColumnType("integer");
 
-                    b.Property<int>("MonthlyPaymentAmount")
-                        .HasColumnType("integer");
+                    b.Property<decimal>("MonthlyPaymentAmount")
+                        .HasColumnType("numeric");
 
                     b.Property<string>("RejectReason")
                         .HasColumnType("text");
@@ -225,8 +256,8 @@ namespace KasraLoan.Infrastructure.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<int>("EmployeeId")
-                        .HasColumnType("integer");
+                    b.Property<Guid>("EmployeeId")
+                        .HasColumnType("uuid");
 
                     b.Property<DateTime>("ExpiresAt")
                         .HasColumnType("timestamp with time zone");
@@ -256,6 +287,17 @@ namespace KasraLoan.Infrastructure.Migrations
                 {
                     b.HasOne("KasraLoan.Domain.Entities.Employee", "Employee")
                         .WithMany("EmployeeLoginTokens")
+                        .HasForeignKey("EmployeeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Employee");
+                });
+
+            modelBuilder.Entity("KasraLoan.Domain.Entities.EmployeeScore", b =>
+                {
+                    b.HasOne("KasraLoan.Domain.Entities.Employee", "Employee")
+                        .WithMany()
                         .HasForeignKey("EmployeeId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();

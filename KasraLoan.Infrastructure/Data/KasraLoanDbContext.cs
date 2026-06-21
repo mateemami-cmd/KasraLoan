@@ -23,5 +23,25 @@ namespace KasraLoan.Infrastructure.Data
         public DbSet<LoanRequest> LoanRequests { get; set; }
         public DbSet<LoanInstallment> LoanInstallments { get; set; }
         public DbSet<EmployeeScore> EmployeeScores { get; set; }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
+
+            modelBuilder.Entity<EmployeeScore>()
+                .HasOne(x => x.Employee)
+                .WithMany()
+                .HasForeignKey(x => x.EmployeeId);
+
+            modelBuilder.Entity<LoanRequest>()
+                .HasOne(x => x.Employee)
+                .WithMany()
+                .HasForeignKey(x => x.EmployeeId);
+
+            modelBuilder.Entity<LoanRequest>()
+                .HasOne(x => x.LoanType)
+                .WithMany(x => x.LoanRequests)
+                .HasForeignKey(x => x.LoanTypeId);
+        }
     }
 }

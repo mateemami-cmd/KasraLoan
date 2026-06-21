@@ -24,13 +24,13 @@ namespace KasraLoan.Infrastructure.Repositories
             await _context.LoanRequests.AddAsync(request);
         }
 
-        public async Task<LoanRequest?> GetByIdAsync(int id)
+        public async Task<LoanRequest?> GetByIdAsync(Guid id)
         {
             return await _context.LoanRequests
                 .FirstOrDefaultAsync(x => x.Id == id);
         }
 
-        public async Task<List<LoanRequest>> GetByEmployeeIdAsync(int employeeId)
+        public async Task<List<LoanRequest>> GetByEmployeeIdAsync(Guid employeeId)
         {
             return await _context.LoanRequests
                 .Where(x => x.EmployeeId == employeeId)

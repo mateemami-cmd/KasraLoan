@@ -8,6 +8,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using KasraLoan.Application.Services.Auth;
+using KasraLoan.Infrastructure.Services;
 
 namespace KasraLoan.Infrastructure
 {
@@ -23,6 +25,7 @@ namespace KasraLoan.Infrastructure
             services.AddScoped<ILoanCalculationService, LoanCalculationService>();
             services.AddScoped<ILoanRequestRepository, LoanRequestRepository>();
             services.AddScoped<ILoanRequestService, LoanRequestService>();
+            services.AddScoped<IAuthService, AuthService>();
 
             return services;
         }

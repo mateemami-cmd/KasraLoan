@@ -10,12 +10,12 @@ namespace KasraLoan.Domain.Entities
     {
         public int Id { get; set; }
 
-        public int EmployeeId { get; set; }
+        public Guid EmployeeId { get; set; }
 
         public int Score { get; set; }
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
-        public Employee Employee { get; set; }
+        public Employee? Employee { get; set; }
     }
 }

@@ -8,6 +8,6 @@ namespace KasraLoan.Application.Interfaces.Repositories
 {
     public interface IEmployeeScoreRepository
     {
-        Task<int> GetScoreByEmployeeIdAsync(int employeeId);
+        Task<int> GetScoreByEmployeeIdAsync(Guid employeeId);
     }
 }

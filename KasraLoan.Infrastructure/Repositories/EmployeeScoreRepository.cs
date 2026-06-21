@@ -13,7 +13,7 @@ namespace KasraLoan.Infrastructure.Repositories
             _context = context;
         }
 
-        public async Task<int> GetScoreByEmployeeIdAsync(int employeeId)
+        public async Task<int> GetScoreByEmployeeIdAsync(Guid employeeId)
         {
             // فعلاً فرض: جدول EmployeeScores داری
             var score = await _context.EmployeeScores
