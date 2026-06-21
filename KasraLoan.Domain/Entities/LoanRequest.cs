@@ -1,4 +1,5 @@
-﻿using System;
+﻿using KasraLoan.Domain.Enums;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -20,7 +21,7 @@ namespace KasraLoan.Domain.Entities
 
         public int InstallmentCount { get; set; }
 
-        public string Status { get; set; } = string.Empty;
+        public LoanStatus Status { get; set; } //= string.Empty;
 
         public DateTime CreatedAt { get; set; }
 

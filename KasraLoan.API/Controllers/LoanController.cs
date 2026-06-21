@@ -6,6 +6,7 @@ using System.Security.Claims;
 
 namespace KasraLoan.API.Controllers
 {
+
     [ApiController]
     [Route("api/[controller]")]
     [Authorize]
@@ -36,6 +37,28 @@ namespace KasraLoan.API.Controllers
                 LoanRequestId = result.Data,
                 result.Message
             });
+        }
+
+        [HttpPost("approve/{id}")]
+        public async Task<IActionResult> ApproveLoan(Guid id)
+        {
+            var result = await _loanRequestService.ApproveLoanAsync(id);
+
+            if (!result.IsSuccess)
+                return BadRequest(result.Message);
+
+            return Ok(result.Message);
+        }
+
+        [HttpPost("reject/{id}")]
+        public async Task<IActionResult> RejectLoan(Guid id)
+        {
+            var result = await _loanRequestService.RejectLoanAsync(id);
+
+            if (!result.IsSuccess)
+                return BadRequest(result.Message);
+
+            return Ok(result.Message);
         }
     }
 }

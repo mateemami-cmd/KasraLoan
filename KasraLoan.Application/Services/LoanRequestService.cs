@@ -4,6 +4,7 @@ using KasraLoan.Application.Interfaces.Repositories;
 using KasraLoan.Application.Interfaces.Services;
 using KasraLoan.Application.LoanRules;
 using KasraLoan.Domain.Entities;
+using KasraLoan.Domain.Enums;
 
 namespace KasraLoan.Application.Services
 {
@@ -108,7 +109,7 @@ namespace KasraLoan.Application.Services
                 RequestedAmount = dto.RequestedAmount,
                 ApprovedAmount = dto.RequestedAmount,
                 InstallmentCount = dto.InstallmentCount,
-                Status = "Pending",
+                Status = LoanStatus.Pending,
                 CreatedAt = DateTime.UtcNow,
                 TotalPayableAmount = dto.RequestedAmount,
 
@@ -142,6 +143,52 @@ namespace KasraLoan.Application.Services
                 IsSuccess = true,
                 Message = "درخواست با موفقیت ثبت شد",
                 Data = loan.Id
+            };
+        }
+
+        public async Task<ApiResponse<bool>> ApproveLoanAsync(Guid loanId)
+        {
+            var loan = await _loanRequestRepository.GetByIdAsync(loanId);
+
+            if (loan == null)
+                return new ApiResponse<bool> { IsSuccess = false, Message = "وام یافت نشد" };
+
+            if (loan.Status != LoanStatus.Pending)
+                return new ApiResponse<bool> { IsSuccess = false, Message = "این وام قابل تأیید نیست" };
+
+            loan.Status = LoanStatus.Approved;
+
+            //await _loanRequestRepository.UpdateAsync(loan);
+            await _loanRequestRepository.SaveChangesAsync();
+
+            return new ApiResponse<bool>
+            {
+                IsSuccess = true,
+                Message = "وام تأیید شد",
+                Data = true
+            };
+        }
+
+        public async Task<ApiResponse<bool>> RejectLoanAsync(Guid loanId)
+        {
+            var loan = await _loanRequestRepository.GetByIdAsync(loanId);
+
+            if (loan == null)
+                return new ApiResponse<bool> { IsSuccess = false, Message = "وام یافت نشد" };
+
+            if (loan.Status != LoanStatus.Pending)
+                return new ApiResponse<bool> { IsSuccess = false, Message = "این وام قابل رد نیست" };
+
+            loan.Status = LoanStatus.Rejected;
+
+            //await _loanRequestRepository.UpdateAsync(loan);
+            await _loanRequestRepository.SaveChangesAsync();
+
+            return new ApiResponse<bool>
+            {
+                IsSuccess = true,
+                Message = "وام رد شد",
+                Data = true
             };
         }
     }
