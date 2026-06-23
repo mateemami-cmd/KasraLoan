@@ -1,5 +1,6 @@
 ﻿using KasraLoan.Application.Interfaces.Repositories;
 using KasraLoan.Domain.Entities;
+using KasraLoan.Domain.Enums;
 using KasraLoan.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -35,6 +36,14 @@ namespace KasraLoan.Infrastructure.Repositories
             return await _context.LoanRequests
                 .Where(x => x.EmployeeId == employeeId)
                 .ToListAsync();
+        }
+
+        public async Task<LoanRequest?> GetPendingLoanByEmployeeIdAsync(Guid employeeId)
+        {
+            return await _context.LoanRequests
+                .FirstOrDefaultAsync(x =>
+                    x.EmployeeId == employeeId &&
+                    x.Status == LoanStatus.Pending);
         }
 
         public async Task SaveChangesAsync()

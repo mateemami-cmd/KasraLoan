@@ -15,6 +15,8 @@ namespace KasraLoan.Application.Interfaces.Repositories
 
         Task<List<LoanRequest>> GetByEmployeeIdAsync(Guid employeeId);
 
+        Task<LoanRequest?> GetPendingLoanByEmployeeIdAsync(Guid employeeId);
+
         Task SaveChangesAsync();
     }
 }

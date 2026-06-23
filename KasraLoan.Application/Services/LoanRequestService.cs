@@ -65,6 +65,18 @@ namespace KasraLoan.Application.Services
                     Message = "کاربر یافت نشد"
                 };
 
+            var existingPendingLoan = await _loanRequestRepository
+            .GetPendingLoanByEmployeeIdAsync(employeeGuid);
+
+            if (existingPendingLoan != null)
+            {
+                return new ApiResponse<Guid>
+                {
+                    IsSuccess = false,
+                    Message = "شما یک درخواست وام در حال بررسی دارید"
+                };
+            }
+
             var loanType = await _loanTypeRepository.GetByIdAsync(dto.LoanTypeId);
             if (loanType == null)
                 return new ApiResponse<Guid>
@@ -189,6 +201,31 @@ namespace KasraLoan.Application.Services
                 IsSuccess = true,
                 Message = "وام رد شد",
                 Data = true
+            };
+        }
+
+        public async Task<ApiResponse<List<LoanRequestDto>>> GetLoansByEmployeeIdAsync(Guid employeeId)
+        {
+            var loans = await _loanRequestRepository.GetByEmployeeIdAsync(employeeId);
+
+            var result = loans.Select(x => new LoanRequestDto
+            {
+                Id = x.Id,
+                EmployeeId = x.EmployeeId,
+                LoanTypeId = x.LoanTypeId,
+                RequestedAmount = x.RequestedAmount,
+                ApprovedAmount = x.ApprovedAmount,
+                InstallmentCount = x.InstallmentCount,
+                Status = x.Status,
+                CreatedAt = x.CreatedAt,
+                TotalPayableAmount = x.TotalPayableAmount,
+                MonthlyPaymentAmount = x.MonthlyPaymentAmount
+            }).ToList();
+
+            return new ApiResponse<List<LoanRequestDto>>
+            {
+                IsSuccess = true,
+                Data = result
             };
         }
     }

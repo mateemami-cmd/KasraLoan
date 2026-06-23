@@ -49,7 +49,8 @@ namespace KasraLoan.Infrastructure.Services
     {
         new Claim(ClaimTypes.NameIdentifier, employee.Id.ToString()),
         new Claim(ClaimTypes.Name, employee.FirstName),
-        new Claim("PersonnelNumber", employee.PersonnelNumber ?? "")
+        new Claim("PersonnelNumber", employee.PersonnelNumber ?? ""),
+        new Claim(ClaimTypes.Role, employee.Role.ToString())
     };
 
             var key = new SymmetricSecurityKey(

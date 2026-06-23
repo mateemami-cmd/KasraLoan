@@ -13,11 +13,17 @@ namespace KasraLoan.API.Controllers
     public class LoanController : ControllerBase
     {
         private readonly ILoanRequestService _loanRequestService;
+        //private readonly ILoanRequestService _loanService;
 
         public LoanController(ILoanRequestService loanRequestService)
         {
             _loanRequestService = loanRequestService;
         }
+
+        //public LoanController(ILoanRequestService loanService)
+        //{
+        //    _loanRequestService = loanService;
+        //}
 
         [HttpPost("request")]
         public async Task<IActionResult> CreateLoanRequest(CreateLoanRequestDto dto)
@@ -40,6 +46,7 @@ namespace KasraLoan.API.Controllers
         }
 
         [HttpPost("approve/{id}")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> ApproveLoan(Guid id)
         {
             var result = await _loanRequestService.ApproveLoanAsync(id);
@@ -51,6 +58,7 @@ namespace KasraLoan.API.Controllers
         }
 
         [HttpPost("reject/{id}")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> RejectLoan(Guid id)
         {
             var result = await _loanRequestService.RejectLoanAsync(id);
@@ -59,6 +67,17 @@ namespace KasraLoan.API.Controllers
                 return BadRequest(result.Message);
 
             return Ok(result.Message);
+        }
+
+        [HttpGet("my-loans")]
+        [Authorize]
+        public async Task<IActionResult> GetMyLoans()
+        {
+            var employeeId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            var result = await _loanRequestService.GetLoansByEmployeeIdAsync(Guid.Parse(employeeId));
+
+            return Ok(result);
         }
     }
 }

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using KasraLoan.Domain.Enums;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -15,6 +16,8 @@ namespace KasraLoan.Domain.Entities
         public DateTime HireDate { get; set; }
         public DateTime? MarriageDate { get; set; }
         public bool IsActive { get; set; }
+
+        public UserRole Role { get; set; } = UserRole.Employee;
 
         public ICollection<EmployeeLoginToken> EmployeeLoginTokens { get; set; } = new List<EmployeeLoginToken>();
         public ICollection<RefreshToken> RefreshTokens { get; set; } = new List<RefreshToken>();
