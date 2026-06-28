@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using KasraLoan.Infrastructure;
 using KasraLoan.Application.LoanRules;
 using KasraLoan.Application.LoanRules.Implementations;
+using KasraLoan.Infrastructure.Data.Seed;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
@@ -13,7 +14,7 @@ namespace KasraLoan.API
 {
     public class Program
     {
-        public static void Main(string[] args)
+        public static async Task Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
 
@@ -56,6 +57,7 @@ namespace KasraLoan.API
             builder.Services.AddScoped<ILoanRule, TravelLoanRule>();
             builder.Services.AddScoped<ILoanRule, MarriageLoanRule>();
             builder.Services.AddScoped<ILoanRule, SpecialCaseLoanRule>();
+            builder.Services.AddScoped<ILoanRule, ImmediatePaymentLoanRule>();
             builder.Services.AddScoped<ILoanTypeRepository, LoanTypeRepository>();
             builder.Services.AddScoped<IEmployeeScoreRepository, EmployeeScoreRepository>();
             builder.Services.AddScoped<ILoanInstallmentRepository, LoanInstallmentRepository>();
@@ -113,6 +115,13 @@ namespace KasraLoan.API
             app.UseAuthorization();
 
             app.MapControllers();
+
+            using (var scope = app.Services.CreateScope())
+            {
+                var context = scope.ServiceProvider.GetRequiredService<KasraLoanDbContext>();
+
+                await DataSeeder.SeedAsync(context);
+            }
 
             app.Run();
         }

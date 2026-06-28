@@ -85,6 +85,15 @@ namespace KasraLoan.Application.Services
                     Message = "نوع وام نامعتبر است"
                 };
 
+            if (!loanType.IsActive)
+            {
+                return new ApiResponse<Guid>
+                {
+                    IsSuccess = false,
+                    Message = "این نوع وام در حال حاضر فعال نمی‌باشد."
+                };
+            }
+
             var score = await _employeeScoreRepository.GetScoreByEmployeeIdAsync(employeeGuid);
 
             if (score < 600)
