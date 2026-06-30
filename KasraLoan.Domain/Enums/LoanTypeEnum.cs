@@ -9,7 +9,10 @@ namespace KasraLoan.Domain.Enums
     public enum LoanTypeEnum
     {
         TravelLoan = 1,
-        MarriageLoan = 2,
-        SpecialCaseLoan = 3
+        QarzolhasanehLoan = 2,
+        SpecialCaseLoan = 3,
+        MarriageLoan = 4,
+        ImmediatePaymentLoan = 5,
+        BankIntroductionLoan = 6
     }
 }

@@ -58,6 +58,8 @@ namespace KasraLoan.API
             builder.Services.AddScoped<ILoanRule, MarriageLoanRule>();
             builder.Services.AddScoped<ILoanRule, SpecialCaseLoanRule>();
             builder.Services.AddScoped<ILoanRule, ImmediatePaymentLoanRule>();
+            builder.Services.AddScoped<ILoanRule, QarzolhasanehLoanRule>();
+            builder.Services.AddScoped<ILoanRule, BankIntroductionLoanRule>();
             builder.Services.AddScoped<ILoanTypeRepository, LoanTypeRepository>();
             builder.Services.AddScoped<IEmployeeScoreRepository, EmployeeScoreRepository>();
             builder.Services.AddScoped<ILoanInstallmentRepository, LoanInstallmentRepository>();

@@ -7,24 +7,19 @@ using KasraLoan.Domain.Enums;
 
 namespace KasraLoan.Application.LoanRules.Implementations
 {
-    public class ImmediatePaymentLoanRule : ILoanRule
+    public class BankIntroductionLoanRule : ILoanRule
     {
         public bool CanApply(LoanRuleContext context)
         {
-            return context.LoanType.Type == LoanTypeEnum.ImmediatePaymentLoan;
+            return context.LoanType.Type == LoanTypeEnum.BankIntroductionLoan;
         }
 
         public LoanRuleResult Evaluate(LoanRuleContext context)
         {
-            Console.WriteLine(">>> ImmediatePaymentLoanRule is running");
-
             return new LoanRuleResult
             {
-                IsAllowed = true,
-                Message = "OK",
-                MaxAllowedAmount = 100_000_000,
-                MaxInstallments = 12,
-                MonthlyFeePercent = 2
+                IsAllowed = false,
+                Message = "این وام در حال حاضر فعال نمی‌باشد."
             };
         }
     }

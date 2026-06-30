@@ -11,7 +11,7 @@ namespace KasraLoan.Application.LoanRules.Implementations
     {
         public bool CanApply(LoanRuleContext context)
         {
-            return context.LoanType.Id == (int)LoanTypeEnum.TravelLoan;
+            return context.LoanType.Type == LoanTypeEnum.SpecialCaseLoan;
         }
 
         public LoanRuleResult Evaluate(LoanRuleContext context)

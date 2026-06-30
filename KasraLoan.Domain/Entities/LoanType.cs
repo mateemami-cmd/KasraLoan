@@ -13,7 +13,7 @@ namespace KasraLoan.Domain.Entities
 
         public string Name { get; set; } = string.Empty;
 
-        //public LoanTypeEnum Type { get; set; }
+        public LoanTypeEnum Type { get; set; }
 
         public bool IsActive { get; set; }
 
