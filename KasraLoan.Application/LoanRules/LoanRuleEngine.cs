@@ -18,14 +18,7 @@ namespace KasraLoan.Application.LoanRules
                 if (!rule.CanApply(context))
                     continue;
 
-                var result = rule.Evaluate(context);
-
-                // اگر رد شد همونجا قطع کن
-                if (!result.IsAllowed)
-                    return result;
-
-                // چون فقط یک Rule باید مسئول باشد
-                return result;
+                return rule.Evaluate(context);
             }
 
             return new LoanRuleResult

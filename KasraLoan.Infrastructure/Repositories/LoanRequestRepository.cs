@@ -46,6 +46,11 @@ namespace KasraLoan.Infrastructure.Repositories
                     x.Status == LoanStatus.Pending);
         }
 
+        public async Task<List<LoanRequest>> GetAllAsync()
+        {
+            return await _context.LoanRequests.ToListAsync();
+        }
+
         public async Task SaveChangesAsync()
         {
             await _context.SaveChangesAsync();

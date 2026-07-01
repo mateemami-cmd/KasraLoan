@@ -4,10 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace KasraLoan.Domain.Services
+namespace KasraLoan.Tests.LoanRules
 {
-    public interface ILoanRuleEngine
+    internal class LoanRuleEngineTests
     {
-        LoanRuleEngine IsEligible(LoanRuleEngine context);
     }
 }

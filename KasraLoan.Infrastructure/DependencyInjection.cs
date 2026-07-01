@@ -3,6 +3,8 @@ using KasraLoan.Infrastructure.Repositories;
 using Microsoft.Extensions.DependencyInjection;
 using KasraLoan.Application.Interfaces.Services;
 using KasraLoan.Application.Services;
+using KasraLoan.Application.LoanRules;
+using KasraLoan.Application.LoanRules.Implementations;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,6 +20,9 @@ namespace KasraLoan.Infrastructure
         public static IServiceCollection AddInfrastructure(this IServiceCollection services)
         {
             // Repositories
+            services.AddScoped<ILoanTypeRepository, LoanTypeRepository>();
+            services.AddScoped<IEmployeeScoreRepository, EmployeeScoreRepository>();
+            services.AddScoped<ILoanInstallmentRepository, LoanInstallmentRepository>();
             services.AddScoped<IEmployeeRepository, EmployeeRepository>();
             services.AddScoped<IEmployeeService, EmployeeService>();
             services.AddScoped<IEmployeeScoreService, EmployeeScoreService>();
@@ -25,6 +30,13 @@ namespace KasraLoan.Infrastructure
             services.AddScoped<ILoanCalculationService, LoanCalculationService>();
             services.AddScoped<ILoanRequestRepository, LoanRequestRepository>();
             services.AddScoped<ILoanRequestService, LoanRequestService>();
+            services.AddScoped<LoanRuleEngine>();
+            services.AddScoped<ILoanRule, TravelLoanRule>();
+            services.AddScoped<ILoanRule, MarriageLoanRule>();
+            services.AddScoped<ILoanRule, SpecialCaseLoanRule>();
+            services.AddScoped<ILoanRule, ImmediatePaymentLoanRule>();
+            services.AddScoped<ILoanRule, QarzolhasanehLoanRule>();
+            services.AddScoped<ILoanRule, BankIntroductionLoanRule>();
             services.AddScoped<IAuthService, AuthService>();
 
             return services;

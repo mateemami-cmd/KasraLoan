@@ -1,5 +1,6 @@
 ﻿using KasraLoan.Application.Common.Results;
 using KasraLoan.Application.DTOs.Loans;
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,6 +15,7 @@ namespace KasraLoan.Application.Interfaces.Services
         Task<ApiResponse<bool>> RejectLoanAsync(Guid LoanId);
         Task<ApiResponse<bool>> ApproveLoanAsync(Guid LoanId);
         Task<ApiResponse<List<LoanRequestDto>>> GetLoansByEmployeeIdAsync(Guid employeeId);
+        Task<ApiResponse<List<LoanRequestDto>>> GetAllLoansAsync();
         //Task<ApiResponse<List<LoanRequestDto>>> GetPendingLoanByEmployeeIdAsync(Guid employeeId);
     }
 }

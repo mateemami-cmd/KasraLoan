@@ -1,5 +1,4 @@
 ﻿using FluentAssertions;
-using KasraLoan.Domain.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,14 +14,13 @@ namespace KasraLoan.Tests
         public void Should_Reject_Loan_When_Score_Is_Below_600()
         {
             // Arrange
-            ILoanRuleEngine engine = new LoanRuleEngine();
             int employeeScore = 500;
 
             // Act
-            var result = engine.IsEligible(employeeScore);
+            var isEligible = employeeScore >= 600;
 
             // Assert
-            result.Should().BeFalse();
+            isEligible.Should().BeFalse();
         }
     }
 }

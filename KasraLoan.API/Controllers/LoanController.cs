@@ -79,5 +79,18 @@ namespace KasraLoan.API.Controllers
 
             return Ok(result);
         }
+
+        [HttpGet("all")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> GetAllLoans()
+        {
+            var result = await _loanRequestService.GetAllLoansAsync();
+
+            if (!result.IsSuccess)
+                return BadRequest(result.Message);
+
+            return Ok(result);
+        }
+
     }
 }

@@ -5,7 +5,6 @@ using KasraLoan.Application.Interfaces.Services;
 using KasraLoan.Application.LoanRules;
 using KasraLoan.Domain.Entities;
 using KasraLoan.Domain.Enums;
-using KasraLoan.Domain.Services;
 
 namespace KasraLoan.Application.Services
 {
@@ -15,7 +14,7 @@ namespace KasraLoan.Application.Services
         private readonly IEmployeeRepository _employeeRepository;
         private readonly ILoanTypeRepository _loanTypeRepository;
         private readonly ILoanCalculationService _loanCalculationService;
-        private readonly ILoanRuleEngine _loanRuleEngine;
+        private readonly LoanRuleEngine _loanRuleEngine;
         private readonly IEmployeeScoreRepository _employeeScoreRepository;
         private readonly ILoanInstallmentRepository _loanInstallmentRepository;
 
@@ -24,7 +23,7 @@ namespace KasraLoan.Application.Services
         IEmployeeRepository employeeRepository,
         ILoanTypeRepository loanTypeRepository,
         ILoanCalculationService loanCalculationService,
-        ILoanRuleEngine loanRuleEngine,
+        LoanRuleEngine loanRuleEngine,
         IEmployeeScoreRepository employeeScoreRepository,
         ILoanInstallmentRepository loanInstallmentRepository)
         {
@@ -123,6 +122,24 @@ namespace KasraLoan.Application.Services
                 };
             }
 
+            if (dto.RequestedAmount > ruleResult.MaxAllowedAmount)
+            {
+                return new ApiResponse<Guid>
+                {
+                    IsSuccess = false,
+                    Message = $"مبلغ وام بیشتر از سقف مجاز است. سقف مجاز: {ruleResult.MaxAllowedAmount}"
+                };
+            }
+
+            if (dto.InstallmentCount > ruleResult.MaxInstallments)
+            {
+                return new ApiResponse<Guid>
+                {
+                    IsSuccess = false,
+                    Message = $"تعداد اقساط بیشتر از حد مجاز است. سقف اقساط: {ruleResult.MaxInstallments}"
+                };
+            }
+
             var baseInstallment = dto.RequestedAmount / dto.InstallmentCount;
             var loan = new LoanRequest
             {
@@ -217,6 +234,31 @@ namespace KasraLoan.Application.Services
         public async Task<ApiResponse<List<LoanRequestDto>>> GetLoansByEmployeeIdAsync(Guid employeeId)
         {
             var loans = await _loanRequestRepository.GetByEmployeeIdAsync(employeeId);
+
+            var result = loans.Select(x => new LoanRequestDto
+            {
+                Id = x.Id,
+                EmployeeId = x.EmployeeId,
+                LoanTypeId = x.LoanTypeId,
+                RequestedAmount = x.RequestedAmount,
+                ApprovedAmount = x.ApprovedAmount,
+                InstallmentCount = x.InstallmentCount,
+                Status = x.Status,
+                CreatedAt = x.CreatedAt,
+                TotalPayableAmount = x.TotalPayableAmount,
+                MonthlyPaymentAmount = x.MonthlyPaymentAmount
+            }).ToList();
+
+            return new ApiResponse<List<LoanRequestDto>>
+            {
+                IsSuccess = true,
+                Data = result
+            };
+        }
+
+        public async Task<ApiResponse<List<LoanRequestDto>>> GetAllLoansAsync()
+        {
+            var loans = await _loanRequestRepository.GetAllAsync();
 
             var result = loans.Select(x => new LoanRequestDto
             {
