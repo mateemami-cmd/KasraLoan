@@ -280,5 +280,35 @@ namespace KasraLoan.Application.Services
                 Data = result
             };
         }
+
+        public async Task<ApiResponse<List<LoanRequestDto>>> GetAdminLoansAsync(LoanStatus? status)
+        {
+            var loans = await _loanRequestRepository.GetAllAsync();
+
+            if (status.HasValue)
+            {
+                loans = loans.Where(x => x.Status == status.Value).ToList();
+            }
+
+            var result = loans.Select(x => new LoanRequestDto
+            {
+                Id = x.Id,
+                EmployeeId = x.EmployeeId,
+                LoanTypeId = x.LoanTypeId,
+                RequestedAmount = x.RequestedAmount,
+                ApprovedAmount = x.ApprovedAmount,
+                InstallmentCount = x.InstallmentCount,
+                Status = x.Status,
+                CreatedAt = x.CreatedAt,
+                TotalPayableAmount = x.TotalPayableAmount,
+                MonthlyPaymentAmount = x.MonthlyPaymentAmount
+            }).ToList();
+
+            return new ApiResponse<List<LoanRequestDto>>
+            {
+                IsSuccess = true,
+                Data = result
+            };
+        }
     }
 }

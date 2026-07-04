@@ -1,6 +1,7 @@
 ﻿using KasraLoan.Application.Interfaces.Repositories;
 using KasraLoan.Domain.Entities;
 using KasraLoan.Infrastructure.Data;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -26,6 +27,13 @@ namespace KasraLoan.Infrastructure.Repositories
         public async Task SaveChangesAsync()
         {
             await _context.SaveChangesAsync();
+        }
+
+        public async Task<List<LoanInstallment>> GetByLoanIdAsync(Guid loanId)
+        {
+            return await _context.LoanInstallments
+                .Where(x => x.LoanRequestId == loanId)
+                .ToListAsync();
         }
     }
 }

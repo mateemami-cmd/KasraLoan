@@ -1,7 +1,9 @@
 ﻿using KasraLoan.Application.DTOs.Loans;
 using KasraLoan.Application.Interfaces.Services;
-using Microsoft.AspNetCore.Mvc;
+using KasraLoan.Application.Services;
+using KasraLoan.Domain.Enums;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 
 namespace KasraLoan.API.Controllers
@@ -13,11 +15,13 @@ namespace KasraLoan.API.Controllers
     public class LoanController : ControllerBase
     {
         private readonly ILoanRequestService _loanRequestService;
+        private readonly ILoanInstallmentService _loanInstallmentService;
         //private readonly ILoanRequestService _loanService;
 
-        public LoanController(ILoanRequestService loanRequestService)
+        public LoanController(ILoanRequestService loanRequestService, ILoanInstallmentService loanInstallmentService)
         {
             _loanRequestService = loanRequestService;
+            _loanInstallmentService = loanInstallmentService;
         }
 
         //public LoanController(ILoanRequestService loanService)
@@ -92,5 +96,21 @@ namespace KasraLoan.API.Controllers
             return Ok(result);
         }
 
+        [HttpGet("admin")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> GetAdminLoans([FromQuery] LoanStatus? status)
+        {
+            var result = await _loanRequestService.GetAdminLoansAsync(status);
+
+            return Ok(result);
+        }
+
+        [HttpGet("{loanId}/installments")]
+        public async Task<IActionResult> GetInstallments(Guid loanId)
+        {
+            var result = await _loanInstallmentService.GetLoanInstallmentsAsync(loanId);
+
+            return Ok(result);
+        }
     }
 }

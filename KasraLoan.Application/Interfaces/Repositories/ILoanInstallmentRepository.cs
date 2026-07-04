@@ -12,5 +12,7 @@ namespace KasraLoan.Application.Interfaces.Repositories
         Task AddRangeAsync(IEnumerable<LoanInstallment> installments);
 
         Task SaveChangesAsync();
+
+        Task<List<LoanInstallment>> GetByLoanIdAsync(Guid loanId);
     }
 }

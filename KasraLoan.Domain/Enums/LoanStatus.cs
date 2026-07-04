@@ -11,6 +11,8 @@ namespace KasraLoan.Domain.Enums
         Pending = 0,
         Approved = 1,
         Rejected = 2,
-        Paid = 3
+        Active = 3,
+        Paid = 4,
+        Closed = 5
     }
 }
