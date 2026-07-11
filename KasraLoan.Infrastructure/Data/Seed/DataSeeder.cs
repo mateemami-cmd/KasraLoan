@@ -71,6 +71,8 @@ namespace KasraLoan.Infrastructure.Data.Seed
             }
 
             await context.SaveChangesAsync();
+
+            await EmployeeSeeder.SeedAsync(context);
         }
     }
 }

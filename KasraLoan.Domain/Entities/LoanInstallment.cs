@@ -34,6 +34,7 @@ namespace KasraLoan.Domain.Entities
     }
 
 
+
     //public class LoanInstallment
     //{
     //    public int Id { get; set; }

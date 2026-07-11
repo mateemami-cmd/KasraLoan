@@ -112,5 +112,18 @@ namespace KasraLoan.API.Controllers
 
             return Ok(result);
         }
+
+        [HttpPost("installments/{installmentId}/pay")]
+        public async Task<IActionResult> PayInstallment(Guid installmentId)
+        {
+            var employeeId = Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+
+            var result = await _loanInstallmentService.PayInstallmentAsync(installmentId, employeeId);
+
+            if (!result.IsSuccess)
+                return BadRequest(result);
+
+            return Ok(result);
+        }
     }
 }

@@ -6,11 +6,16 @@ using System.Threading.Tasks;
 
 namespace KasraLoan.Application.DTOs.Loans
 {
-    public  class LoanInstallmentDto
+    public class LoanInstallmentDto
     {
+        public Guid Id { get; set; }
+
         public int InstallmentNumber { get; set; }
+
         public decimal Amount { get; set; }
+
         public DateTime DueDate { get; set; }
+
         public bool IsPaid { get; set; }
     }
 }

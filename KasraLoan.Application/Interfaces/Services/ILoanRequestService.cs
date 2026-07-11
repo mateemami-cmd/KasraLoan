@@ -21,4 +21,6 @@ namespace KasraLoan.Application.Interfaces.Services
 }
 
 
-        //Task<ApiResponse<List<LoanRequestDto>>> GetPendingLoanByEmployeeIdAsync(Guid employeeId);
+                
+
+                        //Task<ApiResponse<List<LoanRequestDto>>> GetPendingLoanByEmployeeIdAsync(Guid employeeId);

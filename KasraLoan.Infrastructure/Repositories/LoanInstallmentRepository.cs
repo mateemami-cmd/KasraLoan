@@ -35,5 +35,18 @@ namespace KasraLoan.Infrastructure.Repositories
                 .Where(x => x.LoanRequestId == loanId)
                 .ToListAsync();
         }
+
+        public async Task<LoanInstallment?> GetByIdAsync(Guid installmentId)
+        {
+            return await _context.LoanInstallments
+                .FirstOrDefaultAsync(x => x.Id == installmentId);
+        }
+
+        public async Task<LoanInstallment?> GetByIdWithLoanAsync(Guid installmentId)
+        {
+            return await _context.LoanInstallments
+                .Include(x => x.LoanRequest)
+                .FirstOrDefaultAsync(x => x.Id == installmentId);
+        }
     }
 }

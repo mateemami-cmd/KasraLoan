@@ -25,6 +25,7 @@ namespace KasraLoan.Application.Services
 
             var result = installments.Select(x => new LoanInstallmentDto
             {
+                Id = x.Id,
                 InstallmentNumber = x.InstallmentNumber,
                 Amount = x.Amount,
                 DueDate = x.DueDate,
@@ -35,6 +36,47 @@ namespace KasraLoan.Application.Services
             {
                 IsSuccess = true,
                 Data = result
+            };
+        }
+
+        public async Task<ApiResponse<bool>> PayInstallmentAsync(Guid installmentId, Guid employeeId)
+        {
+            //var installment = await _repo.GetByIdAsync(installmentId);
+            var installment = await _repo.GetByIdWithLoanAsync(installmentId);
+
+            if (installment == null)
+            {
+                return new ApiResponse<bool>
+                {
+                    IsSuccess = false,
+                    Message = "قسط مورد نظر یافت نشد."
+                };
+            }
+            if (installment.LoanRequest.EmployeeId != employeeId)
+            {
+                return new ApiResponse<bool>
+                {
+                    IsSuccess = false,
+                    Message = "شما اجازه پرداخت این قسط را ندارید."
+                };
+            }
+            if (installment.IsPaid)
+            {
+                return new ApiResponse<bool>
+                {
+                    IsSuccess = false,
+                    Message = "این قسط قبلاً پرداخت شده است."
+                };
+            }
+            installment.IsPaid = true;
+
+            await _repo.SaveChangesAsync();
+
+            return new ApiResponse<bool>
+            {
+                IsSuccess = true,
+                Data = true,
+                Message = "قسط با موفقیت پرداخت شد."
             };
         }
     }
