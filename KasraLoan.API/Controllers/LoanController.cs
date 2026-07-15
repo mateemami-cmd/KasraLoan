@@ -5,10 +5,10 @@ using KasraLoan.Domain.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
+using Google.GenAI;
 
 namespace KasraLoan.API.Controllers
 {
-
     [ApiController]
     [Route("api/[controller]")]
     [Authorize]

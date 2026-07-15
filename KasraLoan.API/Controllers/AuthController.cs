@@ -1,5 +1,7 @@
-﻿using KasraLoan.Application.Services.Auth;
+﻿using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using KasraLoan.Application.Features.Authentication.Login;
+using KasraLoan.Application.DTOs.Auth;
 
 namespace KasraLoan.API.Controllers
 {
@@ -7,22 +9,22 @@ namespace KasraLoan.API.Controllers
     [Route("api/[controller]")]
     public class AuthController : ControllerBase
     {
-        private readonly IAuthService _authService;
+        private readonly IMediator _mediator;
 
-        public AuthController(IAuthService authService)
+        public AuthController(IMediator mediator)
         {
-            _authService = authService;
+            _mediator = mediator;
         }
 
         [HttpPost("login")]
-        public async Task<IActionResult> Login([FromBody] string token)
+        public async Task<IActionResult> Login([FromBody] LoginRequestDto request)
         {
-            var jwt = await _authService.LoginByToken(token);
+            var result = await _mediator.Send(new LoginCommand
+            {
+                LoginRequest = request
+            });
 
-            if (jwt is null)
-                return Unauthorized();
-
-            return Ok(new { token = jwt });
+            return Ok(result);
         }
     }
 }

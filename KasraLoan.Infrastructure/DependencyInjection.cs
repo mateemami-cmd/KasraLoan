@@ -37,8 +37,10 @@ namespace KasraLoan.Infrastructure
             services.AddScoped<ILoanRule, ImmediatePaymentLoanRule>();
             services.AddScoped<ILoanRule, QarzolhasanehLoanRule>();
             services.AddScoped<ILoanRule, BankIntroductionLoanRule>();
-            services.AddScoped<IAuthService, AuthService>();
+            //services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<ILoanInstallmentService, LoanInstallmentService>();
+            services.AddScoped<IAuthRepository, AuthRepository>();
+            services.AddScoped<IJwtService, JwtService>();
 
             return services;
         }

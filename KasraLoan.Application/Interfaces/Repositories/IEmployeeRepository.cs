@@ -15,5 +15,6 @@ namespace KasraLoan.Application.Interfaces.Repositories
         Task AddAsync(Employee employee);
         Task UpdateAsync(Employee employee);
         Task DeleteAsync(Employee employee);
+        Task SaveChangesAsync();
     }
 }

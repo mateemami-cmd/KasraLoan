@@ -24,6 +24,6 @@ namespace KasraLoan.Domain.Entities
 
         public int? ReplacedByTokenId { get; set; }
 
-        public Employee Employee { get; set; }
+        public Employee Employee { get; set; } = null!;
     }
 }

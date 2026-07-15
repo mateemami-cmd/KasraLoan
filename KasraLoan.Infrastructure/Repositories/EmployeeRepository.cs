@@ -57,5 +57,10 @@ namespace KasraLoan.Infrastructure.Repositories
             _context.Employees.Remove(employee);
             return Task.CompletedTask;
         }
+
+        public async Task SaveChangesAsync()
+        {
+            await _context.SaveChangesAsync();
+        }
     }
 }
