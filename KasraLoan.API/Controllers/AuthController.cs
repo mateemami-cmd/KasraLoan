@@ -1,7 +1,11 @@
-﻿using MediatR;
-using Microsoft.AspNetCore.Mvc;
+﻿using KasraLoan.Application.DTOs.Auth;
 using KasraLoan.Application.Features.Authentication.Login;
-using KasraLoan.Application.DTOs.Auth;
+using KasraLoan.Application.Features.Authentication.Logout;
+using KasraLoan.Application.Features.Authentication.Refresh;
+using KasraLoan.Application.Features.Employee.Queries.GetCurrentUser;
+using MediatR;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 
 namespace KasraLoan.API.Controllers
 {
@@ -23,6 +27,41 @@ namespace KasraLoan.API.Controllers
             {
                 LoginRequest = request
             });
+
+            return Ok(result);
+        }
+
+        [HttpPost("logout")]
+        public async Task<IActionResult> Logout([FromBody] LogoutRequestDto request)
+        {
+            await _mediator.Send(new LogoutCommand
+            {
+                RefreshToken = request.RefreshToken
+            });
+
+            return Ok(new
+            {
+                Message = "Logged out successfully."
+            });
+        }
+
+        [HttpPost("refresh")]
+        public async Task<IActionResult> Refresh(
+           [FromBody] RefreshTokenRequestDto request)
+        {
+            var result = await _mediator.Send(new RefreshCommand
+            {
+                Request = request
+            });
+
+            return Ok(result);
+        }
+
+        [Authorize]
+        [HttpGet("me")]
+        public async Task<IActionResult> Me()
+        {
+            var result = await _mediator.Send(new GetCurrentUserQuery());
 
             return Ok(result);
         }

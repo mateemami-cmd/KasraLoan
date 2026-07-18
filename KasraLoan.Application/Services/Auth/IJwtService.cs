@@ -9,5 +9,7 @@ namespace KasraLoan.Application.Services.Auth
     public interface IJwtService
     {
         string GenerateToken(Guid employeeId, string firstName, string personnelNumber, string role);
+
+        string GenerateRefreshToken();
     }
 }

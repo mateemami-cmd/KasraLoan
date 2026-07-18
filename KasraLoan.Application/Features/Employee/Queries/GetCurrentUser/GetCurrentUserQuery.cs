@@ -9,6 +9,6 @@ namespace KasraLoan.Application.Features.Employee.Queries.GetCurrentUser
 {
     public class GetCurrentUserQuery : IRequest<GetCurrentUserResponse>
     {
-        public Guid EmployeeId { get; set; }
+        //public Guid EmployeeId { get; set; }
     }
 }

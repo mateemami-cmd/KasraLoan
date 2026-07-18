@@ -21,26 +21,51 @@ namespace KasraLoan.Infrastructure
         {
             // Repositories
             services.AddScoped<ILoanTypeRepository, LoanTypeRepository>();
+
             services.AddScoped<IEmployeeScoreRepository, EmployeeScoreRepository>();
+
             services.AddScoped<ILoanInstallmentRepository, LoanInstallmentRepository>();
+
             services.AddScoped<IEmployeeRepository, EmployeeRepository>();
+
             services.AddScoped<IEmployeeService, EmployeeService>();
+
             services.AddScoped<IEmployeeScoreService, EmployeeScoreService>();
+
             services.AddScoped<ILoanEligibilityService, LoanEligibilityService>();
+
             services.AddScoped<ILoanCalculationService, LoanCalculationService>();
+
             services.AddScoped<ILoanRequestRepository, LoanRequestRepository>();
+
             services.AddScoped<ILoanRequestService, LoanRequestService>();
-            services.AddScoped<LoanRuleEngine>();
+
+            services.AddScoped<ILoanRuleEngine, LoanRuleEngine>();
+
             services.AddScoped<ILoanRule, TravelLoanRule>();
+
             services.AddScoped<ILoanRule, MarriageLoanRule>();
+
             services.AddScoped<ILoanRule, SpecialCaseLoanRule>();
+
             services.AddScoped<ILoanRule, ImmediatePaymentLoanRule>();
+
             services.AddScoped<ILoanRule, QarzolhasanehLoanRule>();
+
             services.AddScoped<ILoanRule, BankIntroductionLoanRule>();
+
             //services.AddScoped<IAuthService, AuthService>();
+
             services.AddScoped<ILoanInstallmentService, LoanInstallmentService>();
+
             services.AddScoped<IAuthRepository, AuthRepository>();
+
             services.AddScoped<IJwtService, JwtService>();
+
+            services.AddHttpContextAccessor();
+            services.AddScoped<ICurrentUserService, CurrentUserService>();
+
+            services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
 
             return services;
         }

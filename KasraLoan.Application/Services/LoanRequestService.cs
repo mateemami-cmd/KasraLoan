@@ -94,14 +94,27 @@ namespace KasraLoan.Application.Services
                 };
             }
 
-            var score = await _employeeScoreRepository.GetScoreByEmployeeIdAsync(employeeGuid);
+            var employeeScore = await _employeeScoreRepository.GetByEmployeeIdAsync(employeeGuid);
+
+            if (employeeScore == null)
+            {
+                return new ApiResponse<Guid>
+                {
+                    IsSuccess = false,
+                    Message = "امتیاز کاربر یافت نشد"
+                };
+            }
+
+            var score = employeeScore.Score;
 
             if (score < 600)
+            {
                 return new ApiResponse<Guid>
                 {
                     IsSuccess = false,
                     Message = "امتیاز کاربر کافی نیست"
                 };
+            }
 
             var context = new LoanRuleContext
             {

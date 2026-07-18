@@ -2,7 +2,7 @@
 
 namespace KasraLoan.Application.LoanRules
 {
-    public class LoanRuleEngine
+    public class LoanRuleEngine : ILoanRuleEngine
     {
         private readonly IEnumerable<ILoanRule> _rules;
 

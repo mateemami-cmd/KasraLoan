@@ -6,6 +6,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using Google.GenAI;
+using KasraLoan.Application.Features.Loan.Commands.CreateLoanRequest;
+using MediatR;
 
 namespace KasraLoan.API.Controllers
 {
@@ -14,39 +16,24 @@ namespace KasraLoan.API.Controllers
     [Authorize]
     public class LoanController : ControllerBase
     {
-        private readonly ILoanRequestService _loanRequestService;
+        private readonly IMediator _mediator;
         private readonly ILoanInstallmentService _loanInstallmentService;
+        private readonly ILoanRequestService _loanRequestService;
         //private readonly ILoanRequestService _loanService;
 
-        public LoanController(ILoanRequestService loanRequestService, ILoanInstallmentService loanInstallmentService)
+        public LoanController(IMediator mediator,ILoanInstallmentService loanInstallmentService, ILoanRequestService loanRequestService)
         {
-            _loanRequestService = loanRequestService;
+            _mediator = mediator;
             _loanInstallmentService = loanInstallmentService;
+            _loanRequestService = loanRequestService;
         }
 
-        //public LoanController(ILoanRequestService loanService)
-        //{
-        //    _loanRequestService = loanService;
-        //}
-
         [HttpPost("request")]
-        public async Task<IActionResult> CreateLoanRequest(CreateLoanRequestDto dto)
+        public async Task<IActionResult> CreateLoanRequest(CreateLoanRequestCommand command)
         {
-            var employeeId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var result = await _mediator.Send(command);
 
-            var result = await _loanRequestService.CreateLoanRequestAsync(employeeId, dto);
-
-            if (!result.IsSuccess)
-                return BadRequest(new
-                {
-                    result.Message
-                });
-
-            return Ok(new
-            {
-                LoanRequestId = result.Data,
-                result.Message
-            });
+            return Ok(result);
         }
 
         [HttpPost("approve/{id}")]

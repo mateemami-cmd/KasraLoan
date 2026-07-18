@@ -1,4 +1,5 @@
 ﻿using FluentValidation;
+using KasraLoan.API.Authorization;
 using KasraLoan.API.Middlewares;
 using KasraLoan.Application.Behaviors;
 using KasraLoan.Application.Interfaces.Repositories;
@@ -94,7 +95,22 @@ namespace KasraLoan.API
                 };
             });
 
-            builder.Services.AddAuthorization();
+            //builder.Services.AddAuthorization();
+
+            builder.Services.AddAuthorization(options =>
+            {
+                options.AddPolicy(
+                    LoanPolicies.AdminOnly,
+                    policy => policy.RequireRole("Admin"));
+
+                options.AddPolicy(
+                    LoanPolicies.EmployeeOnly,
+                    policy => policy.RequireRole("Employee"));
+
+                options.AddPolicy(
+                    LoanPolicies.AdminOrEmployee,
+                    policy => policy.RequireRole("Admin", "Employee"));
+            });
 
             builder.Services.AddDbContext<KasraLoanDbContext>(options =>
             options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
