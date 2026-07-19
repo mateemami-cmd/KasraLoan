@@ -34,6 +34,7 @@ namespace KasraLoan.Infrastructure.Repositories
         public async Task<List<LoanRequest>> GetByEmployeeIdAsync(Guid employeeId)
         {
             return await _context.LoanRequests
+                .Include(x => x.LoanType)
                 .Where(x => x.EmployeeId == employeeId)
                 .ToListAsync();
         }

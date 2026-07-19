@@ -14,7 +14,7 @@ namespace KasraLoan.Application.Services
         private readonly IEmployeeRepository _employeeRepository;
         private readonly ILoanTypeRepository _loanTypeRepository;
         private readonly ILoanCalculationService _loanCalculationService;
-        private readonly LoanRuleEngine _loanRuleEngine;
+        private readonly ILoanRuleEngine _loanRuleEngine;
         private readonly IEmployeeScoreRepository _employeeScoreRepository;
         private readonly ILoanInstallmentRepository _loanInstallmentRepository;
 
@@ -23,7 +23,7 @@ namespace KasraLoan.Application.Services
         IEmployeeRepository employeeRepository,
         ILoanTypeRepository loanTypeRepository,
         ILoanCalculationService loanCalculationService,
-        LoanRuleEngine loanRuleEngine,
+        ILoanRuleEngine loanRuleEngine,
         IEmployeeScoreRepository employeeScoreRepository,
         ILoanInstallmentRepository loanInstallmentRepository)
         {

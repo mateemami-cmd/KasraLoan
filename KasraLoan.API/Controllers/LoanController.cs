@@ -1,13 +1,16 @@
-﻿using KasraLoan.Application.DTOs.Loans;
+﻿using Google.GenAI;
+using KasraLoan.Application.DTOs.Loans;
+using KasraLoan.Application.Features.Loan.Commands.ApproveLoan;
+using KasraLoan.Application.Features.Loan.Commands.CreateLoanRequest;
+using KasraLoan.Application.Features.Loan.Commands.RejectLoan;
+using KasraLoan.Application.Features.Loan.Queries.GetMyLoans;
 using KasraLoan.Application.Interfaces.Services;
 using KasraLoan.Application.Services;
 using KasraLoan.Domain.Enums;
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
-using Google.GenAI;
-using KasraLoan.Application.Features.Loan.Commands.CreateLoanRequest;
-using MediatR;
 
 namespace KasraLoan.API.Controllers
 {
@@ -40,33 +43,31 @@ namespace KasraLoan.API.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> ApproveLoan(Guid id)
         {
-            var result = await _loanRequestService.ApproveLoanAsync(id);
+            var result = await _mediator.Send(new ApproveLoanCommand
+            {
+                LoanRequestId = id
+            });
 
-            if (!result.IsSuccess)
-                return BadRequest(result.Message);
-
-            return Ok(result.Message);
+            return Ok(result);
         }
 
         [HttpPost("reject/{id}")]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> RejectLoan(Guid id)
         {
-            var result = await _loanRequestService.RejectLoanAsync(id);
+            var result = await _mediator.Send(new RejectLoanCommand
+            {
+                LoanRequestId = id
+            });
 
-            if (!result.IsSuccess)
-                return BadRequest(result.Message);
-
-            return Ok(result.Message);
+            return Ok(result);
         }
 
         [HttpGet("my-loans")]
         [Authorize]
         public async Task<IActionResult> GetMyLoans()
         {
-            var employeeId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
-            var result = await _loanRequestService.GetLoansByEmployeeIdAsync(Guid.Parse(employeeId));
+            var result = await _mediator.Send(new GetMyLoansQuery());
 
             return Ok(result);
         }
