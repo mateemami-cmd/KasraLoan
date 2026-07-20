@@ -3,7 +3,10 @@ using KasraLoan.Application.DTOs.Loans;
 using KasraLoan.Application.Features.Loan.Commands.ApproveLoan;
 using KasraLoan.Application.Features.Loan.Commands.CreateLoanRequest;
 using KasraLoan.Application.Features.Loan.Commands.RejectLoan;
+using KasraLoan.Application.Features.Loan.Queries.GetLoanById;
 using KasraLoan.Application.Features.Loan.Queries.GetMyLoans;
+using KasraLoan.Application.Features.Loan.Queries.GetMyLoans.GetAllLoans;
+using KasraLoan.Application.Features.Loan.Queries.GetAdminDashboard;
 using KasraLoan.Application.Interfaces.Services;
 using KasraLoan.Application.Services;
 using KasraLoan.Domain.Enums;
@@ -24,7 +27,7 @@ namespace KasraLoan.API.Controllers
         private readonly ILoanRequestService _loanRequestService;
         //private readonly ILoanRequestService _loanService;
 
-        public LoanController(IMediator mediator,ILoanInstallmentService loanInstallmentService, ILoanRequestService loanRequestService)
+        public LoanController(IMediator mediator, ILoanInstallmentService loanInstallmentService, ILoanRequestService loanRequestService)
         {
             _mediator = mediator;
             _loanInstallmentService = loanInstallmentService;
@@ -74,12 +77,15 @@ namespace KasraLoan.API.Controllers
 
         [HttpGet("all")]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> GetAllLoans()
+        public async Task<IActionResult> GetAllLoans(
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 10)
         {
-            var result = await _loanRequestService.GetAllLoansAsync();
-
-            if (!result.IsSuccess)
-                return BadRequest(result.Message);
+            var result = await _mediator.Send(new GetAllLoansQuery
+            {
+                Page = page,
+                PageSize = pageSize
+            });
 
             return Ok(result);
         }
@@ -110,6 +116,27 @@ namespace KasraLoan.API.Controllers
 
             if (!result.IsSuccess)
                 return BadRequest(result);
+
+            return Ok(result);
+        }
+
+        [HttpGet("dashboard")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> GetDashboard()
+        {
+            var result = await _mediator.Send(new GetAdminDashboardQuery());
+
+            return Ok(result);
+        }
+
+        [HttpGet("{id}")]
+        [Authorize]
+        public async Task<IActionResult> GetLoanById(Guid id)
+        {
+            var result = await _mediator.Send(new GetLoanByIdQuery
+            {
+                LoanId = id
+            });
 
             return Ok(result);
         }

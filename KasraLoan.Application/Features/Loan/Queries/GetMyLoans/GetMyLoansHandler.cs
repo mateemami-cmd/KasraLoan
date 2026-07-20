@@ -29,30 +29,27 @@ namespace KasraLoan.Application.Features.Loan.Queries.GetMyLoans
         {
             var employeeId = _currentUserService.UserId;
 
-            Console.WriteLine($"Current User Id: {employeeId}");
-
             var loans = await _loanRequestRepository
                 .GetByEmployeeIdAsync(employeeId);
 
-            Console.WriteLine($"Loans Count: {loans.Count}");
+            var count = loans.Count;
 
-            var result = new List<GetMyLoansResponse>();
+            Guid? firstEmployeeId = null;
 
-            //foreach (var loan in loans)
-            //{
-            //    var loanType = await _loanTypeRepository
-            //        .GetByIdAsync(loan.LoanTypeId);
+            if (count > 0)
+            {
+                firstEmployeeId = loans[0].EmployeeId;
+            }
 
-            //    result.Add(new GetMyLoansResponse
-            //    {
-            //        Id = loan.Id,
-            //        LoanType = loanType?.Name ?? "",
-            //        RequestedAmount = loan.RequestedAmount,
-            //        ApprovedAmount = loan.ApprovedAmount,
-            //        InstallmentCount = loan.InstallmentCount,
-            //        Status = loan.Status.ToString()
-            //    });
-            //}
+            var result = loans.Select(loan => new GetMyLoansResponse
+            {
+                Id = loan.Id,
+                LoanType = loan.LoanType.Name,
+                RequestedAmount = loan.RequestedAmount,
+                ApprovedAmount = loan.ApprovedAmount,
+                InstallmentCount = loan.InstallmentCount,
+                Status = loan.Status.ToString()
+            }).ToList();
 
             return result;
         }

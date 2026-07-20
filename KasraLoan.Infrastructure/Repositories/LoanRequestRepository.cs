@@ -28,6 +28,9 @@ namespace KasraLoan.Infrastructure.Repositories
         public async Task<LoanRequest?> GetByIdAsync(Guid id)
         {
             return await _context.LoanRequests
+                .Include(x => x.Employee)
+                .Include(x => x.LoanType)
+                .Include(x => x.LoanInstallments)
                 .FirstOrDefaultAsync(x => x.Id == id);
         }
 
@@ -50,6 +53,47 @@ namespace KasraLoan.Infrastructure.Repositories
         public async Task<List<LoanRequest>> GetAllAsync()
         {
             return await _context.LoanRequests.ToListAsync();
+        }
+
+        public async Task<int> GetPendingCountAsync()
+        {
+            return await _context.LoanRequests
+                .CountAsync(x => x.Status == LoanStatus.Pending);
+        }
+
+        public async Task<int> GetApprovedCountAsync()
+        {
+            return await _context.LoanRequests
+                .CountAsync(x => x.Status == LoanStatus.Approved);
+        }
+
+        public async Task<int> GetRejectedCountAsync()
+        {
+            return await _context.LoanRequests
+                .CountAsync(x => x.Status == LoanStatus.Rejected);
+        }
+
+        public async Task<decimal> GetTotalRequestedAmountAsync()
+        {
+            return await _context.LoanRequests
+                .SumAsync(x => (decimal)x.RequestedAmount);
+        }
+
+        public async Task<decimal> GetTotalApprovedAmountAsync()
+        {
+            return await _context.LoanRequests
+                .SumAsync(x => (decimal)x.ApprovedAmount);
+        }
+
+        public async Task<List<LoanRequest>> GetPagedAsync(int page, int pageSize)
+        {
+            return await _context.LoanRequests
+                .Include(x => x.Employee)
+                .Include(x => x.LoanType)
+                .OrderByDescending(x => x.CreatedAt)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
         }
 
         public async Task SaveChangesAsync()

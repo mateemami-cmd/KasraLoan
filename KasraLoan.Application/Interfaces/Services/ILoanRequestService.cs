@@ -11,9 +11,9 @@ namespace KasraLoan.Application.Interfaces.Services
 {
     public interface ILoanRequestService
     {
-        Task<ApiResponse<Guid>> CreateLoanRequestAsync(string employeeId, CreateLoanRequestDto dto);
-        Task<ApiResponse<bool>> RejectLoanAsync(Guid LoanId);
-        Task<ApiResponse<bool>> ApproveLoanAsync(Guid LoanId);
+        //Task<ApiResponse<Guid>> CreateLoanRequestAsync(string employeeId, CreateLoanRequestDto dto);
+        //Task<ApiResponse<bool>> RejectLoanAsync(Guid LoanId);
+        //Task<ApiResponse<bool>> ApproveLoanAsync(Guid LoanId);
         Task<ApiResponse<List<LoanRequestDto>>> GetLoansByEmployeeIdAsync(Guid employeeId);
         Task<ApiResponse<List<LoanRequestDto>>> GetAllLoansAsync();
         Task<ApiResponse<List<LoanRequestDto>>> GetAdminLoansAsync(LoanStatus? status);

@@ -36,213 +36,213 @@ namespace KasraLoan.Application.Services
             _loanInstallmentRepository = loanInstallmentRepository;
         }
 
-        public async Task<ApiResponse<Guid>> CreateLoanRequestAsync(string employeeId, CreateLoanRequestDto dto)
-        {
-            if (dto.RequestedAmount <= 0)
-            {
-                return new ApiResponse<Guid>
-                {
-                    IsSuccess = false,
-                    Message = "مبلغ وام نامعتبر است"
-                };
-            }
+        //public async Task<ApiResponse<Guid>> CreateLoanRequestAsync(string employeeId, CreateLoanRequestDto dto)
+        //{
+        //    if (dto.RequestedAmount <= 0)
+        //    {
+        //        return new ApiResponse<Guid>
+        //        {
+        //            IsSuccess = false,
+        //            Message = "مبلغ وام نامعتبر است"
+        //        };
+        //    }
 
-            if (dto.InstallmentCount <= 0)
-            {
-                return new ApiResponse<Guid>
-                {
-                    IsSuccess = false,
-                    Message = "تعداد اقساط نامعتبر است"
-                };
-            }
+        //    if (dto.InstallmentCount <= 0)
+        //    {
+        //        return new ApiResponse<Guid>
+        //        {
+        //            IsSuccess = false,
+        //            Message = "تعداد اقساط نامعتبر است"
+        //        };
+        //    }
 
-            var employeeGuid = Guid.Parse(employeeId);
-            var employee = await _employeeRepository.GetByIdAsync(employeeGuid);
-            if (employee == null)
-                return new ApiResponse<Guid>
-                {
-                    IsSuccess = false,
-                    Message = "کاربر یافت نشد"
-                };
+        //    var employeeGuid = Guid.Parse(employeeId);
+        //    var employee = await _employeeRepository.GetByIdAsync(employeeGuid);
+        //    if (employee == null)
+        //        return new ApiResponse<Guid>
+        //        {
+        //            IsSuccess = false,
+        //            Message = "کاربر یافت نشد"
+        //        };
 
-            var existingPendingLoan = await _loanRequestRepository
-            .GetPendingLoanByEmployeeIdAsync(employeeGuid);
+        //    var existingPendingLoan = await _loanRequestRepository
+        //    .GetPendingLoanByEmployeeIdAsync(employeeGuid);
 
-            if (existingPendingLoan != null)
-            {
-                return new ApiResponse<Guid>
-                {
-                    IsSuccess = false,
-                    Message = "شما یک درخواست وام در حال بررسی دارید"
-                };
-            }
+        //    if (existingPendingLoan != null)
+        //    {
+        //        return new ApiResponse<Guid>
+        //        {
+        //            IsSuccess = false,
+        //            Message = "شما یک درخواست وام در حال بررسی دارید"
+        //        };
+        //    }
 
-            var loanType = await _loanTypeRepository.GetByIdAsync(dto.LoanTypeId);
-            if (loanType == null)
-                return new ApiResponse<Guid>
-                {
-                    IsSuccess = false,
-                    Message = "نوع وام نامعتبر است"
-                };
+        //    var loanType = await _loanTypeRepository.GetByIdAsync(dto.LoanTypeId);
+        //    if (loanType == null)
+        //        return new ApiResponse<Guid>
+        //        {
+        //            IsSuccess = false,
+        //            Message = "نوع وام نامعتبر است"
+        //        };
 
-            if (!loanType.IsActive)
-            {
-                return new ApiResponse<Guid>
-                {
-                    IsSuccess = false,
-                    Message = "این نوع وام در حال حاضر فعال نمی‌باشد."
-                };
-            }
+        //    if (!loanType.IsActive)
+        //    {
+        //        return new ApiResponse<Guid>
+        //        {
+        //            IsSuccess = false,
+        //            Message = "این نوع وام در حال حاضر فعال نمی‌باشد."
+        //        };
+        //    }
 
-            var employeeScore = await _employeeScoreRepository.GetByEmployeeIdAsync(employeeGuid);
+        //    var employeeScore = await _employeeScoreRepository.GetByEmployeeIdAsync(employeeGuid);
 
-            if (employeeScore == null)
-            {
-                return new ApiResponse<Guid>
-                {
-                    IsSuccess = false,
-                    Message = "امتیاز کاربر یافت نشد"
-                };
-            }
+        //    if (employeeScore == null)
+        //    {
+        //        return new ApiResponse<Guid>
+        //        {
+        //            IsSuccess = false,
+        //            Message = "امتیاز کاربر یافت نشد"
+        //        };
+        //    }
 
-            var score = employeeScore.Score;
+        //    var score = employeeScore.Score;
 
-            if (score < 600)
-            {
-                return new ApiResponse<Guid>
-                {
-                    IsSuccess = false,
-                    Message = "امتیاز کاربر کافی نیست"
-                };
-            }
+        //    if (score < 600)
+        //    {
+        //        return new ApiResponse<Guid>
+        //        {
+        //            IsSuccess = false,
+        //            Message = "امتیاز کاربر کافی نیست"
+        //        };
+        //    }
 
-            var context = new LoanRuleContext
-            {
-                Employee = employee,
-                LoanType = loanType,
-                RequestedAmount = dto.RequestedAmount,
-                EmployeeScore = score
-            };
+        //    var context = new LoanRuleContext
+        //    {
+        //        Employee = employee,
+        //        LoanType = loanType,
+        //        RequestedAmount = dto.RequestedAmount,
+        //        EmployeeScore = score
+        //    };
 
-            var ruleResult = _loanRuleEngine.Evaluate(context);
+        //    var ruleResult = _loanRuleEngine.Evaluate(context);
 
-            if (!ruleResult.IsAllowed)
-            {
-                return new ApiResponse<Guid>
-                {
-                    IsSuccess = false,
-                    Message = ruleResult.Message ?? "درخواست رد شد"
-                };
-            }
+        //    if (!ruleResult.IsAllowed)
+        //    {
+        //        return new ApiResponse<Guid>
+        //        {
+        //            IsSuccess = false,
+        //            Message = ruleResult.Message ?? "درخواست رد شد"
+        //        };
+        //    }
 
-            if (dto.RequestedAmount > ruleResult.MaxAllowedAmount)
-            {
-                return new ApiResponse<Guid>
-                {
-                    IsSuccess = false,
-                    Message = $"مبلغ وام بیشتر از سقف مجاز است. سقف مجاز: {ruleResult.MaxAllowedAmount}"
-                };
-            }
+        //    if (dto.RequestedAmount > ruleResult.MaxAllowedAmount)
+        //    {
+        //        return new ApiResponse<Guid>
+        //        {
+        //            IsSuccess = false,
+        //            Message = $"مبلغ وام بیشتر از سقف مجاز است. سقف مجاز: {ruleResult.MaxAllowedAmount}"
+        //        };
+        //    }
 
-            if (dto.InstallmentCount > ruleResult.MaxInstallments)
-            {
-                return new ApiResponse<Guid>
-                {
-                    IsSuccess = false,
-                    Message = $"تعداد اقساط بیشتر از حد مجاز است. سقف اقساط: {ruleResult.MaxInstallments}"
-                };
-            }
+        //    if (dto.InstallmentCount > ruleResult.MaxInstallments)
+        //    {
+        //        return new ApiResponse<Guid>
+        //        {
+        //            IsSuccess = false,
+        //            Message = $"تعداد اقساط بیشتر از حد مجاز است. سقف اقساط: {ruleResult.MaxInstallments}"
+        //        };
+        //    }
 
-            var baseInstallment = dto.RequestedAmount / dto.InstallmentCount;
-            var loan = new LoanRequest
-            {
-                EmployeeId = employeeGuid,
-                LoanTypeId = dto.LoanTypeId,
-                RequestedAmount = dto.RequestedAmount,
-                ApprovedAmount = dto.RequestedAmount,
-                InstallmentCount = dto.InstallmentCount,
-                Status = LoanStatus.Pending,
-                CreatedAt = DateTime.UtcNow,
-                TotalPayableAmount = dto.RequestedAmount,
+        //    var baseInstallment = dto.RequestedAmount / dto.InstallmentCount;
+        //    var loan = new LoanRequest
+        //    {
+        //        EmployeeId = employeeGuid,
+        //        LoanTypeId = dto.LoanTypeId,
+        //        RequestedAmount = dto.RequestedAmount,
+        //        ApprovedAmount = dto.RequestedAmount,
+        //        InstallmentCount = dto.InstallmentCount,
+        //        Status = LoanStatus.Pending,
+        //        CreatedAt = DateTime.UtcNow,
+        //        TotalPayableAmount = dto.RequestedAmount,
 
-                MonthlyPaymentAmount =
-                baseInstallment +
-                ((dto.RequestedAmount * ruleResult.MonthlyFeePercent) / 100)
-            };
+        //        MonthlyPaymentAmount =
+        //        baseInstallment +
+        //        ((dto.RequestedAmount * ruleResult.MonthlyFeePercent) / 100)
+        //    };
 
-            await _loanRequestRepository.AddAsync(loan);
-            await _loanRequestRepository.SaveChangesAsync();
+        //    await _loanRequestRepository.AddAsync(loan);
+        //    await _loanRequestRepository.SaveChangesAsync();
 
-            var installments = new List<LoanInstallment>();
+        //    var installments = new List<LoanInstallment>();
 
-            for (int i = 1; i <= loan.InstallmentCount; i++)
-            {
-                installments.Add(new LoanInstallment
-                {
-                    LoanRequestId = loan.Id,
-                    InstallmentNumber = i,
-                    Amount = loan.MonthlyPaymentAmount,
-                    DueDate = DateTime.UtcNow.AddMonths(i),
-                    IsPaid = false
-                });
-            }
+        //    for (int i = 1; i <= loan.InstallmentCount; i++)
+        //    {
+        //        installments.Add(new LoanInstallment
+        //        {
+        //            LoanRequestId = loan.Id,
+        //            InstallmentNumber = i,
+        //            Amount = loan.MonthlyPaymentAmount,
+        //            DueDate = DateTime.UtcNow.AddMonths(i),
+        //            IsPaid = false
+        //        });
+        //    }
 
-            await _loanInstallmentRepository.AddRangeAsync(installments);
-            await _loanInstallmentRepository.SaveChangesAsync();
+        //    await _loanInstallmentRepository.AddRangeAsync(installments);
+        //    await _loanInstallmentRepository.SaveChangesAsync();
 
-            return new ApiResponse<Guid>
-            {
-                IsSuccess = true,
-                Message = "درخواست با موفقیت ثبت شد",
-                Data = loan.Id
-            };
-        }
+        //    return new ApiResponse<Guid>
+        //    {
+        //        IsSuccess = true,
+        //        Message = "درخواست با موفقیت ثبت شد",
+        //        Data = loan.Id
+        //    };
+        //}
 
-        public async Task<ApiResponse<bool>> ApproveLoanAsync(Guid loanId)
-        {
-            var loan = await _loanRequestRepository.GetByIdAsync(loanId);
+        //public async Task<ApiResponse<bool>> ApproveLoanAsync(Guid loanId)
+        //{
+        //    var loan = await _loanRequestRepository.GetByIdAsync(loanId);
 
-            if (loan == null)
-                return new ApiResponse<bool> { IsSuccess = false, Message = "وام یافت نشد" };
+        //    if (loan == null)
+        //        return new ApiResponse<bool> { IsSuccess = false, Message = "وام یافت نشد" };
 
-            if (loan.Status != LoanStatus.Pending)
-                return new ApiResponse<bool> { IsSuccess = false, Message = "این وام قابل تأیید نیست" };
+        //    if (loan.Status != LoanStatus.Pending)
+        //        return new ApiResponse<bool> { IsSuccess = false, Message = "این وام قابل تأیید نیست" };
 
-            loan.Status = LoanStatus.Approved;
+        //    loan.Status = LoanStatus.Approved;
 
-            //await _loanRequestRepository.UpdateAsync(loan);
-            await _loanRequestRepository.SaveChangesAsync();
+        //    //await _loanRequestRepository.UpdateAsync(loan);
+        //    await _loanRequestRepository.SaveChangesAsync();
 
-            return new ApiResponse<bool>
-            {
-                IsSuccess = true,
-                Message = "وام تأیید شد",
-                Data = true
-            };
-        }
+        //    return new ApiResponse<bool>
+        //    {
+        //        IsSuccess = true,
+        //        Message = "وام تأیید شد",
+        //        Data = true
+        //    };
+        //}
 
-        public async Task<ApiResponse<bool>> RejectLoanAsync(Guid loanId)
-        {
-            var loan = await _loanRequestRepository.GetByIdAsync(loanId);
+        //public async Task<ApiResponse<bool>> RejectLoanAsync(Guid loanId)
+        //{
+        //    var loan = await _loanRequestRepository.GetByIdAsync(loanId);
 
-            if (loan == null)
-                return new ApiResponse<bool> { IsSuccess = false, Message = "وام یافت نشد" };
+        //    if (loan == null)
+        //        return new ApiResponse<bool> { IsSuccess = false, Message = "وام یافت نشد" };
 
-            if (loan.Status != LoanStatus.Pending)
-                return new ApiResponse<bool> { IsSuccess = false, Message = "این وام قابل رد نیست" };
+        //    if (loan.Status != LoanStatus.Pending)
+        //        return new ApiResponse<bool> { IsSuccess = false, Message = "این وام قابل رد نیست" };
 
-            loan.Status = LoanStatus.Rejected;
+        //    loan.Status = LoanStatus.Rejected;
 
-            //await _loanRequestRepository.UpdateAsync(loan);
-            await _loanRequestRepository.SaveChangesAsync();
+        //    //await _loanRequestRepository.UpdateAsync(loan);
+        //    await _loanRequestRepository.SaveChangesAsync();
 
-            return new ApiResponse<bool>
-            {
-                IsSuccess = true,
-                Message = "وام رد شد",
-                Data = true
-            };
-        }
+        //    return new ApiResponse<bool>
+        //    {
+        //        IsSuccess = true,
+        //        Message = "وام رد شد",
+        //        Data = true
+        //    };
+        //}
 
         public async Task<ApiResponse<List<LoanRequestDto>>> GetLoansByEmployeeIdAsync(Guid employeeId)
         {

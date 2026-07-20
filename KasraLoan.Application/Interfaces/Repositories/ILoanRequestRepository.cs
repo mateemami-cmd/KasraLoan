@@ -19,6 +19,18 @@ namespace KasraLoan.Application.Interfaces.Repositories
 
         Task<List<LoanRequest>> GetAllAsync();
 
+        Task<int> GetPendingCountAsync();
+
+        Task<int> GetApprovedCountAsync();
+
+        Task<int> GetRejectedCountAsync();
+
+        Task<decimal> GetTotalRequestedAmountAsync();
+
+        Task<decimal> GetTotalApprovedAmountAsync();
+
+        Task<List<LoanRequest>> GetPagedAsync(int page, int pageSize);
+
         Task SaveChangesAsync();
     }
 }
