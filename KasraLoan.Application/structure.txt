@@ -1,0 +1,200 @@
+Folder PATH listing for volume OS
+Volume serial number is 7EA2-368E
+C:.
+|   Class1.cs
+|   KasraLoan.Application.csproj
+|   structure.txt
+|   
++---Behaviors
+|       LoggingBehavior.cs
+|       ValidationBehavior.cs
+|       
++---bin
+|   \---Debug
+|       \---net8.0
+|               KasraLoan.Application.deps.json
+|               KasraLoan.Application.dll
+|               KasraLoan.Application.pdb
+|               KasraLoan.Domain.dll
+|               KasraLoan.Domain.pdb
+|               
++---Common
+|   \---Results
+|           ApiResponse.cs
+|           LoanRequestResult.cs
+|           
++---DTOs
+|   |   EmployeeDto.cs
+|   |   
+|   +---Auth
+|   |       LoginRequestDto.cs
+|   |       LoginResponseDto.cs
+|   |       LogoutRequestDto.cs
+|   |       RefreshTokenRequestDto.cs
+|   |       
+|   \---Loans
+|           CreateLoanRequestDto.cs
+|           LoanInstallmentDto.cs
+|           LoanRequestDto.cs
+|           
++---Exceptions
++---Features
+|   +---Authentication
+|   |   +---Login
+|   |   |       LoginCommand.cs
+|   |   |       LoginHandler.cs
+|   |   |       LoginValidator.cs
+|   |   |       
+|   |   +---Logout
+|   |   |       LogoutCommand.cs
+|   |   |       LogoutHandler.cs
+|   |   |       
+|   |   \---Refresh
+|   |           RefreshCommand.cs
+|   |           RefreshHandler.cs
+|   |           
+|   +---Employee
+|   |   \---Queries
+|   |       \---GetCurrentUser
+|   |               GetCurrentUserHandler.cs
+|   |               GetCurrentUserQuery.cs
+|   |               GetCurrentUserResponse.cs
+|   |               
+|   \---Loan
+|       +---Commands
+|       |   +---ApproveLoan
+|       |   |       ApproveLoanCommand.cs
+|       |   |       ApproveLoanHandler.cs
+|       |   |       ApproveLoanResponse.cs
+|       |   |       
+|       |   +---CreateLoanRequest
+|       |   |       CreateLoanRequestCommand.cs
+|       |   |       CreateLoanRequestHandler.cs
+|       |   |       CreateLoanRequestResponse.cs
+|       |   |       CreateLoanRequestValidator.cs
+|       |   |       
+|       |   +---RejectLoan
+|       |   |       RejectLoanCommand.cs
+|       |   |       RejectLoanHandler.cs
+|       |   |       RejectLoanResponse.cs
+|       |   |       
+|       |   \---UploadLoanDocument
+|       |           UploadLoanDocumentCommand.cs
+|       |           UploadLoanDocumentHandler.cs
+|       |           UploadLoanDocumentResponse.cs
+|       |           
+|       \---Queries
+|           +---GetAdminDashboard
+|           |       GetAdminDashboardHandler.cs
+|           |       GetAdminDashboardQuery.cs
+|           |       GetAdminDashboardResponse.cs
+|           |       
+|           +---GetAdminLoans
+|           |       GetAdminLoansHandler.cs
+|           |       GetAdminLoansQuery.cs
+|           |       GetAdminLoansResponse.cs
+|           |       GetAdminLoansValidator.cs
+|           |       
+|           +---GetLoanById
+|           |       GetLoanByIdHandler.cs
+|           |       GetLoanByIdQuery.cs
+|           |       GetLoanByIdResponse.cs
+|           |       
+|           +---GetLoanDocuments
+|           |       GetLoanDocumentsHandler.cs
+|           |       GetLoanDocumentsQuery.cs
+|           |       GetLoanDocumentsResponse.cs
+|           |       
+|           \---GetMyLoans
+|               |   GetMyLoansHandler.cs
+|               |   GetMyLoansQuery.cs
+|               |   GetMyLoansResponse.cs
+|               |   
+|               \---GetAllLoans
+|                       GetAllLoansHandler.cs
+|                       GetAllLoansQuery.cs
+|                       GetAllLoansResponse.cs
+|                       
++---Interfaces
+|   +---Repositories
+|   |       IAuditLogRepository.cs
+|   |       IAuthRepository.cs
+|   |       IEmployeeRepository.cs
+|   |       IEmployeeScoreRepository.cs
+|   |       ILoanDocumentRepository.cs
+|   |       ILoanInstallmentRepository.cs
+|   |       ILoanRequestRepository.cs
+|   |       ILoanTypeRepository.cs
+|   |       IRefreshTokenRepository.cs
+|   |       
+|   \---Services
+|           IAuditLogService.cs
+|           IEmployeeScoreService.cs
+|           IEmployeeService.cs
+|           IFileStorageService.cs
+|           ILoanCalculationService.cs
+|           ILoanEligibilityService.cs
+|           ILoanInstallmentService.cs
+|           ILoanRequestService.cs
+|           
++---LoanRules
+|   |   ILoanRule.cs
+|   |   ILoanRuleEngine.cs
+|   |   LoanRuleContext.cs
+|   |   LoanRuleEngine.cs
+|   |   LoanRuleResult.cs
+|   |   
+|   \---Implementations
+|           BankIntroductionLoanRule.cs
+|           ImmediatePaymentLoanRule.cs
+|           MarriageLoanRule.cs
+|           QarzolhasanehLoanRule.cs
+|           SpecialCaseLoanRule.cs
+|           TravelLoanRule.cs
+|           
++---Mappings
++---obj
+|   |   KasraLoan.Application.csproj.nuget.dgspec.json
+|   |   KasraLoan.Application.csproj.nuget.g.props
+|   |   KasraLoan.Application.csproj.nuget.g.targets
+|   |   project.assets.json
+|   |   project.nuget.cache
+|   |   
+|   \---Debug
+|       \---net8.0
+|           |   .NETCoreApp,Version=v8.0.AssemblyAttributes.cs
+|           |   KasraLoa.0D665AB4.Up2Date
+|           |   KasraLoan.Application.AssemblyInfo.cs
+|           |   KasraLoan.Application.AssemblyInfoInputs.cache
+|           |   KasraLoan.Application.assets.cache
+|           |   KasraLoan.Application.csproj.AssemblyReference.cache
+|           |   KasraLoan.Application.csproj.BuildWithSkipAnalyzers
+|           |   KasraLoan.Application.csproj.CoreCompileInputs.cache
+|           |   KasraLoan.Application.csproj.FileListAbsolute.txt
+|           |   KasraLoan.Application.dll
+|           |   KasraLoan.Application.GeneratedMSBuildEditorConfig.editorconfig
+|           |   KasraLoan.Application.GlobalUsings.g.cs
+|           |   KasraLoan.Application.pdb
+|           |   KasraLoan.Application.sourcelink.json
+|           |   
+|           +---ref
+|           |       KasraLoan.Application.dll
+|           |       
+|           \---refint
+|                   KasraLoan.Application.dll
+|                   
++---Services
+|   |   AuditLogService.cs
+|   |   EmployeeScoreService.cs
+|   |   EmployeeService.cs
+|   |   LoanCalculationService.cs
+|   |   LoanEligibilityService.cs
+|   |   LoanInstallmentService.cs
+|   |   LoanRequestService.cs
+|   |   
+|   \---Auth
+|           IAuthService.cs
+|           ICurrentUserService.cs
+|           IJwtService.cs
+|           
+\---Validators

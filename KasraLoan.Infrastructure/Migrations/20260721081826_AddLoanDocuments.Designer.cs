@@ -3,6 +3,7 @@ using System;
 using KasraLoan.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace KasraLoan.Infrastructure.Migrations
 {
     [DbContext(typeof(KasraLoanDbContext))]
-    partial class KasraLoanDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260721081826_AddLoanDocuments")]
+    partial class AddLoanDocuments
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -21,40 +24,6 @@ namespace KasraLoan.Infrastructure.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
-
-            modelBuilder.Entity("KasraLoan.Domain.Entities.AuditLog", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("Action")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)");
-
-                    b.Property<Guid?>("EmployeeId")
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid?>("LoanRequestId")
-                        .HasColumnType("uuid");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("EmployeeId");
-
-                    b.HasIndex("LoanRequestId");
-
-                    b.ToTable("AuditLogs");
-                });
 
             modelBuilder.Entity("KasraLoan.Domain.Entities.Employee", b =>
                 {
@@ -344,23 +313,6 @@ namespace KasraLoan.Infrastructure.Migrations
                     b.HasIndex("EmployeeId");
 
                     b.ToTable("RefreshTokens");
-                });
-
-            modelBuilder.Entity("KasraLoan.Domain.Entities.AuditLog", b =>
-                {
-                    b.HasOne("KasraLoan.Domain.Entities.Employee", "Employee")
-                        .WithMany()
-                        .HasForeignKey("EmployeeId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("KasraLoan.Domain.Entities.LoanRequest", "LoanRequest")
-                        .WithMany()
-                        .HasForeignKey("LoanRequestId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.Navigation("Employee");
-
-                    b.Navigation("LoanRequest");
                 });
 
             modelBuilder.Entity("KasraLoan.Domain.Entities.EmployeeLoginToken", b =>

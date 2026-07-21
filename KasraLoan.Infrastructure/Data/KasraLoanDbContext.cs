@@ -23,6 +23,8 @@ namespace KasraLoan.Infrastructure.Data
         public DbSet<LoanRequest> LoanRequests { get; set; }
         public DbSet<LoanInstallment> LoanInstallments { get; set; }
         public DbSet<EmployeeScore> EmployeeScores { get; set; }
+        public DbSet<LoanDocument> LoanDocuments { get; set; }
+        public DbSet<AuditLog> AuditLogs { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -42,6 +44,32 @@ namespace KasraLoan.Infrastructure.Data
                 .HasOne(x => x.LoanType)
                 .WithMany(x => x.LoanRequests)
                 .HasForeignKey(x => x.LoanTypeId);
+
+            modelBuilder.Entity<LoanDocument>()
+                .HasOne(x => x.LoanRequest)
+                .WithMany(x => x.LoanDocuments)
+                .HasForeignKey(x => x.LoanRequestId);
+
+            modelBuilder.Entity<AuditLog>(entity =>
+            {
+                entity.HasKey(x => x.Id);
+
+                entity.Property(x => x.Action)
+                    .HasMaxLength(100);
+
+                entity.Property(x => x.Description)
+                    .HasMaxLength(500);
+
+                entity.HasOne(x => x.Employee)
+                    .WithMany()
+                    .HasForeignKey(x => x.EmployeeId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(x => x.LoanRequest)
+                    .WithMany()
+                    .HasForeignKey(x => x.LoanRequestId)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
         }
     }
 }

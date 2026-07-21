@@ -67,6 +67,16 @@ namespace KasraLoan.Infrastructure
 
             services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
 
+            services.AddScoped<ILoanDocumentRepository, LoanDocumentRepository>();
+
+            services.AddScoped<ILoanDocumentRepository, LoanDocumentRepository>();
+
+            services.AddScoped<IFileStorageService, FileStorageService>();
+
+            services.AddScoped<IAuditLogRepository, AuditLogRepository>();
+
+            services.AddScoped<IAuditLogService, AuditLogService>();
+
             return services;
         }
     }

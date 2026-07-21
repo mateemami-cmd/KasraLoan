@@ -39,5 +39,8 @@ namespace KasraLoan.Domain.Entities
 
         public ICollection<LoanInstallment> LoanInstallments { get; set; }
             = new List<LoanInstallment>();
+
+        public ICollection<LoanDocument> LoanDocuments { get; set; }
+            = new List<LoanDocument>();
     }
 }

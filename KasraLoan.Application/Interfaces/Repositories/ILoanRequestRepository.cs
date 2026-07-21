@@ -1,4 +1,5 @@
 ﻿using KasraLoan.Domain.Entities;
+using KasraLoan.Domain.Enums;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -29,7 +30,7 @@ namespace KasraLoan.Application.Interfaces.Repositories
 
         Task<decimal> GetTotalApprovedAmountAsync();
 
-        Task<List<LoanRequest>> GetPagedAsync(int page, int pageSize);
+        Task<List<LoanRequest>> GetPagedAsync(int page, int pageSize, LoanStatus? status, string? search);
 
         Task SaveChangesAsync();
     }

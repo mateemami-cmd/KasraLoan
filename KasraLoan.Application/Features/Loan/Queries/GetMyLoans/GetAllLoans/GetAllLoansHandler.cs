@@ -23,7 +23,7 @@ namespace KasraLoan.Application.Features.Loan.Queries.GetMyLoans.GetAllLoans
             GetAllLoansQuery request,
             CancellationToken cancellationToken)
         {
-            var loans = await _loanRequestRepository.GetAllAsync();
+            var loans = await _loanRequestRepository.GetPagedAsync(request.Page, request.PageSize, request.Status, request.Search);
 
             return loans.Select(x => new GetAllLoansResponse
             {

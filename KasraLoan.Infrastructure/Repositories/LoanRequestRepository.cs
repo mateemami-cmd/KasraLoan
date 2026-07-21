@@ -85,11 +85,27 @@ namespace KasraLoan.Infrastructure.Repositories
                 .SumAsync(x => (decimal)x.ApprovedAmount);
         }
 
-        public async Task<List<LoanRequest>> GetPagedAsync(int page, int pageSize)
+        public async Task<List<LoanRequest>> GetPagedAsync(int page, int pageSize, LoanStatus? status, string? search)
         {
-            return await _context.LoanRequests
+            var query = _context.LoanRequests
                 .Include(x => x.Employee)
                 .Include(x => x.LoanType)
+                .AsQueryable();
+
+            if (status.HasValue)
+            {
+                query = query.Where(x => x.Status == status.Value);
+            }
+
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                query = query.Where(x =>
+                    x.Employee.FirstName.Contains(search) ||
+                    x.Employee.LastName.Contains(search) ||
+                    x.Employee.PersonnelNumber.Contains(search));
+            }
+
+            return await query
                 .OrderByDescending(x => x.CreatedAt)
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
