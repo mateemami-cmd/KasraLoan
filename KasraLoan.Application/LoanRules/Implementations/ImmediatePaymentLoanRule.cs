@@ -16,8 +16,6 @@ namespace KasraLoan.Application.LoanRules.Implementations
 
         public LoanRuleResult Evaluate(LoanRuleContext context)
         {
-            Console.WriteLine(">>> ImmediatePaymentLoanRule is running");
-
             return new LoanRuleResult
             {
                 IsAllowed = true,
