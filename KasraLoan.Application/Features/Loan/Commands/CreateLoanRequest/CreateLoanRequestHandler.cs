@@ -1,4 +1,5 @@
 ﻿using KasraLoan.Application.Interfaces.Repositories;
+using KasraLoan.Application.Interfaces.Services;
 using KasraLoan.Application.LoanRules;
 using KasraLoan.Application.Services.Auth;
 using MediatR;
@@ -18,13 +19,15 @@ namespace KasraLoan.Application.Features.Loan.Commands.CreateLoanRequest
         private readonly IEmployeeScoreRepository _employeeScoreRepository;
         private readonly ILoanRuleEngine _loanRuleEngine;
         private readonly ICurrentUserService _currentUserService;
+        private readonly INotificationService _notificationService;
         public CreateLoanRequestHandler(
         ILoanRequestRepository loanRequestRepository,
         ILoanTypeRepository loanTypeRepository,
         IEmployeeRepository employeeRepository,
         IEmployeeScoreRepository employeeScoreRepository,
         ILoanRuleEngine loanRuleEngine,
-        ICurrentUserService currentUserService)
+        ICurrentUserService currentUserService,
+        INotificationService notificationService)
         {
             _loanRequestRepository = loanRequestRepository;
             _loanTypeRepository = loanTypeRepository;
@@ -32,6 +35,7 @@ namespace KasraLoan.Application.Features.Loan.Commands.CreateLoanRequest
             _employeeScoreRepository = employeeScoreRepository;
             _loanRuleEngine = loanRuleEngine;
             _currentUserService = currentUserService;
+            _notificationService = notificationService;
         }
 
         public async Task<CreateLoanRequestResponse> Handle(CreateLoanRequestCommand request, CancellationToken cancellationToken)
@@ -94,6 +98,10 @@ namespace KasraLoan.Application.Features.Loan.Commands.CreateLoanRequest
             await _loanRequestRepository.AddAsync(loanRequest);
             await _loanRequestRepository.SaveChangesAsync();
 
+            await _notificationService.SendAsync(
+                loanRequest.EmployeeId,
+                "ثبت درخواست وام",
+                "درخواست وام شما با موفقیت ثبت شد و در انتظار بررسی است.");
 
             return new CreateLoanRequestResponse
             {

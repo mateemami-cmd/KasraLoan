@@ -1,5 +1,6 @@
 ﻿using KasraLoan.Application.Interfaces.Repositories;
 using KasraLoan.Application.Interfaces.Services;
+using KasraLoan.Application.Services;
 using KasraLoan.Domain.Enums;
 using MediatR;
 using System;
@@ -10,21 +11,23 @@ using System.Threading.Tasks;
 
 namespace KasraLoan.Application.Features.Loan.Commands.ApproveLoan
 {
-    public class ApproveLoanHandler
-        : IRequestHandler<ApproveLoanCommand, ApproveLoanResponse>
+    public class ApproveLoanHandler : IRequestHandler<ApproveLoanCommand, ApproveLoanResponse>
     {
         private readonly ILoanRequestRepository _loanRequestRepository;
         private readonly IAuditLogService _auditLogService;
         private readonly ILoanInstallmentService _loanInstallmentService;
+        private readonly INotificationService _notificationService;
 
         public ApproveLoanHandler(
             ILoanRequestRepository loanRequestRepository,
             IAuditLogService auditLogService,
-            ILoanInstallmentService loanInstallmentService)
+            ILoanInstallmentService loanInstallmentService,
+            INotificationService notificationService)
         {
             _loanRequestRepository = loanRequestRepository;
             _auditLogService = auditLogService;
             _loanInstallmentService = loanInstallmentService;
+            _notificationService = notificationService;
         }
 
         public async Task<ApproveLoanResponse> Handle(
@@ -58,6 +61,11 @@ namespace KasraLoan.Application.Features.Loan.Commands.ApproveLoan
                 loan.Id,
                 "ApproveLoan",
                 $"Loan approved. Amount: {loan.ApprovedAmount}");
+
+            await _notificationService.SendAsync(
+                loan.EmployeeId,
+                "تأیید وام",
+                $"وام شما به مبلغ {loan.ApprovedAmount:N0} تومان تأیید شد.");
 
             return new ApproveLoanResponse
             {

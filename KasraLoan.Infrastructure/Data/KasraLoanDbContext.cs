@@ -17,7 +17,6 @@ namespace KasraLoan.Infrastructure.Data
         public DbSet<Employee> Employees { get; set; }
         public DbSet<EmployeeLoginToken> EmployeeLoginTokens { get; set; }
         public DbSet<RefreshToken> RefreshTokens { get; set; }
-
         public DbSet<LoanType> LoanTypes { get; set; }
         public DbSet<LoanRule> LoanRules { get; set; }
         public DbSet<LoanRequest> LoanRequests { get; set; }
@@ -25,6 +24,7 @@ namespace KasraLoan.Infrastructure.Data
         public DbSet<EmployeeScore> EmployeeScores { get; set; }
         public DbSet<LoanDocument> LoanDocuments { get; set; }
         public DbSet<AuditLog> AuditLogs { get; set; }
+        public DbSet<Notification> Notifications { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -69,6 +69,30 @@ namespace KasraLoan.Infrastructure.Data
                     .WithMany()
                     .HasForeignKey(x => x.LoanRequestId)
                     .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            modelBuilder.Entity<Notification>(entity =>
+            {
+                entity.HasKey(x => x.Id);
+
+                entity.Property(x => x.Title)
+                    .HasMaxLength(150)
+                    .IsRequired();
+
+                entity.Property(x => x.Message)
+                    .HasMaxLength(1000)
+                    .IsRequired();
+
+                entity.Property(x => x.IsRead)
+                    .HasDefaultValue(false);
+
+                entity.Property(x => x.CreatedAt)
+                    .IsRequired();
+
+                entity.HasOne(x => x.Employee)
+                    .WithMany()
+                    .HasForeignKey(x => x.EmployeeId)
+                    .OnDelete(DeleteBehavior.Cascade);
             });
         }
     }

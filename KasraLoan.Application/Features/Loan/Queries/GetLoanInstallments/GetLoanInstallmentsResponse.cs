@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace KasraLoan.Application.DTOs.Loans
+namespace KasraLoan.Application.Features.Loan.Queries.GetLoanInstallments
 {
-    public class LoanInstallmentDto
+    public class GetLoanInstallmentsResponse
     {
         public Guid Id { get; set; }
 

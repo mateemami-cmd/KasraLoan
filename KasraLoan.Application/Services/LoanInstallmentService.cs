@@ -15,11 +15,13 @@ namespace KasraLoan.Application.Services
     {
         private readonly ILoanInstallmentRepository _repo;
         private readonly ILoanRequestRepository _loanRequestRepository;
+        private readonly INotificationService _notificationService;
 
-        public LoanInstallmentService(ILoanInstallmentRepository repo, ILoanRequestRepository loanRequestRepository)
+        public LoanInstallmentService(ILoanInstallmentRepository repo, ILoanRequestRepository loanRequestRepository, INotificationService notificationService)
         {
             _repo = repo;
             _loanRequestRepository = loanRequestRepository;
+            _notificationService = notificationService;
         }
 
         public async Task<ApiResponse<List<LoanInstallmentDto>>> GetLoanInstallmentsAsync(Guid loanId)
@@ -74,6 +76,8 @@ namespace KasraLoan.Application.Services
             installment.IsPaid = true;
 
             await _repo.SaveChangesAsync();
+
+            await _notificationService.SendAsync(employeeId, "پرداخت قسط", $"قسط شماره {installment.InstallmentNumber} با موفقیت پرداخت شد.");
 
             return new ApiResponse<bool>
             {

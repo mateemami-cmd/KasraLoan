@@ -61,13 +61,12 @@ namespace KasraLoan.Infrastructure
             services.AddScoped<IAuthRepository, AuthRepository>();
 
             services.AddScoped<IJwtService, JwtService>();
-
+                
             services.AddHttpContextAccessor();
+
             services.AddScoped<ICurrentUserService, CurrentUserService>();
 
             services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
-
-            services.AddScoped<ILoanDocumentRepository, LoanDocumentRepository>();
 
             services.AddScoped<ILoanDocumentRepository, LoanDocumentRepository>();
 
@@ -76,6 +75,10 @@ namespace KasraLoan.Infrastructure
             services.AddScoped<IAuditLogRepository, AuditLogRepository>();
 
             services.AddScoped<IAuditLogService, AuditLogService>();
+
+            services.AddScoped<INotificationRepository, NotificationRepository>();
+
+            services.AddScoped<INotificationService, NotificationService>();
 
             return services;
         }

@@ -1,6 +1,7 @@
 ﻿using KasraLoan.Application.Interfaces.Repositories;
-using KasraLoan.Domain.Enums;
 using KasraLoan.Application.Interfaces.Services;
+using KasraLoan.Application.Services;
+using KasraLoan.Domain.Enums;
 using MediatR;
 using System;
 using System.Collections.Generic;
@@ -14,11 +15,13 @@ namespace KasraLoan.Application.Features.Loan.Commands.RejectLoan
     {
         private readonly ILoanRequestRepository _loanRequestRepository;
         private readonly IAuditLogService _auditLogService;
+        private readonly INotificationService _notificationService;
 
-        public RejectLoanHandler(ILoanRequestRepository loanRequestRepository, IAuditLogService auditLogService)
+        public RejectLoanHandler(ILoanRequestRepository loanRequestRepository, IAuditLogService auditLogService, INotificationService notificationService)
         {
             _loanRequestRepository = loanRequestRepository;
             _auditLogService = auditLogService;
+            _notificationService = notificationService;
         }
 
         public async Task<RejectLoanResponse> Handle(RejectLoanCommand request, CancellationToken cancellationToken)
@@ -36,6 +39,11 @@ namespace KasraLoan.Application.Features.Loan.Commands.RejectLoan
             await _loanRequestRepository.SaveChangesAsync();
 
             await _auditLogService.LogAsync(loan.EmployeeId, loan.Id, "RejectLoan", "Loan rejected by admin.");
+
+            await _notificationService.SendAsync(
+                loan.EmployeeId,
+                "رد درخواست وام",
+                "درخواست وام شما توسط کارشناس رد شد.");
 
             return new RejectLoanResponse
             {

@@ -95,8 +95,6 @@ namespace KasraLoan.API
                 };
             });
 
-            //builder.Services.AddAuthorization();
-
             builder.Services.AddAuthorization(options =>
             {
                 options.AddPolicy(
