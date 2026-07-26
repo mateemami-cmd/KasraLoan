@@ -32,6 +32,8 @@ namespace KasraLoan.Application.Interfaces.Repositories
 
         Task<List<LoanRequest>> GetPagedAsync(int page, int pageSize, LoanStatus? status, string? search);
 
+        Task<bool> HasActiveLoanAsync(Guid employeeId);
+
         Task SaveChangesAsync();
     }
 }

@@ -112,6 +112,14 @@ namespace KasraLoan.Infrastructure.Repositories
                 .ToListAsync();
         }
 
+        public async Task<bool> HasActiveLoanAsync(Guid employeeId)
+        {
+            return await _context.LoanRequests
+                .AnyAsync(x =>
+                    x.EmployeeId == employeeId &&
+                    x.Status == LoanStatus.Approved);
+        }
+
         public async Task SaveChangesAsync()
         {
             await _context.SaveChangesAsync();

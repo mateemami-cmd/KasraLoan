@@ -2,6 +2,7 @@
 using KasraLoan.Application.DTOs.Loans;
 using KasraLoan.Application.Interfaces.Repositories;
 using KasraLoan.Application.Interfaces.Services;
+using KasraLoan.Application.Services.Auth;
 using KasraLoan.Domain.Entities;
 using System;
 using System.Collections.Generic;
@@ -16,16 +17,45 @@ namespace KasraLoan.Application.Services
         private readonly ILoanInstallmentRepository _repo;
         private readonly ILoanRequestRepository _loanRequestRepository;
         private readonly INotificationService _notificationService;
+        private readonly ICurrentUserService _currentUserService;
 
-        public LoanInstallmentService(ILoanInstallmentRepository repo, ILoanRequestRepository loanRequestRepository, INotificationService notificationService)
+        public LoanInstallmentService(
+            ILoanInstallmentRepository repo,
+            ILoanRequestRepository loanRequestRepository,
+            INotificationService notificationService,
+            ICurrentUserService currentUserService)
         {
             _repo = repo;
             _loanRequestRepository = loanRequestRepository;
             _notificationService = notificationService;
+            _currentUserService = currentUserService;
         }
 
         public async Task<ApiResponse<List<LoanInstallmentDto>>> GetLoanInstallmentsAsync(Guid loanId)
         {
+            var loan = await _loanRequestRepository.GetByIdAsync(loanId);
+
+            if (loan == null)
+            {
+                return new ApiResponse<List<LoanInstallmentDto>>
+                {
+                    IsSuccess = false,
+                    Message = "وام یافت نشد."
+                };
+            }
+
+            var isAdmin = string.Equals(
+                _currentUserService.Role, "Admin", StringComparison.OrdinalIgnoreCase);
+
+            if (!isAdmin && loan.EmployeeId != _currentUserService.UserId)
+            {
+                return new ApiResponse<List<LoanInstallmentDto>>
+                {
+                    IsSuccess = false,
+                    Message = "شما اجازه‌ی مشاهده‌ی اقساط این وام را ندارید."
+                };
+            }
+
             var installments = await _repo.GetByLoanIdAsync(loanId);
 
             var result = installments.Select(x => new LoanInstallmentDto
@@ -100,13 +130,26 @@ namespace KasraLoan.Application.Services
             if (loan.InstallmentCount <= 0)
                 throw new Exception("تعداد اقساط نامعتبر است");
 
-            var installmentAmount =
-                loan.TotalPayableAmount / loan.InstallmentCount;
+            // تقسیم صحیح (int / int) نباید انجام شود، چون باقیمانده گم می‌شود.
+            // ابتدا مبلغ هر قسط را با گرد کردن به پایین (به عدد صحیح تومان) محاسبه می‌کنیم،
+            // سپس باقیمانده‌ی حاصل از تقسیم را به قسط آخر اضافه می‌کنیم تا مجموع اقساط
+            // همیشه دقیقاً برابر مبلغ کل قابل‌بازپرداخت باشد.
+            var baseInstallmentAmount =
+                Math.Floor((decimal)loan.TotalPayableAmount / loan.InstallmentCount);
+
+            var remainder =
+                loan.TotalPayableAmount - (baseInstallmentAmount * loan.InstallmentCount);
 
             var installments = new List<LoanInstallment>();
 
             for (int i = 1; i <= loan.InstallmentCount; i++)
             {
+                var isLastInstallment = i == loan.InstallmentCount;
+
+                var amount = isLastInstallment
+                    ? baseInstallmentAmount + remainder
+                    : baseInstallmentAmount;
+
                 installments.Add(new LoanInstallment
                 {
                     Id = Guid.NewGuid(),
@@ -115,7 +158,7 @@ namespace KasraLoan.Application.Services
 
                     InstallmentNumber = i,
 
-                    Amount = installmentAmount,
+                    Amount = amount,
 
                     DueDate = DateTime.UtcNow.Date.AddMonths(i),
 

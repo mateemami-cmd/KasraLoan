@@ -36,6 +36,91 @@ namespace KasraLoan.Application.Services
             _loanInstallmentRepository = loanInstallmentRepository;
         }
 
+        public async Task<ApiResponse<List<LoanRequestDto>>> GetLoansByEmployeeIdAsync(Guid employeeId)
+        {
+            var loans = await _loanRequestRepository.GetByEmployeeIdAsync(employeeId);
+
+            var result = loans.Select(x => new LoanRequestDto
+            {
+                Id = x.Id,
+                EmployeeId = x.EmployeeId,
+                LoanTypeId = x.LoanTypeId,
+                RequestedAmount = x.RequestedAmount,
+                ApprovedAmount = x.ApprovedAmount,
+                InstallmentCount = x.InstallmentCount,
+                Status = x.Status,
+                CreatedAt = x.CreatedAt,
+                TotalPayableAmount = x.TotalPayableAmount,
+                MonthlyPaymentAmount = x.MonthlyPaymentAmount
+            }).ToList();
+
+            return new ApiResponse<List<LoanRequestDto>>
+            {
+                IsSuccess = true,
+                Data = result
+            };
+        }
+
+        public async Task<ApiResponse<List<LoanRequestDto>>> GetAllLoansAsync()
+        {
+            var loans = await _loanRequestRepository.GetAllAsync();
+
+            var result = loans.Select(x => new LoanRequestDto
+            {
+                Id = x.Id,
+                EmployeeId = x.EmployeeId,
+                LoanTypeId = x.LoanTypeId,
+                RequestedAmount = x.RequestedAmount,
+                ApprovedAmount = x.ApprovedAmount,
+                InstallmentCount = x.InstallmentCount,
+                Status = x.Status,
+                CreatedAt = x.CreatedAt,
+                TotalPayableAmount = x.TotalPayableAmount,
+                MonthlyPaymentAmount = x.MonthlyPaymentAmount
+            }).ToList();
+
+            return new ApiResponse<List<LoanRequestDto>>
+            {
+                IsSuccess = true,
+                Data = result
+            };
+        }
+
+        public async Task<ApiResponse<List<LoanRequestDto>>> GetAdminLoansAsync(LoanStatus? status)
+        {
+            var loans = await _loanRequestRepository.GetAllAsync();
+
+            if (status.HasValue)
+            {
+                loans = loans.Where(x => x.Status == status.Value).ToList();
+            }
+
+            var result = loans.Select(x => new LoanRequestDto
+            {
+                Id = x.Id,
+                EmployeeId = x.EmployeeId,
+                LoanTypeId = x.LoanTypeId,
+                RequestedAmount = x.RequestedAmount,
+                ApprovedAmount = x.ApprovedAmount,
+                InstallmentCount = x.InstallmentCount,
+                Status = x.Status,
+                CreatedAt = x.CreatedAt,
+                TotalPayableAmount = x.TotalPayableAmount,
+                MonthlyPaymentAmount = x.MonthlyPaymentAmount
+            }).ToList();
+
+            return new ApiResponse<List<LoanRequestDto>>
+            {
+                IsSuccess = true,
+                Data = result
+            };
+        }
+    }
+}
+
+
+
+
         //public async Task<ApiResponse<Guid>> CreateLoanRequestAsync(string employeeId, CreateLoanRequestDto dto)
         //{
         //    if (dto.RequestedAmount <= 0)
@@ -243,85 +328,3 @@ namespace KasraLoan.Application.Services
         //        Data = true
         //    };
         //}
-
-        public async Task<ApiResponse<List<LoanRequestDto>>> GetLoansByEmployeeIdAsync(Guid employeeId)
-        {
-            var loans = await _loanRequestRepository.GetByEmployeeIdAsync(employeeId);
-
-            var result = loans.Select(x => new LoanRequestDto
-            {
-                Id = x.Id,
-                EmployeeId = x.EmployeeId,
-                LoanTypeId = x.LoanTypeId,
-                RequestedAmount = x.RequestedAmount,
-                ApprovedAmount = x.ApprovedAmount,
-                InstallmentCount = x.InstallmentCount,
-                Status = x.Status,
-                CreatedAt = x.CreatedAt,
-                TotalPayableAmount = x.TotalPayableAmount,
-                MonthlyPaymentAmount = x.MonthlyPaymentAmount
-            }).ToList();
-
-            return new ApiResponse<List<LoanRequestDto>>
-            {
-                IsSuccess = true,
-                Data = result
-            };
-        }
-
-        public async Task<ApiResponse<List<LoanRequestDto>>> GetAllLoansAsync()
-        {
-            var loans = await _loanRequestRepository.GetAllAsync();
-
-            var result = loans.Select(x => new LoanRequestDto
-            {
-                Id = x.Id,
-                EmployeeId = x.EmployeeId,
-                LoanTypeId = x.LoanTypeId,
-                RequestedAmount = x.RequestedAmount,
-                ApprovedAmount = x.ApprovedAmount,
-                InstallmentCount = x.InstallmentCount,
-                Status = x.Status,
-                CreatedAt = x.CreatedAt,
-                TotalPayableAmount = x.TotalPayableAmount,
-                MonthlyPaymentAmount = x.MonthlyPaymentAmount
-            }).ToList();
-
-            return new ApiResponse<List<LoanRequestDto>>
-            {
-                IsSuccess = true,
-                Data = result
-            };
-        }
-
-        public async Task<ApiResponse<List<LoanRequestDto>>> GetAdminLoansAsync(LoanStatus? status)
-        {
-            var loans = await _loanRequestRepository.GetAllAsync();
-
-            if (status.HasValue)
-            {
-                loans = loans.Where(x => x.Status == status.Value).ToList();
-            }
-
-            var result = loans.Select(x => new LoanRequestDto
-            {
-                Id = x.Id,
-                EmployeeId = x.EmployeeId,
-                LoanTypeId = x.LoanTypeId,
-                RequestedAmount = x.RequestedAmount,
-                ApprovedAmount = x.ApprovedAmount,
-                InstallmentCount = x.InstallmentCount,
-                Status = x.Status,
-                CreatedAt = x.CreatedAt,
-                TotalPayableAmount = x.TotalPayableAmount,
-                MonthlyPaymentAmount = x.MonthlyPaymentAmount
-            }).ToList();
-
-            return new ApiResponse<List<LoanRequestDto>>
-            {
-                IsSuccess = true,
-                Data = result
-            };
-        }
-    }
-}

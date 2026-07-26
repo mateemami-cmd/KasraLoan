@@ -1,5 +1,7 @@
-﻿using KasraLoan.Application.Interfaces.Repositories;
+﻿using KasraLoan.Application.Common.Exceptions;
+using KasraLoan.Application.Interfaces.Repositories;
 using KasraLoan.Application.Interfaces.Services;
+using KasraLoan.Application.Services.Auth;
 using KasraLoan.Domain.Entities;
 using MediatR;
 using System;
@@ -15,12 +17,18 @@ namespace KasraLoan.Application.Features.Loan.Commands.UploadLoanDocument
         private readonly ILoanRequestRepository _loanRequestRepository;
         private readonly ILoanDocumentRepository _loanDocumentRepository;
         private readonly IFileStorageService _fileStorageService;
+        private readonly ICurrentUserService _currentUserService;
 
-        public UploadLoanDocumentHandler(ILoanRequestRepository loanRequestRepository, ILoanDocumentRepository loanDocumentRepository, IFileStorageService fileStorageService)
+        public UploadLoanDocumentHandler(
+            ILoanRequestRepository loanRequestRepository,
+            ILoanDocumentRepository loanDocumentRepository,
+            IFileStorageService fileStorageService,
+            ICurrentUserService currentUserService)
         {
             _loanRequestRepository = loanRequestRepository;
             _loanDocumentRepository = loanDocumentRepository;
             _fileStorageService = fileStorageService;
+            _currentUserService = currentUserService;
         }
 
         public async Task<UploadLoanDocumentResponse> Handle(UploadLoanDocumentCommand request, CancellationToken cancellationToken)
@@ -30,6 +38,13 @@ namespace KasraLoan.Application.Features.Loan.Commands.UploadLoanDocument
 
             if (loan == null)
                 throw new KeyNotFoundException("وام یافت نشد");
+
+            var isAdmin = string.Equals(
+                _currentUserService.Role, "Admin", StringComparison.OrdinalIgnoreCase);
+
+            if (!isAdmin && loan.EmployeeId != _currentUserService.UserId)
+                throw new ForbiddenAccessException(
+                    "شما اجازه‌ی آپلود مدرک برای این وام را ندارید.");
 
             var exists = await _loanDocumentRepository.ExistsAsync(request.LoanRequestId);
 

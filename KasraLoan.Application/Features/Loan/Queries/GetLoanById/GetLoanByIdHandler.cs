@@ -1,4 +1,6 @@
-﻿using KasraLoan.Application.Interfaces.Repositories;
+﻿using KasraLoan.Application.Common.Exceptions;
+using KasraLoan.Application.Interfaces.Repositories;
+using KasraLoan.Application.Services.Auth;
 using MediatR;
 using System;
 using System.Collections.Generic;
@@ -12,11 +14,14 @@ namespace KasraLoan.Application.Features.Loan.Queries.GetLoanById
     : IRequestHandler<GetLoanByIdQuery, GetLoanByIdResponse>
     {
         private readonly ILoanRequestRepository _loanRequestRepository;
+        private readonly ICurrentUserService _currentUserService;
 
         public GetLoanByIdHandler(
-            ILoanRequestRepository loanRequestRepository)
+            ILoanRequestRepository loanRequestRepository,
+            ICurrentUserService currentUserService)
         {
             _loanRequestRepository = loanRequestRepository;
+            _currentUserService = currentUserService;
         }
 
         public async Task<GetLoanByIdResponse> Handle(
@@ -27,6 +32,13 @@ namespace KasraLoan.Application.Features.Loan.Queries.GetLoanById
 
             if (loan == null)
                 throw new KeyNotFoundException("وام یافت نشد");
+
+            var isAdmin = string.Equals(
+                _currentUserService.Role, "Admin", StringComparison.OrdinalIgnoreCase);
+
+            if (!isAdmin && loan.EmployeeId != _currentUserService.UserId)
+                throw new ForbiddenAccessException(
+                    "شما اجازه‌ی مشاهده‌ی این وام را ندارید.");
 
             return new GetLoanByIdResponse
             {

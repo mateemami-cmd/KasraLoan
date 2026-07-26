@@ -17,7 +17,6 @@ namespace KasraLoan.Infrastructure.Data.Seed
             var admin = new Employee
             {
                 Id =
-                //Guid.Parse("ac56f19c-8b8d-41ff-b47e-93d237fd24c4"),
                 SeedIds.AdminAli,
                 FirstName = "Ali",
                 LastName = "Ahmadi",
@@ -27,121 +26,41 @@ namespace KasraLoan.Infrastructure.Data.Seed
                 Role = UserRole.Admin
             };
 
-            //var employees = new List<Employee>
-            //{
-            //    admin,
-
-            //    new Employee
-            //    {
-            //        Id = SeedIds.Reza,
-            //        FirstName = "Reza",
-            //        LastName = "Mohammadi",
-            //        PersonnelNumber = "1002",
-            //        HireDate = new DateTime(2021, 5, 10, 0, 0, 0, DateTimeKind.Utc),
-            //        IsActive = true,
-            //        Role = UserRole.Employee
-            //    },
-
-            //    new Employee
-            //    {
-            //        Id = SeedIds.Sara,
-            //        FirstName = "Sara",
-            //        LastName = "Hosseini",
-            //        PersonnelNumber = "1003",
-            //        HireDate = new DateTime(2022, 2, 15, 0, 0, 0, DateTimeKind.Utc),
-            //        MarriageDate = DateTime.UtcNow.Date.AddMonths(-3),
-            //        IsActive = true,
-            //        Role = UserRole.Employee
-            //    },
-
-            //    new Employee
-            //    {
-            //        Id = SeedIds.Amir,
-            //        FirstName = "Amir",
-            //        LastName = "Karimi",
-            //        PersonnelNumber = "1004",
-            //        HireDate = new DateTime(2019, 7, 1, 0, 0, 0, DateTimeKind.Utc),
-            //        IsActive = true,
-            //        Role = UserRole.Employee
-            //    },
-
-            //    new Employee
-            //    {
-            //        Id = SeedIds.Nima,
-            //        FirstName = "Nima",
-            //        LastName = "Ghasemi",
-            //        PersonnelNumber = "1005",
-            //        HireDate = new DateTime(2020, 8, 20, 0, 0, 0, DateTimeKind.Utc),
-            //        IsActive = true,
-            //        Role = UserRole.Employee
-            //    },
-
-            //    new Employee
-            //    {
-            //        Id = SeedIds.Zahra,
-            //        FirstName = "Zahra",
-            //        LastName = "Ahmadi",
-            //        PersonnelNumber = "1006",
-            //        HireDate = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc),
-            //        IsActive = true,
-            //        Role = UserRole.Employee
-            //    },
-
-            //    new Employee
-            //    {
-            //        Id = SeedIds.Mehdi,
-            //        FirstName = "Mehdi",
-            //        LastName = "Azizi",
-            //        PersonnelNumber = "1007",
-            //        HireDate = new DateTime(2018, 4, 5, 0, 0, 0, DateTimeKind.Utc),
-            //        IsActive = false,
-            //        Role = UserRole.Employee
-            //    },
-
-            //    new Employee
-            //    {
-            //        Id = SeedIds.Hanieh,
-            //        FirstName = "Hanieh",
-            //        LastName = "Moradi",
-            //        PersonnelNumber = "1008",
-            //        HireDate = new DateTime(2023, 6, 1, 0, 0, 0, DateTimeKind.Utc),
-            //        IsActive = true,
-            //        Role = UserRole.Employee
-            //    },
-
-            //    new Employee
-            //    {
-            //        Id = SeedIds.Sina,
-            //        FirstName = "Sina",
-            //        LastName = "Ebrahimi",
-            //        PersonnelNumber = "1009",
-            //        HireDate = new DateTime(2020, 11, 11, 0, 0, 0, DateTimeKind.Utc),
-            //        IsActive = true,
-            //        Role = UserRole.Employee
-            //    },
-
-            //    new Employee
-            //    {
-            //        Id = SeedIds.Parisa,
-            //        FirstName = "Parisa",
-            //        LastName = "Rahimi",
-            //        PersonnelNumber = "1010",
-            //        HireDate = new DateTime(2021, 9, 9, 0, 0, 0, DateTimeKind.Utc),
-            //        IsActive = true,
-            //        Role = UserRole.Employee
-            //    }
-            //};
-
             await UpsertEmployeeAsync(context, admin);
 
             await context.SaveChangesAsync();
 
-            //foreach (var employee in employees)
-            //{
-            //    await UpsertEmployeeAsync(context, employee);
-            //}
+            var adminToken = await context.EmployeeLoginTokens
+                .FirstOrDefaultAsync(x => x.EmployeeId == admin.Id);
 
-            //await context.SaveChangesAsync();
+            if (adminToken == null)
+            {
+                context.EmployeeLoginTokens.Add(new EmployeeLoginToken
+                {
+                    EmployeeId = admin.Id,
+                    Token = "TEST-TOKEN-1001",
+                    IsActive = true
+                });
+            }
+            else
+            {
+                adminToken.Token = "TEST-TOKEN-1001";
+                adminToken.IsActive = true;
+            }
+
+            //start test
+            Console.WriteLine("Employee Seeder Running...");
+
+            Console.WriteLine(admin.Id);
+
+            Console.WriteLine("Creating Login Token...");
+            //Finish test
+
+            await context.SaveChangesAsync();
+
+            //start test
+            Console.WriteLine("Token Saved");
+            //Finish test
         }
 
         private static async Task UpsertEmployeeAsync(KasraLoanDbContext context, Employee employee)
@@ -164,3 +83,109 @@ namespace KasraLoan.Infrastructure.Data.Seed
         }
     }
 }
+
+
+//var employees = new List<Employee>
+//{
+//    admin,
+
+//    new Employee
+//    {
+//        Id = SeedIds.Reza,
+//        FirstName = "Reza",
+//        LastName = "Mohammadi",
+//        PersonnelNumber = "1002",
+//        HireDate = new DateTime(2021, 5, 10, 0, 0, 0, DateTimeKind.Utc),
+//        IsActive = true,
+//        Role = UserRole.Employee
+//    },
+
+//    new Employee
+//    {
+//        Id = SeedIds.Sara,
+//        FirstName = "Sara",
+//        LastName = "Hosseini",
+//        PersonnelNumber = "1003",
+//        HireDate = new DateTime(2022, 2, 15, 0, 0, 0, DateTimeKind.Utc),
+//        MarriageDate = DateTime.UtcNow.Date.AddMonths(-3),
+//        IsActive = true,
+//        Role = UserRole.Employee
+//    },
+
+//    new Employee
+//    {
+//        Id = SeedIds.Amir,
+//        FirstName = "Amir",
+//        LastName = "Karimi",
+//        PersonnelNumber = "1004",
+//        HireDate = new DateTime(2019, 7, 1, 0, 0, 0, DateTimeKind.Utc),
+//        IsActive = true,
+//        Role = UserRole.Employee
+//    },
+
+//    new Employee
+//    {
+//        Id = SeedIds.Nima,
+//        FirstName = "Nima",
+//        LastName = "Ghasemi",
+//        PersonnelNumber = "1005",
+//        HireDate = new DateTime(2020, 8, 20, 0, 0, 0, DateTimeKind.Utc),
+//        IsActive = true,
+//        Role = UserRole.Employee
+//    },
+
+//    new Employee
+//    {
+//        Id = SeedIds.Zahra,
+//        FirstName = "Zahra",
+//        LastName = "Ahmadi",
+//        PersonnelNumber = "1006",
+//        HireDate = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc),
+//        IsActive = true,
+//        Role = UserRole.Employee
+//    },
+
+//    new Employee
+//    {
+//        Id = SeedIds.Mehdi,
+//        FirstName = "Mehdi",
+//        LastName = "Azizi",
+//        PersonnelNumber = "1007",
+//        HireDate = new DateTime(2018, 4, 5, 0, 0, 0, DateTimeKind.Utc),
+//        IsActive = false,
+//        Role = UserRole.Employee
+//    },
+
+//    new Employee
+//    {
+//        Id = SeedIds.Hanieh,
+//        FirstName = "Hanieh",
+//        LastName = "Moradi",
+//        PersonnelNumber = "1008",
+//        HireDate = new DateTime(2023, 6, 1, 0, 0, 0, DateTimeKind.Utc),
+//        IsActive = true,
+//        Role = UserRole.Employee
+//    },
+
+//    new Employee
+//    {
+//        Id = SeedIds.Sina,
+//        FirstName = "Sina",
+//        LastName = "Ebrahimi",
+//        PersonnelNumber = "1009",
+//        HireDate = new DateTime(2020, 11, 11, 0, 0, 0, DateTimeKind.Utc),
+//        IsActive = true,
+//        Role = UserRole.Employee
+//    },
+
+//    new Employee
+//    {
+//        Id = SeedIds.Parisa,
+//        FirstName = "Parisa",
+//        LastName = "Rahimi",
+//        PersonnelNumber = "1010",
+//        HireDate = new DateTime(2021, 9, 9, 0, 0, 0, DateTimeKind.Utc),
+//        IsActive = true,
+//        Role = UserRole.Employee
+//    }
+//};

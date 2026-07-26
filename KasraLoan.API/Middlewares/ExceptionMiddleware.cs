@@ -1,6 +1,7 @@
 ﻿using System.Net;
 using FluentValidation;
 using System.Text.Json;
+using KasraLoan.Application.Common.Exceptions;
 
 namespace KasraLoan.API.Middlewares
 {
@@ -18,6 +19,19 @@ namespace KasraLoan.API.Middlewares
             try
             {
                 await _next(context);
+            }
+            catch (ForbiddenAccessException ex)
+            {
+                context.Response.StatusCode = (int)HttpStatusCode.Forbidden;
+                context.Response.ContentType = "application/json";
+
+                var response = new
+                {
+                    Message = ex.Message
+                };
+
+                await context.Response.WriteAsync(
+                    JsonSerializer.Serialize(response));
             }
             catch (ValidationException ex)
             {

@@ -47,8 +47,11 @@ namespace KasraLoan.Application.Features.Loan.Commands.ApproveLoan
 
             loan.TotalPayableAmount = loan.ApprovedAmount;
 
+            // نکته: TotalPayableAmount و InstallmentCount هر دو int هستند؛
+            // بدون کست به decimal، این تقسیم به‌صورت صحیح (truncated) انجام می‌شد
+            // و اعشار مبلغ قسط گم می‌شد.
             loan.MonthlyPaymentAmount =
-                loan.TotalPayableAmount / loan.InstallmentCount;
+                Math.Round((decimal)loan.TotalPayableAmount / loan.InstallmentCount, 0);
 
             loan.ApprovedAt = DateTime.UtcNow;
 

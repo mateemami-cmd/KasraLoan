@@ -48,5 +48,12 @@ namespace KasraLoan.Infrastructure.Repositories
                 .Include(x => x.LoanRequest)
                 .FirstOrDefaultAsync(x => x.Id == installmentId);
         }
+
+        public async Task<bool> AreAllInstallmentsPaidAsync(Guid loanRequestId)
+        {
+            return await _context.LoanInstallments
+                .Where(x => x.LoanRequestId == loanRequestId)
+                .AllAsync(x => x.IsPaid);
+        }
     }
 }

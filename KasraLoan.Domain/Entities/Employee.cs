@@ -15,6 +15,7 @@ namespace KasraLoan.Domain.Entities
         public string PersonnelNumber { get; set; }
         public DateTime HireDate { get; set; }
         public DateTime? MarriageDate { get; set; }
+        public int? Year { get; set; }
         public bool IsActive { get; set; }
 
         public UserRole Role { get; set; } = UserRole.Employee;
