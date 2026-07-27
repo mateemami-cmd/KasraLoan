@@ -24,16 +24,13 @@ namespace KasraLoan.Infrastructure.Repositories
             return await _context.Employees.FindAsync(id);
         }
 
-        public async Task<Employee?> GetByLoginTokenAsync(string token)
+        public async Task<Employee?> GetByUsernameAsync(string username)
         {
-            var loginToken = await _context.EmployeeLoginTokens
-                .FirstOrDefaultAsync(x => x.Token == token && x.IsActive);
-
-            if (loginToken == null)
+            if (string.IsNullOrWhiteSpace(username))
                 return null;
 
             return await _context.Employees
-                .FirstOrDefaultAsync(x => x.Id == loginToken.EmployeeId);
+                .FirstOrDefaultAsync(x => x.Username == username);
         }
 
         public async Task<List<Employee>> GetAllAsync()

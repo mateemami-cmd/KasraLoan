@@ -14,7 +14,13 @@ namespace KasraLoan.Application.Features.Employee.Queries.GetCurrentUser
 
         public string LastName { get; set; } = string.Empty;
 
+        public string Username { get; set; } = string.Empty;
+
         public string PersonnelNumber { get; set; } = string.Empty;
+
+        public string? PhoneNumber { get; set; }
+
+        public string? Email { get; set; }
 
         public int Score { get; set; }
 

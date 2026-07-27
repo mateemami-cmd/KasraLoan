@@ -1,7 +1,9 @@
 ﻿using KasraLoan.Application.DTOs.Auth;
+using KasraLoan.Application.DTOs.Employee;
 using KasraLoan.Application.Features.Authentication.Login;
 using KasraLoan.Application.Features.Authentication.Logout;
 using KasraLoan.Application.Features.Authentication.Refresh;
+using KasraLoan.Application.Features.Employee.Commands.UpdateProfile;
 using KasraLoan.Application.Features.Employee.Queries.GetCurrentUser;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -62,6 +64,18 @@ namespace KasraLoan.API.Controllers
         public async Task<IActionResult> Me()
         {
             var result = await _mediator.Send(new GetCurrentUserQuery());
+
+            return Ok(result);
+        }
+
+        [Authorize]
+        [HttpPut("profile")]
+        public async Task<IActionResult> UpdateProfile([FromBody] UpdateProfileRequestDto request)
+        {
+            var result = await _mediator.Send(new UpdateProfileCommand
+            {
+                Request = request
+            });
 
             return Ok(result);
         }

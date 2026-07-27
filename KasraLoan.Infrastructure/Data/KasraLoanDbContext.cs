@@ -15,7 +15,6 @@ namespace KasraLoan.Infrastructure.Data
         }
 
         public DbSet<Employee> Employees { get; set; }
-        public DbSet<EmployeeLoginToken> EmployeeLoginTokens { get; set; }
         public DbSet<RefreshToken> RefreshTokens { get; set; }
         public DbSet<LoanType> LoanTypes { get; set; }
         public DbSet<LoanRule> LoanRules { get; set; }
@@ -29,6 +28,10 @@ namespace KasraLoan.Infrastructure.Data
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+
+            modelBuilder.Entity<Employee>()
+                .HasIndex(x => x.Username)
+                .IsUnique();
 
             modelBuilder.Entity<EmployeeScore>()
                 .HasOne(x => x.Employee)

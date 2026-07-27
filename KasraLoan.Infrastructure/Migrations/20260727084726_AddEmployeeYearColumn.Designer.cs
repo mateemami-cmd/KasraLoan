@@ -3,6 +3,7 @@ using System;
 using KasraLoan.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace KasraLoan.Infrastructure.Migrations
 {
     [DbContext(typeof(KasraLoanDbContext))]
-    partial class KasraLoanDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260727084726_AddEmployeeYearColumn")]
+    partial class AddEmployeeYearColumn
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -62,9 +65,6 @@ namespace KasraLoan.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<string>("Email")
-                        .HasColumnType("text");
-
                     b.Property<string>("FirstName")
                         .IsRequired()
                         .HasColumnType("text");
@@ -82,33 +82,47 @@ namespace KasraLoan.Infrastructure.Migrations
                     b.Property<DateTime?>("MarriageDate")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("PasswordHash")
-                        .IsRequired()
-                        .HasColumnType("text");
-
                     b.Property<string>("PersonnelNumber")
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("PhoneNumber")
-                        .HasColumnType("text");
-
                     b.Property<int>("Role")
                         .HasColumnType("integer");
-
-                    b.Property<string>("Username")
-                        .IsRequired()
-                        .HasColumnType("text");
 
                     b.Property<int?>("Year")
                         .HasColumnType("integer");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Username")
-                        .IsUnique();
-
                     b.ToTable("Employees");
+                });
+
+            modelBuilder.Entity("KasraLoan.Domain.Entities.EmployeeLoginToken", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("EmployeeId")
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Token")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EmployeeId");
+
+                    b.ToTable("EmployeeLoginTokens");
                 });
 
             modelBuilder.Entity("KasraLoan.Domain.Entities.EmployeeScore", b =>
@@ -389,6 +403,17 @@ namespace KasraLoan.Infrastructure.Migrations
                     b.Navigation("LoanRequest");
                 });
 
+            modelBuilder.Entity("KasraLoan.Domain.Entities.EmployeeLoginToken", b =>
+                {
+                    b.HasOne("KasraLoan.Domain.Entities.Employee", "Employee")
+                        .WithMany("EmployeeLoginTokens")
+                        .HasForeignKey("EmployeeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Employee");
+                });
+
             modelBuilder.Entity("KasraLoan.Domain.Entities.EmployeeScore", b =>
                 {
                     b.HasOne("KasraLoan.Domain.Entities.Employee", "Employee")
@@ -476,6 +501,8 @@ namespace KasraLoan.Infrastructure.Migrations
 
             modelBuilder.Entity("KasraLoan.Domain.Entities.Employee", b =>
                 {
+                    b.Navigation("EmployeeLoginTokens");
+
                     b.Navigation("RefreshTokens");
                 });
 

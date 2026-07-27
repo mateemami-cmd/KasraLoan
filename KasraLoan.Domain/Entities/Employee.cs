@@ -13,6 +13,14 @@ namespace KasraLoan.Domain.Entities
         public string FirstName { get; set; }
         public string LastName { get; set; }
         public string PersonnelNumber { get; set; }
+
+        public string Username { get; set; } = string.Empty;
+
+        public string PasswordHash { get; set; } = string.Empty;
+
+        public string? PhoneNumber { get; set; }
+        public string? Email { get; set; }
+
         public DateTime HireDate { get; set; }
         public DateTime? MarriageDate { get; set; }
         public int? Year { get; set; }
@@ -20,7 +28,6 @@ namespace KasraLoan.Domain.Entities
 
         public UserRole Role { get; set; } = UserRole.Employee;
 
-        public ICollection<EmployeeLoginToken> EmployeeLoginTokens { get; set; } = new List<EmployeeLoginToken>();
         public ICollection<RefreshToken> RefreshTokens { get; set; } = new List<RefreshToken>();
     }
 }

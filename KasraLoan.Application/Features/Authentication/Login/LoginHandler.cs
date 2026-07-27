@@ -13,16 +13,19 @@ namespace KasraLoan.Application.Features.Authentication.Login
 {
     public class LoginHandler : IRequestHandler<LoginCommand, LoginResponseDto>
     {
-        private readonly IAuthRepository _authRepository;
+        private readonly IEmployeeRepository _employeeRepository;
+        private readonly IPasswordHasher _passwordHasher;
         private readonly IJwtService _jwtService;
         private readonly IRefreshTokenRepository _refreshTokenRepository;
 
         public LoginHandler(
-            IAuthRepository authRepository,
+            IEmployeeRepository employeeRepository,
+            IPasswordHasher passwordHasher,
             IJwtService jwtService,
             IRefreshTokenRepository refreshTokenRepository)
         {
-            _authRepository = authRepository;
+            _employeeRepository = employeeRepository;
+            _passwordHasher = passwordHasher;
             _jwtService = jwtService;
             _refreshTokenRepository = refreshTokenRepository;
         }
@@ -31,11 +34,20 @@ namespace KasraLoan.Application.Features.Authentication.Login
             LoginCommand request,
             CancellationToken cancellationToken)
         {
-            var employee =
-                await _authRepository.GetEmployeeByLoginTokenAsync(request.LoginRequest.Token);
+            var employee = await _employeeRepository
+                .GetByUsernameAsync(request.LoginRequest.Username);
 
-            if (employee == null)
-                throw new UnauthorizedAccessException("Invalid Token");
+            const string invalidCredentialsMessage = "نام کاربری یا رمز عبور اشتباه است.";
+
+            if (employee == null || !employee.IsActive)
+                throw new UnauthorizedAccessException(invalidCredentialsMessage);
+
+            var isPasswordValid = _passwordHasher.Verify(
+                request.LoginRequest.Password,
+                employee.PasswordHash);
+
+            if (!isPasswordValid)
+                throw new UnauthorizedAccessException(invalidCredentialsMessage);
 
             var jwt = _jwtService.GenerateToken(
                 employee.Id,

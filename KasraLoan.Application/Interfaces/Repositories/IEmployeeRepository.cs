@@ -11,7 +11,7 @@ namespace KasraLoan.Application.Interfaces.Repositories
     {
         Task<Employee?> GetByIdAsync(Guid id);
 
-        Task<Employee?> GetByLoginTokenAsync(string token);
+        Task<Employee?> GetByUsernameAsync(string username);
 
         Task<List<Employee>> GetAllAsync();
 

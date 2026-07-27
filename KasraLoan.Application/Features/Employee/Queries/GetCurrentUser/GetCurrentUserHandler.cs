@@ -23,7 +23,7 @@ namespace KasraLoan.Application.Features.Employee.Queries.GetCurrentUser
             _employeeRepository = employeeRepository;
         }
 
-        public async Task<GetCurrentUserResponse> Handle(GetCurrentUserQuery request,CancellationToken cancellationToken)
+        public async Task<GetCurrentUserResponse> Handle(GetCurrentUserQuery request, CancellationToken cancellationToken)
         {
             if (!_currentUser.IsAuthenticated)
                 throw new UnauthorizedAccessException("User is not authenticated.");
@@ -38,7 +38,10 @@ namespace KasraLoan.Application.Features.Employee.Queries.GetCurrentUser
                 Id = employee.Id,
                 FirstName = employee.FirstName,
                 LastName = employee.LastName,
+                Username = employee.Username,
                 PersonnelNumber = employee.PersonnelNumber ?? "",
+                PhoneNumber = employee.PhoneNumber,
+                Email = employee.Email,
                 Role = employee.Role.ToString(),
 
                 // فعلاً تا سرویس امتیاز را وصل نکردیم

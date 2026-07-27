@@ -19,7 +19,6 @@ namespace KasraLoan.Infrastructure
     {
         public static IServiceCollection AddInfrastructure(this IServiceCollection services)
         {
-            // Repositories
             services.AddScoped<ILoanTypeRepository, LoanTypeRepository>();
 
             services.AddScoped<IEmployeeScoreRepository, EmployeeScoreRepository>();
@@ -27,8 +26,6 @@ namespace KasraLoan.Infrastructure
             services.AddScoped<ILoanInstallmentRepository, LoanInstallmentRepository>();
 
             services.AddScoped<IEmployeeRepository, EmployeeRepository>();
-
-            services.AddScoped<IEmployeeService, EmployeeService>();
 
             services.AddScoped<IEmployeeScoreService, EmployeeScoreService>();
 
@@ -54,14 +51,12 @@ namespace KasraLoan.Infrastructure
 
             services.AddScoped<ILoanRule, BankIntroductionLoanRule>();
 
-            //services.AddScoped<IAuthService, AuthService>();
-
             services.AddScoped<ILoanInstallmentService, LoanInstallmentService>();
 
-            services.AddScoped<IAuthRepository, AuthRepository>();
+            services.AddScoped<IPasswordHasher, PasswordHasher>();
 
             services.AddScoped<IJwtService, JwtService>();
-                
+
             services.AddHttpContextAccessor();
 
             services.AddScoped<ICurrentUserService, CurrentUserService>();
