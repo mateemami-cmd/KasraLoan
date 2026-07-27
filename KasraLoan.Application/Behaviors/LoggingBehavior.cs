@@ -1,41 +1,59 @@
 ﻿using MediatR;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Diagnostics;
 
-namespace KasraLoan.Application.Behaviors
-{
-    public class LoggingBehavior<TRequest, TResponse>
+namespace KasraLoan.Application.Behaviors;
+
+public class LoggingBehavior<TRequest, TResponse>
     : IPipelineBehavior<TRequest, TResponse>
     where TRequest : notnull
+{
+    private readonly ILogger<LoggingBehavior<TRequest, TResponse>> _logger;
+
+    public LoggingBehavior(
+        ILogger<LoggingBehavior<TRequest, TResponse>> logger)
     {
-        private readonly ILogger<LoggingBehavior<TRequest, TResponse>> _logger;
+        _logger = logger;
+    }
 
-        public LoggingBehavior(
-            ILogger<LoggingBehavior<TRequest, TResponse>> logger)
+    public async Task<TResponse> Handle(
+        TRequest request,
+        RequestHandlerDelegate<TResponse> next,
+        CancellationToken cancellationToken)
+    {
+        var requestName = typeof(TRequest).Name;
+
+        var stopwatch = Stopwatch.StartNew();
+
+        _logger.LogInformation(
+            "START Request: {RequestName} | Payload: {@Request}",
+            requestName,
+            request);
+
+        try
         {
-            _logger = logger;
-        }
-
-        public async Task<TResponse> Handle(
-            TRequest request,
-            RequestHandlerDelegate<TResponse> next,
-            CancellationToken cancellationToken)
-        {
-            _logger.LogInformation(
-                "Handling {RequestName}",
-                typeof(TRequest).Name);
-
             var response = await next();
 
+            stopwatch.Stop();
+
             _logger.LogInformation(
-                "Handled {RequestName}",
-                typeof(TRequest).Name);
+                "END Request: {RequestName} completed in {ElapsedMilliseconds} ms",
+                requestName,
+                stopwatch.ElapsedMilliseconds);
 
             return response;
+        }
+        catch (Exception ex)
+        {
+            stopwatch.Stop();
+
+            _logger.LogError(
+                ex,
+                "ERROR Request: {RequestName} failed after {ElapsedMilliseconds} ms",
+                requestName,
+                stopwatch.ElapsedMilliseconds);
+
+            throw;
         }
     }
 }
