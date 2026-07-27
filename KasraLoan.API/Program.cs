@@ -2,20 +2,17 @@
 using KasraLoan.API.Authorization;
 using KasraLoan.API.Middlewares;
 using KasraLoan.Application.Behaviors;
-using KasraLoan.Application.Interfaces.Repositories;
-using KasraLoan.Application.LoanRules;
-using KasraLoan.Application.LoanRules.Implementations;
 using KasraLoan.Infrastructure;
 using KasraLoan.Infrastructure.Data;
 using KasraLoan.Infrastructure.Data.Seed;
-using KasraLoan.Infrastructure.Repositories;
 using MediatR;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Serilog;
+using Serilog.Events;
 using System.Reflection;
 using System.Text;
-//using FluentValidation.AspNetCore;
 
 namespace KasraLoan.API
 {
@@ -23,136 +20,178 @@ namespace KasraLoan.API
     {
         public static async Task Main(string[] args)
         {
-            var builder = WebApplication.CreateBuilder(args);
+            Log.Logger = new LoggerConfiguration()
+                .MinimumLevel.Information()
+                .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
+                .MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Warning)
+                .Enrich.FromLogContext()
+                .Enrich.WithEnvironmentName()
+                .Enrich.WithThreadId()
+                .WriteTo.Console()
+                .WriteTo.File(
+                    "Logs/log-.txt",
+                    rollingInterval: RollingInterval.Day,
+                    retainedFileCountLimit: 30,
+                    shared: true,
+                    flushToDiskInterval: TimeSpan.FromSeconds(1))
+                .CreateLogger();
 
-            // Add services to the container.
-
-            builder.Services.AddControllers();
-
-            builder.Services.AddValidatorsFromAssembly(
-                Assembly.Load("KasraLoan.Application"));
-
-            builder.Services.AddMediatR(cfg =>
+            try
             {
-                cfg.RegisterServicesFromAssembly(Assembly.Load("KasraLoan.Application"));
-            });
+                var builder = WebApplication.CreateBuilder(args);
 
-            builder.Services.AddTransient(
-                typeof(IPipelineBehavior<,>),
-                typeof(ValidationBehavior<,>));
+                builder.Host.UseSerilog();
 
-            builder.Services.AddTransient(
-                typeof(IPipelineBehavior<,>),
-                typeof(LoggingBehavior<,>));
+                // Add services to the container.
 
-            builder.Services.AddInfrastructure();
-            // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-            builder.Services.AddEndpointsApiExplorer();
-            builder.Services.AddSwaggerGen(options =>
-            {
-                options.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+                builder.Services.AddControllers();
+
+                builder.Services.AddValidatorsFromAssembly(
+                    Assembly.Load("KasraLoan.Application"));
+
+                builder.Services.AddMediatR(cfg =>
                 {
-                    Name = "Authorization",
-                    Type = Microsoft.OpenApi.Models.SecuritySchemeType.Http,
-                    Scheme = "bearer",
-                    BearerFormat = "JWT",
-                    In = Microsoft.OpenApi.Models.ParameterLocation.Header,
-                    Description = "Enter JWT like: Bearer {your token}"
+                    cfg.RegisterServicesFromAssembly(
+                        Assembly.Load("KasraLoan.Application"));
                 });
 
-                options.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
+                builder.Services.AddTransient(
+                    typeof(IPipelineBehavior<,>),
+                    typeof(ValidationBehavior<,>));
+
+                builder.Services.AddTransient(
+                    typeof(IPipelineBehavior<,>),
+                    typeof(LoggingBehavior<,>));
+
+                builder.Services.AddInfrastructure();
+
+                builder.Services.AddEndpointsApiExplorer();
+
+                builder.Services.AddSwaggerGen(options =>
                 {
-                   {
-            new Microsoft.OpenApi.Models.OpenApiSecurityScheme
-            {
-                Reference = new Microsoft.OpenApi.Models.OpenApiReference
-                {
-                    Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme,
-                    Id = "Bearer"
-                }
-            },
-            new string[] {}
-                   }
+                    options.AddSecurityDefinition(
+                        "Bearer",
+                        new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+                        {
+                            Name = "Authorization",
+                            Type = Microsoft.OpenApi.Models.SecuritySchemeType.Http,
+                            Scheme = "bearer",
+                            BearerFormat = "JWT",
+                            In = Microsoft.OpenApi.Models.ParameterLocation.Header,
+                            Description = "Enter JWT like: Bearer {your token}"
+                        });
+
+                    options.AddSecurityRequirement(
+                        new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
+                        {
+                            {
+                                new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+                                {
+                                    Reference =
+                                        new Microsoft.OpenApi.Models.OpenApiReference
+                                        {
+                                            Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme,
+                                            Id = "Bearer"
+                                        }
+                                },
+                                Array.Empty<string>()
+                            }
+                        });
                 });
-            });
 
-            builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-            .AddJwtBearer(options =>
-            {
-                var jwt = builder.Configuration.GetSection("JwtSettings");
+                builder.Services
+                    .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+                    .AddJwtBearer(options =>
+                    {
+                        var jwt = builder.Configuration.GetSection("JwtSettings");
 
-                options.TokenValidationParameters = new TokenValidationParameters
+                        options.TokenValidationParameters =
+                            new TokenValidationParameters
+                            {
+                                ValidateIssuer = true,
+                                ValidateAudience = true,
+                                ValidateLifetime = true,
+                                ValidateIssuerSigningKey = true,
+
+                                ValidIssuer = jwt["Issuer"],
+                                ValidAudience = jwt["Audience"],
+                                IssuerSigningKey =
+                                    new SymmetricSecurityKey(
+                                        Encoding.UTF8.GetBytes(jwt["Key"]!))
+                            };
+                    });
+
+                builder.Services.AddAuthorization(options =>
                 {
-                    ValidateIssuer = true,
-                    ValidateAudience = true,
-                    ValidateLifetime = true,
-                    ValidateIssuerSigningKey = true,
+                    options.AddPolicy(
+                        LoanPolicies.AdminOnly,
+                        policy => policy.RequireRole("Admin"));
 
-                    ValidIssuer = jwt["Issuer"],
-                    ValidAudience = jwt["Audience"],
-                    IssuerSigningKey = new SymmetricSecurityKey(
-             Encoding.UTF8.GetBytes(jwt["Key"]))
-                };
-            });
+                    options.AddPolicy(
+                        LoanPolicies.EmployeeOnly,
+                        policy => policy.RequireRole("Employee"));
 
-            builder.Services.AddAuthorization(options =>
-            {
-                options.AddPolicy(
-                    LoanPolicies.AdminOnly,
-                    policy => policy.RequireRole("Admin"));
+                    options.AddPolicy(
+                        LoanPolicies.AdminOrEmployee,
+                        policy => policy.RequireRole("Admin", "Employee"));
+                });
 
-                options.AddPolicy(
-                    LoanPolicies.EmployeeOnly,
-                    policy => policy.RequireRole("Employee"));
+                builder.Services.AddDbContext<KasraLoanDbContext>(options =>
+                    options.UseNpgsql(
+                        builder.Configuration.GetConnectionString("DefaultConnection")));
 
-                options.AddPolicy(
-                    LoanPolicies.AdminOrEmployee,
-                    policy => policy.RequireRole("Admin", "Employee"));
-            });
-
-            builder.Services.AddDbContext<KasraLoanDbContext>(options =>
-            options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
-
-            builder.Services.AddCors(options =>
-            {
-                options.AddPolicy("AllowAll",
-                    policy =>
+                builder.Services.AddCors(options =>
+                {
+                    options.AddPolicy("AllowAll", policy =>
                     {
                         policy.AllowAnyOrigin()
-                               .AllowAnyMethod()
-                               .AllowAnyHeader();
+                              .AllowAnyMethod()
+                              .AllowAnyHeader();
                     });
-            });
+                });
 
-            var app = builder.Build();
+                var app = builder.Build();
 
-            app.UseMiddleware<ExceptionMiddleware>();
+                app.UseSerilogRequestLogging();
 
-            app.UseCors("AllowAll");
+                app.UseMiddleware<ExceptionMiddleware>();
 
-            // Configure the HTTP request pipeline.
-            if (app.Environment.IsDevelopment())
-            {
-                app.UseSwagger();
-                app.UseSwaggerUI();
+                app.UseCors("AllowAll");
+
+                if (app.Environment.IsDevelopment())
+                {
+                    app.UseSwagger();
+                    app.UseSwaggerUI();
+                }
+
+                app.UseHttpsRedirection();
+
+                app.UseAuthentication();
+
+                app.UseAuthorization();
+
+                app.MapControllers();
+
+                using (var scope = app.Services.CreateScope())
+                {
+                    var context =
+                        scope.ServiceProvider.GetRequiredService<KasraLoanDbContext>();
+
+                    await DataSeeder.SeedAsync(context);
+                }
+
+                Log.Information("KasraLoan API Started Successfully");
+
+                app.Run();
             }
-
-            app.UseHttpsRedirection();
-
-            app.UseAuthentication();
-
-            app.UseAuthorization();
-
-            app.MapControllers();
-
-            using (var scope = app.Services.CreateScope())
+            catch (Exception ex)
             {
-                var context = scope.ServiceProvider.GetRequiredService<KasraLoanDbContext>();
-
-                await DataSeeder.SeedAsync(context);
+                Log.Fatal(ex, "Application terminated unexpectedly");
             }
-
-            app.Run();
+            finally
+            {
+                Log.CloseAndFlush();
+            }
         }
     }
 }
