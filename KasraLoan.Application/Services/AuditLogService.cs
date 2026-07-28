@@ -13,8 +13,7 @@ namespace KasraLoan.Application.Services
     {
         private readonly IAuditLogRepository _auditLogRepository;
 
-        public AuditLogService(
-            IAuditLogRepository auditLogRepository)
+        public AuditLogService(IAuditLogRepository auditLogRepository)
         {
             _auditLogRepository = auditLogRepository;
         }

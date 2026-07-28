@@ -20,14 +20,7 @@ namespace KasraLoan.Application.Features.Loan.Commands.CreateLoanRequest
         private readonly ILoanRuleEngine _loanRuleEngine;
         private readonly ICurrentUserService _currentUserService;
         private readonly INotificationService _notificationService;
-        public CreateLoanRequestHandler(
-        ILoanRequestRepository loanRequestRepository,
-        ILoanTypeRepository loanTypeRepository,
-        IEmployeeRepository employeeRepository,
-        IEmployeeScoreRepository employeeScoreRepository,
-        ILoanRuleEngine loanRuleEngine,
-        ICurrentUserService currentUserService,
-        INotificationService notificationService)
+        public CreateLoanRequestHandler(ILoanRequestRepository loanRequestRepository, ILoanTypeRepository loanTypeRepository, IEmployeeRepository employeeRepository, IEmployeeScoreRepository employeeScoreRepository, ILoanRuleEngine loanRuleEngine, ICurrentUserService currentUserService, INotificationService notificationService)
         {
             _loanRequestRepository = loanRequestRepository;
             _loanTypeRepository = loanTypeRepository;
@@ -49,15 +42,13 @@ namespace KasraLoan.Application.Features.Loan.Commands.CreateLoanRequest
                 throw new KeyNotFoundException("Employee not found");
 
 
-            var loanType = await _loanTypeRepository
-                .GetByIdAsync(request.Request.LoanTypeId);
+            var loanType = await _loanTypeRepository.GetByIdAsync(request.Request.LoanTypeId);
 
             if (loanType == null)
                 throw new KeyNotFoundException("Loan type not found");
 
 
-            var employeeScore = await _employeeScoreRepository
-                .GetByEmployeeIdAsync(employeeId);
+            var employeeScore = await _employeeScoreRepository.GetByEmployeeIdAsync(employeeId);
 
 
             if (employeeScore == null)

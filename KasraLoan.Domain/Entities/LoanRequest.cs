@@ -23,7 +23,7 @@ namespace KasraLoan.Domain.Entities
 
         public decimal MonthlyFeePercent { get; set; }
 
-        public LoanStatus Status { get; set; } //= string.Empty;
+        public LoanStatus Status { get; set; }
 
         public DateTime CreatedAt { get; set; }
 
@@ -39,10 +39,8 @@ namespace KasraLoan.Domain.Entities
 
         public LoanType LoanType { get; set; }
 
-        public ICollection<LoanInstallment> LoanInstallments { get; set; }
-            = new List<LoanInstallment>();
+        public ICollection<LoanInstallment> LoanInstallments { get; set; } = new List<LoanInstallment>();
 
-        public ICollection<LoanDocument> LoanDocuments { get; set; }
-            = new List<LoanDocument>();
+        public ICollection<LoanDocument> LoanDocuments { get; set; } = new List<LoanDocument>();
     }
 }

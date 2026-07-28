@@ -10,8 +10,7 @@ using System.Threading.Tasks;
 
 namespace KasraLoan.Application.Features.Authentication.Refresh
 {
-    public class RefreshHandler
-        : IRequestHandler<RefreshCommand, LoginResponseDto>
+    public class RefreshHandler : IRequestHandler<RefreshCommand, LoginResponseDto>
     {
 
         private readonly IRefreshTokenRepository _refreshTokenRepository;
@@ -23,9 +22,7 @@ namespace KasraLoan.Application.Features.Authentication.Refresh
             _jwtService = jwtService;
         }
 
-        public async Task<LoginResponseDto> Handle(
-    RefreshCommand request,
-    CancellationToken cancellationToken)
+        public async Task<LoginResponseDto> Handle(RefreshCommand request, CancellationToken cancellationToken)
         {
             var refreshToken = await _refreshTokenRepository.GetByTokenAsync(request.Request.RefreshToken);
 

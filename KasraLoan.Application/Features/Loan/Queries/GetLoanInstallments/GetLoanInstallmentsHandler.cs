@@ -9,26 +9,18 @@ using System.Threading.Tasks;
 
 namespace KasraLoan.Application.Features.Loan.Queries.GetLoanInstallments
 {
-    public class GetLoanInstallmentsHandler
-    : IRequestHandler<
-        GetLoanInstallmentsQuery,
-        ApiResponse<List<GetLoanInstallmentsResponse>>>
+    public class GetLoanInstallmentsHandler : IRequestHandler<GetLoanInstallmentsQuery, ApiResponse<List<GetLoanInstallmentsResponse>>>
     {
         private readonly ILoanInstallmentService _loanInstallmentService;
 
-        public GetLoanInstallmentsHandler(
-            ILoanInstallmentService loanInstallmentService)
+        public GetLoanInstallmentsHandler(ILoanInstallmentService loanInstallmentService)
         {
             _loanInstallmentService = loanInstallmentService;
         }
 
-        public async Task<ApiResponse<List<GetLoanInstallmentsResponse>>> Handle(
-            GetLoanInstallmentsQuery request,
-            CancellationToken cancellationToken)
+        public async Task<ApiResponse<List<GetLoanInstallmentsResponse>>> Handle(GetLoanInstallmentsQuery request, CancellationToken cancellationToken)
         {
-            var result =
-                await _loanInstallmentService
-                    .GetLoanInstallmentsAsync(request.LoanId);
+            var result = await _loanInstallmentService.GetLoanInstallmentsAsync(request.LoanId);
 
             if (!result.IsSuccess)
             {
@@ -50,7 +42,8 @@ namespace KasraLoan.Application.Features.Loan.Queries.GetLoanInstallments
                     DueDate = x.DueDate,
                     IsPaid = x.IsPaid,
                     PaidAt = x.PaidAt
-                }).ToList()
+                })
+                .ToList()
             };
         }
     }

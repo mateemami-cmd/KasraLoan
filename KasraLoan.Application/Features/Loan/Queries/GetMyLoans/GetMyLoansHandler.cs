@@ -9,28 +9,22 @@ using System.Threading.Tasks;
 
 namespace KasraLoan.Application.Features.Loan.Queries.GetMyLoans
 {
-    public class GetMyLoansHandler
-    : IRequestHandler<GetMyLoansQuery, List<GetMyLoansResponse>>
+    public class GetMyLoansHandler : IRequestHandler<GetMyLoansQuery, List<GetMyLoansResponse>>
     {
         private readonly ILoanRequestRepository _loanRequestRepository;
         private readonly ICurrentUserService _currentUserService;
 
-        public GetMyLoansHandler(
-            ILoanRequestRepository loanRequestRepository,
-            ICurrentUserService currentUserService)
+        public GetMyLoansHandler(ILoanRequestRepository loanRequestRepository, ICurrentUserService currentUserService)
         {
             _loanRequestRepository = loanRequestRepository;
             _currentUserService = currentUserService;
         }
 
-        public async Task<List<GetMyLoansResponse>> Handle(
-            GetMyLoansQuery request,
-            CancellationToken cancellationToken)
+        public async Task<List<GetMyLoansResponse>> Handle(GetMyLoansQuery request, CancellationToken cancellationToken)
         {
             var employeeId = _currentUserService.UserId;
 
-            var loans = await _loanRequestRepository
-                .GetByEmployeeIdAsync(employeeId);
+            var loans = await _loanRequestRepository.GetByEmployeeIdAsync(employeeId);
 
             var count = loans.Count;
 
@@ -49,7 +43,8 @@ namespace KasraLoan.Application.Features.Loan.Queries.GetMyLoans
                 ApprovedAmount = loan.ApprovedAmount,
                 InstallmentCount = loan.InstallmentCount,
                 Status = loan.Status.ToString()
-            }).ToList();
+            })
+                .ToList();
 
             return result;
         }

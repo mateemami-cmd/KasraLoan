@@ -20,8 +20,7 @@ public class LoanInstallmentsController : ControllerBase
     [HttpGet("{loanId:guid}")]
     public async Task<IActionResult> GetLoanInstallments(Guid loanId)
     {
-        var result = await _mediator.Send(
-            new GetLoanInstallmentsQuery(loanId));
+        var result = await _mediator.Send(new GetLoanInstallmentsQuery(loanId));
 
         if (!result.IsSuccess)
             return BadRequest(result);

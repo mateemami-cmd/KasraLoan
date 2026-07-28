@@ -48,8 +48,7 @@ namespace KasraLoan.API.Controllers
         }
 
         [HttpPost("refresh")]
-        public async Task<IActionResult> Refresh(
-           [FromBody] RefreshTokenRequestDto request)
+        public async Task<IActionResult> Refresh([FromBody] RefreshTokenRequestDto request)
         {
             var result = await _mediator.Send(new RefreshCommand
             {

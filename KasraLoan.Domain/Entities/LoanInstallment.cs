@@ -32,27 +32,4 @@ namespace KasraLoan.Domain.Entities
         // تاریخ ایجاد رکورد
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     }
-
-
-
-    //public class LoanInstallment
-    //{
-    //    public int Id { get; set; }
-
-    //    public int LoanRequestId { get; set; }
-
-    //    public int InstallmentNumber { get; set; }
-
-    //    public DateTime DueDate { get; set; }
-
-    //    public decimal Amount { get; set; }
-
-    //    public bool IsPaid { get; set; }
-
-    //    public DateTime? PaidAt { get; set; }
-
-    //    public int PenaltyAmount { get; set; }
-
-    //    public LoanRequest LoanRequest { get; set; }
-    //}
 }

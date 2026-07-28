@@ -8,20 +8,16 @@ using System.Threading.Tasks;
 
 namespace KasraLoan.Application.Features.Loan.Queries.GetMyLoans.GetAllLoans
 {
-    public class GetAllLoansHandler
-    : IRequestHandler<GetAllLoansQuery, List<GetAllLoansResponse>>
+    public class GetAllLoansHandler : IRequestHandler<GetAllLoansQuery, List<GetAllLoansResponse>>
     {
         private readonly ILoanRequestRepository _loanRequestRepository;
 
-        public GetAllLoansHandler(
-            ILoanRequestRepository loanRequestRepository)
+        public GetAllLoansHandler(ILoanRequestRepository loanRequestRepository)
         {
             _loanRequestRepository = loanRequestRepository;
         }
 
-        public async Task<List<GetAllLoansResponse>> Handle(
-            GetAllLoansQuery request,
-            CancellationToken cancellationToken)
+        public async Task<List<GetAllLoansResponse>> Handle(GetAllLoansQuery request, CancellationToken cancellationToken)
         {
             var loans = await _loanRequestRepository.GetPagedAsync(request.Page, request.PageSize, request.Status, request.Search);
 
@@ -35,7 +31,8 @@ namespace KasraLoan.Application.Features.Loan.Queries.GetMyLoans.GetAllLoans
                 InstallmentCount = x.InstallmentCount,
                 Status = x.Status.ToString(),
                 CreatedAt = x.CreatedAt
-            }).ToList();
+            })
+                .ToList();
         }
     }
 }

@@ -9,15 +9,12 @@ using System.Threading.Tasks;
 
 namespace KasraLoan.Application.Features.Employee.Queries.GetCurrentUser
 {
-    public class GetCurrentUserHandler
-        : IRequestHandler<GetCurrentUserQuery, GetCurrentUserResponse>
+    public class GetCurrentUserHandler : IRequestHandler<GetCurrentUserQuery, GetCurrentUserResponse>
     {
         private readonly ICurrentUserService _currentUser;
         private readonly IEmployeeRepository _employeeRepository;
 
-        public GetCurrentUserHandler(
-            ICurrentUserService currentUser,
-            IEmployeeRepository employeeRepository)
+        public GetCurrentUserHandler(ICurrentUserService currentUser, IEmployeeRepository employeeRepository)
         {
             _currentUser = currentUser;
             _employeeRepository = employeeRepository;

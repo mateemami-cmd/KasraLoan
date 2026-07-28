@@ -7,8 +7,7 @@ using System.Threading.Tasks;
 
 namespace KasraLoan.Application.Features.AuditLogs.Queries.GetAuditLogs
 {
-    public class GetAuditLogsQuery
-        : IRequest<List<GetAuditLogsResponse>>
+    public class GetAuditLogsQuery : IRequest<List<GetAuditLogsResponse>>
     {
     }
 }

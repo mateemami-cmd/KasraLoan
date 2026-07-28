@@ -8,8 +8,7 @@ using System.Threading.Tasks;
 
 namespace KasraLoan.Application.Features.Loan.Commands.CreateLoanRequest
 {
-    public class CreateLoanRequestCommand
-        : IRequest<CreateLoanRequestResponse>
+    public class CreateLoanRequestCommand : IRequest<CreateLoanRequestResponse>
     {
         public CreateLoanRequestDto Request { get; set; } = null!;
     }

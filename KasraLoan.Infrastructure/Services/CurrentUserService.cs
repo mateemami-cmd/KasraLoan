@@ -28,16 +28,12 @@ namespace KasraLoan.Infrastructure.Services
                     ? id
                     : Guid.Empty;
 
-        public string? FirstName =>
-            User?.FindFirstValue(ClaimTypes.Name);
+        public string? FirstName => User?.FindFirstValue(ClaimTypes.Name);
 
-        public string? PersonnelNumber =>
-            User?.FindFirst("PersonnelNumber")?.Value;
+        public string? PersonnelNumber => User?.FindFirst("PersonnelNumber")?.Value;
 
-        public string? Role =>
-            User?.FindFirst(ClaimTypes.Role)?.Value;
+        public string? Role => User?.FindFirst(ClaimTypes.Role)?.Value;
 
-        public bool IsAuthenticated =>
-            User?.Identity?.IsAuthenticated ?? false;
+        public bool IsAuthenticated => User?.Identity?.IsAuthenticated ?? false;
     }
 }

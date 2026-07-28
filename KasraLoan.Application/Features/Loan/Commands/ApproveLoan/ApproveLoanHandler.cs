@@ -18,11 +18,7 @@ namespace KasraLoan.Application.Features.Loan.Commands.ApproveLoan
         private readonly ILoanInstallmentService _loanInstallmentService;
         private readonly INotificationService _notificationService;
 
-        public ApproveLoanHandler(
-            ILoanRequestRepository loanRequestRepository,
-            IAuditLogService auditLogService,
-            ILoanInstallmentService loanInstallmentService,
-            INotificationService notificationService)
+        public ApproveLoanHandler(ILoanRequestRepository loanRequestRepository, IAuditLogService auditLogService, ILoanInstallmentService loanInstallmentService, INotificationService notificationService)
         {
             _loanRequestRepository = loanRequestRepository;
             _auditLogService = auditLogService;
@@ -30,12 +26,9 @@ namespace KasraLoan.Application.Features.Loan.Commands.ApproveLoan
             _notificationService = notificationService;
         }
 
-        public async Task<ApproveLoanResponse> Handle(
-            ApproveLoanCommand request,
-            CancellationToken cancellationToken)
+        public async Task<ApproveLoanResponse> Handle(ApproveLoanCommand request, CancellationToken cancellationToken)
         {
-            var loan = await _loanRequestRepository
-                .GetByIdAsync(request.LoanRequestId);
+            var loan = await _loanRequestRepository.GetByIdAsync(request.LoanRequestId);
 
             if (loan == null)
                 throw new KeyNotFoundException("وام یافت نشد");
@@ -45,14 +38,11 @@ namespace KasraLoan.Application.Features.Loan.Commands.ApproveLoan
 
             loan.Status = LoanStatus.Approved;
 
-            var totalFee = loan.ApprovedAmount
-                * (loan.MonthlyFeePercent / 100m)
-                * loan.InstallmentCount;
+            var totalFee = loan.ApprovedAmount * (loan.MonthlyFeePercent / 100m) * loan.InstallmentCount;
 
             loan.TotalPayableAmount = loan.ApprovedAmount + (int)Math.Round(totalFee);
 
-            loan.MonthlyPaymentAmount =
-                Math.Round((decimal)loan.TotalPayableAmount / loan.InstallmentCount, 0);
+            loan.MonthlyPaymentAmount = Math.Round((decimal)loan.TotalPayableAmount / loan.InstallmentCount, 0);
 
             loan.ApprovedAt = DateTime.UtcNow;
 

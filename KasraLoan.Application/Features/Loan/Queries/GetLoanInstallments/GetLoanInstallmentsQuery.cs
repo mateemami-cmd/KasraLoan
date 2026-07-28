@@ -3,8 +3,7 @@ using MediatR;
 
 namespace KasraLoan.Application.Features.Loan.Queries.GetLoanInstallments;
 
-public class GetLoanInstallmentsQuery
-    : IRequest<ApiResponse<List<GetLoanInstallmentsResponse>>>
+public class GetLoanInstallmentsQuery : IRequest<ApiResponse<List<GetLoanInstallmentsResponse>>>
 {
     public Guid LoanId { get; set; }
 

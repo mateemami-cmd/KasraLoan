@@ -30,8 +30,7 @@ namespace KasraLoan.API.Middlewares
                     Message = ex.Message
                 };
 
-                await context.Response.WriteAsync(
-                    JsonSerializer.Serialize(response));
+                await context.Response.WriteAsync(JsonSerializer.Serialize(response));
             }
             catch (ValidationException ex)
             {
@@ -48,8 +47,7 @@ namespace KasraLoan.API.Middlewares
                     })
                 };
 
-                await context.Response.WriteAsync(
-                    JsonSerializer.Serialize(response));
+                await context.Response.WriteAsync(JsonSerializer.Serialize(response));
             }
             catch (UnauthorizedAccessException ex)
             {
@@ -61,8 +59,7 @@ namespace KasraLoan.API.Middlewares
                     Message = ex.Message
                 };
 
-                await context.Response.WriteAsync(
-                    JsonSerializer.Serialize(response));
+                await context.Response.WriteAsync(JsonSerializer.Serialize(response));
             }
             catch (KeyNotFoundException ex)
             {
@@ -74,8 +71,7 @@ namespace KasraLoan.API.Middlewares
                     Message = ex.Message
                 };
 
-                await context.Response.WriteAsync(
-                    JsonSerializer.Serialize(response));
+                await context.Response.WriteAsync(JsonSerializer.Serialize(response));
             }
             catch (Exception)
             {
@@ -87,8 +83,7 @@ namespace KasraLoan.API.Middlewares
                     Message = "Internal Server Error"
                 };
 
-                await context.Response.WriteAsync(
-                    JsonSerializer.Serialize(response));
+                await context.Response.WriteAsync(JsonSerializer.Serialize(response));
             }
         }
     }

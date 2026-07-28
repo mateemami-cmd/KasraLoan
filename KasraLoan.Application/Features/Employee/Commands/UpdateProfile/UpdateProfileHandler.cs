@@ -8,29 +8,22 @@ using System.Threading.Tasks;
 
 namespace KasraLoan.Application.Features.Employee.Commands.UpdateProfile
 {
-    public class UpdateProfileHandler
-        : IRequestHandler<UpdateProfileCommand, UpdateProfileResponse>
+    public class UpdateProfileHandler : IRequestHandler<UpdateProfileCommand, UpdateProfileResponse>
     {
         private readonly IEmployeeRepository _employeeRepository;
         private readonly IPasswordHasher _passwordHasher;
         private readonly ICurrentUserService _currentUserService;
 
-        public UpdateProfileHandler(
-            IEmployeeRepository employeeRepository,
-            IPasswordHasher passwordHasher,
-            ICurrentUserService currentUserService)
+        public UpdateProfileHandler(IEmployeeRepository employeeRepository, IPasswordHasher passwordHasher, ICurrentUserService currentUserService)
         {
             _employeeRepository = employeeRepository;
             _passwordHasher = passwordHasher;
             _currentUserService = currentUserService;
         }
 
-        public async Task<UpdateProfileResponse> Handle(
-            UpdateProfileCommand request,
-            CancellationToken cancellationToken)
+        public async Task<UpdateProfileResponse> Handle(UpdateProfileCommand request, CancellationToken cancellationToken)
         {
-            var employee = await _employeeRepository
-                .GetByIdAsync(_currentUserService.UserId);
+            var employee = await _employeeRepository.GetByIdAsync(_currentUserService.UserId);
 
             if (employee == null)
                 throw new KeyNotFoundException("کاربر یافت نشد.");

@@ -18,11 +18,7 @@ namespace KasraLoan.Application.Features.Authentication.Login
         private readonly IJwtService _jwtService;
         private readonly IRefreshTokenRepository _refreshTokenRepository;
 
-        public LoginHandler(
-            IEmployeeRepository employeeRepository,
-            IPasswordHasher passwordHasher,
-            IJwtService jwtService,
-            IRefreshTokenRepository refreshTokenRepository)
+        public LoginHandler(IEmployeeRepository employeeRepository, IPasswordHasher passwordHasher, IJwtService jwtService, IRefreshTokenRepository refreshTokenRepository)
         {
             _employeeRepository = employeeRepository;
             _passwordHasher = passwordHasher;
@@ -30,21 +26,16 @@ namespace KasraLoan.Application.Features.Authentication.Login
             _refreshTokenRepository = refreshTokenRepository;
         }
 
-        public async Task<LoginResponseDto> Handle(
-            LoginCommand request,
-            CancellationToken cancellationToken)
+        public async Task<LoginResponseDto> Handle(LoginCommand request, CancellationToken cancellationToken)
         {
-            var employee = await _employeeRepository
-                .GetByUsernameAsync(request.LoginRequest.Username);
+            var employee = await _employeeRepository.GetByUsernameAsync(request.LoginRequest.Username);
 
             const string invalidCredentialsMessage = "نام کاربری یا رمز عبور اشتباه است.";
 
             if (employee == null || !employee.IsActive)
                 throw new UnauthorizedAccessException(invalidCredentialsMessage);
 
-            var isPasswordValid = _passwordHasher.Verify(
-                request.LoginRequest.Password,
-                employee.PasswordHash);
+            var isPasswordValid = _passwordHasher.Verify(request.LoginRequest.Password, employee.PasswordHash);
 
             if (!isPasswordValid)
                 throw new UnauthorizedAccessException(invalidCredentialsMessage);

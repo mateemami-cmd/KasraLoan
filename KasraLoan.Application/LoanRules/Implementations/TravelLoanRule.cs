@@ -16,8 +16,7 @@ namespace KasraLoan.Application.LoanRules.Implementations
 
         public LoanRuleResult Evaluate(LoanRuleContext context)
         {
-            var maxAllowedAmount =
-                (context.EmployeeScore * 10_000) + 10_000_000;
+            var maxAllowedAmount = (context.EmployeeScore * 10_000) + 10_000_000;
 
             if (context.RequestedAmount > maxAllowedAmount)
             {

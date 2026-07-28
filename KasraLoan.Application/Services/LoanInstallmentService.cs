@@ -19,11 +19,7 @@ namespace KasraLoan.Application.Services
         private readonly INotificationService _notificationService;
         private readonly ICurrentUserService _currentUserService;
 
-        public LoanInstallmentService(
-            ILoanInstallmentRepository repo,
-            ILoanRequestRepository loanRequestRepository,
-            INotificationService notificationService,
-            ICurrentUserService currentUserService)
+        public LoanInstallmentService(ILoanInstallmentRepository repo, ILoanRequestRepository loanRequestRepository, INotificationService notificationService, ICurrentUserService currentUserService)
         {
             _repo = repo;
             _loanRequestRepository = loanRequestRepository;
@@ -44,8 +40,7 @@ namespace KasraLoan.Application.Services
                 };
             }
 
-            var isAdmin = string.Equals(
-                _currentUserService.Role, "Admin", StringComparison.OrdinalIgnoreCase);
+            var isAdmin = string.Equals(_currentUserService.Role, "Admin", StringComparison.OrdinalIgnoreCase);
 
             if (!isAdmin && loan.EmployeeId != _currentUserService.UserId)
             {
@@ -76,7 +71,6 @@ namespace KasraLoan.Application.Services
 
         public async Task<ApiResponse<bool>> PayInstallmentAsync(Guid installmentId, Guid employeeId)
         {
-            //var installment = await _repo.GetByIdAsync(installmentId);
             var installment = await _repo.GetByIdWithLoanAsync(installmentId);
 
             if (installment == null)
@@ -103,6 +97,7 @@ namespace KasraLoan.Application.Services
                     Message = "این قسط قبلاً پرداخت شده است."
                 };
             }
+
             installment.IsPaid = true;
 
             await _repo.SaveChangesAsync();
@@ -134,11 +129,9 @@ namespace KasraLoan.Application.Services
             // ابتدا مبلغ هر قسط را با گرد کردن به پایین (به عدد صحیح تومان) محاسبه می‌کنیم،
             // سپس باقیمانده‌ی حاصل از تقسیم را به قسط آخر اضافه می‌کنیم تا مجموع اقساط
             // همیشه دقیقاً برابر مبلغ کل قابل‌بازپرداخت باشد.
-            var baseInstallmentAmount =
-                Math.Floor((decimal)loan.TotalPayableAmount / loan.InstallmentCount);
+            var baseInstallmentAmount = Math.Floor((decimal)loan.TotalPayableAmount / loan.InstallmentCount);
 
-            var remainder =
-                loan.TotalPayableAmount - (baseInstallmentAmount * loan.InstallmentCount);
+            var remainder = loan.TotalPayableAmount - (baseInstallmentAmount * loan.InstallmentCount);
 
             var installments = new List<LoanInstallment>();
 
@@ -146,9 +139,7 @@ namespace KasraLoan.Application.Services
             {
                 var isLastInstallment = i == loan.InstallmentCount;
 
-                var amount = isLastInstallment
-                    ? baseInstallmentAmount + remainder
-                    : baseInstallmentAmount;
+                var amount = isLastInstallment ? baseInstallmentAmount + remainder : baseInstallmentAmount;
 
                 installments.Add(new LoanInstallment
                 {

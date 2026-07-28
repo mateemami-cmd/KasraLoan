@@ -22,8 +22,7 @@ namespace KasraLoan.API.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
-            var result = await _mediator.Send(
-                new GetAuditLogsQuery());
+            var result = await _mediator.Send(new GetAuditLogsQuery());
 
             return Ok(result);
         }

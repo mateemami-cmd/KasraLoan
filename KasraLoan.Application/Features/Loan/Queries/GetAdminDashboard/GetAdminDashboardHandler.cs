@@ -12,15 +12,12 @@ namespace KasraLoan.Application.Features.Loan.Queries.GetAdminDashboard
     {
         private readonly ILoanRequestRepository _loanRequestRepository;
 
-        public GetAdminDashboardHandler(
-            ILoanRequestRepository loanRequestRepository)
+        public GetAdminDashboardHandler(ILoanRequestRepository loanRequestRepository)
         {
             _loanRequestRepository = loanRequestRepository;
         }
 
-        public async Task<GetAdminDashboardResponse> Handle(
-            GetAdminDashboardQuery request,
-            CancellationToken cancellationToken)
+        public async Task<GetAdminDashboardResponse> Handle(GetAdminDashboardQuery request, CancellationToken cancellationToken)
         {
             var allLoans = await _loanRequestRepository.GetAllAsync();
 

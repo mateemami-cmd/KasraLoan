@@ -11,11 +11,9 @@ namespace KasraLoan.Application.Features.Authentication.Login
     {
         public LoginValidator()
         {
-            RuleFor(x => x.LoginRequest.Username)
-                .NotEmpty().WithMessage("نام کاربری الزامی است.");
+            RuleFor(x => x.LoginRequest.Username).NotEmpty().WithMessage("نام کاربری الزامی است.");
 
-            RuleFor(x => x.LoginRequest.Password)
-                .NotEmpty().WithMessage("رمز عبور الزامی است.");
+            RuleFor(x => x.LoginRequest.Password).NotEmpty().WithMessage("رمز عبور الزامی است.");
         }
     }
 }

@@ -10,35 +10,28 @@ using System.Threading.Tasks;
 
 namespace KasraLoan.Application.Features.Loan.Queries.GetLoanById
 {
-    public class GetLoanByIdHandler
-    : IRequestHandler<GetLoanByIdQuery, GetLoanByIdResponse>
+    public class GetLoanByIdHandler : IRequestHandler<GetLoanByIdQuery, GetLoanByIdResponse>
     {
         private readonly ILoanRequestRepository _loanRequestRepository;
         private readonly ICurrentUserService _currentUserService;
 
-        public GetLoanByIdHandler(
-            ILoanRequestRepository loanRequestRepository,
-            ICurrentUserService currentUserService)
+        public GetLoanByIdHandler(ILoanRequestRepository loanRequestRepository, ICurrentUserService currentUserService)
         {
             _loanRequestRepository = loanRequestRepository;
             _currentUserService = currentUserService;
         }
 
-        public async Task<GetLoanByIdResponse> Handle(
-            GetLoanByIdQuery request,
-            CancellationToken cancellationToken)
+        public async Task<GetLoanByIdResponse> Handle(GetLoanByIdQuery request, CancellationToken cancellationToken)
         {
             var loan = await _loanRequestRepository.GetByIdAsync(request.LoanId);
 
             if (loan == null)
                 throw new KeyNotFoundException("وام یافت نشد");
 
-            var isAdmin = string.Equals(
-                _currentUserService.Role, "Admin", StringComparison.OrdinalIgnoreCase);
+            var isAdmin = string.Equals(_currentUserService.Role, "Admin", StringComparison.OrdinalIgnoreCase);
 
             if (!isAdmin && loan.EmployeeId != _currentUserService.UserId)
-                throw new ForbiddenAccessException(
-                    "شما اجازه‌ی مشاهده‌ی این وام را ندارید.");
+                throw new ForbiddenAccessException("شما اجازه‌ی مشاهده‌ی این وام را ندارید.");
 
             return new GetLoanByIdResponse
             {

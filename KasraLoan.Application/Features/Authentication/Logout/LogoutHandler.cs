@@ -12,19 +12,14 @@ namespace KasraLoan.Application.Features.Authentication.Logout
     {
         private readonly IRefreshTokenRepository _refreshTokenRepository;
 
-        public LogoutHandler(
-            IRefreshTokenRepository refreshTokenRepository)
+        public LogoutHandler(IRefreshTokenRepository refreshTokenRepository)
         {
             _refreshTokenRepository = refreshTokenRepository;
         }
 
-        public async Task Handle(
-            LogoutCommand request,
-            CancellationToken cancellationToken)
+        public async Task Handle(LogoutCommand request, CancellationToken cancellationToken)
         {
-            var refreshToken =
-                await _refreshTokenRepository
-                    .GetByTokenAsync(request.RefreshToken);
+            var refreshToken = await _refreshTokenRepository.GetByTokenAsync(request.RefreshToken);
 
             if (refreshToken == null)
                 throw new UnauthorizedAccessException("Refresh Token not found");

@@ -37,8 +37,7 @@ namespace KasraLoan.Infrastructure.Data.Seed
 
         private static async Task UpsertEmployeeAsync(KasraLoanDbContext context, Employee employee)
         {
-            var existingEmployee = await context.Employees
-                .FirstOrDefaultAsync(x => x.PersonnelNumber == employee.PersonnelNumber);
+            var existingEmployee = await context.Employees.FirstOrDefaultAsync(x => x.PersonnelNumber == employee.PersonnelNumber);
 
             if (existingEmployee == null)
             {

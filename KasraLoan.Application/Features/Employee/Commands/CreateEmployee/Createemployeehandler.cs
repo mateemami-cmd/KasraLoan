@@ -12,8 +12,7 @@ using System.Threading;
 
 namespace KasraLoan.Application.Features.Employee.Commands.CreateEmployee
 {
-    public class CreateEmployeeHandler
-        : IRequestHandler<CreateEmployeeCommand, CreateEmployeeResponse>
+    public class CreateEmployeeHandler : IRequestHandler<CreateEmployeeCommand, CreateEmployeeResponse>
     {
         // امتیاز پیش‌فرض هر کارمند تازه‌وارد که هنوز سابقه‌ای در سیستم ندارد.
         private const int DefaultInitialScore = 100;
@@ -23,11 +22,7 @@ namespace KasraLoan.Application.Features.Employee.Commands.CreateEmployee
         private readonly IPasswordHasher _passwordHasher;
         private readonly IPasswordGenerator _passwordGenerator;
 
-        public CreateEmployeeHandler(
-            IEmployeeRepository employeeRepository,
-            IEmployeeScoreRepository employeeScoreRepository,
-            IPasswordHasher passwordHasher,
-            IPasswordGenerator passwordGenerator)
+        public CreateEmployeeHandler(IEmployeeRepository employeeRepository, IEmployeeScoreRepository employeeScoreRepository, IPasswordHasher passwordHasher, IPasswordGenerator passwordGenerator)
         {
             _employeeRepository = employeeRepository;
             _employeeScoreRepository = employeeScoreRepository;
@@ -35,9 +30,7 @@ namespace KasraLoan.Application.Features.Employee.Commands.CreateEmployee
             _passwordGenerator = passwordGenerator;
         }
 
-        public async Task<CreateEmployeeResponse> Handle(
-            CreateEmployeeCommand request,
-            CancellationToken cancellationToken)
+        public async Task<CreateEmployeeResponse> Handle(CreateEmployeeCommand request, CancellationToken cancellationToken)
         {
             var dto = request.Request;
 

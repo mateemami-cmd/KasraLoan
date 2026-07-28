@@ -7,8 +7,7 @@ using System.Threading.Tasks;
 
 namespace KasraLoan.Application.Features.Loan.Commands.CreateLoanRequest
 {
-    public class CreateLoanRequestValidator
-        : AbstractValidator<CreateLoanRequestCommand>
+    public class CreateLoanRequestValidator : AbstractValidator<CreateLoanRequestCommand>
     {
         public CreateLoanRequestValidator()
         {

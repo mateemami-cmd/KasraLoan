@@ -8,13 +8,11 @@ using System.Threading.Tasks;
 
 namespace KasraLoan.Application.Features.AuditLogs.Queries.GetAuditLogs
 {
-    public class GetAuditLogsHandler
-        : IRequestHandler<GetAuditLogsQuery, List<GetAuditLogsResponse>>
+    public class GetAuditLogsHandler : IRequestHandler<GetAuditLogsQuery, List<GetAuditLogsResponse>>
     {
         private readonly IAuditLogRepository _auditLogRepository;
 
-        public GetAuditLogsHandler(
-            IAuditLogRepository auditLogRepository)
+        public GetAuditLogsHandler(IAuditLogRepository auditLogRepository)
         {
             _auditLogRepository = auditLogRepository;
         }

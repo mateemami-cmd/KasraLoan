@@ -21,8 +21,7 @@ namespace KasraLoan.Infrastructure.Repositories
 
         public async Task<LoanType?> GetByIdAsync(int id)
         {
-            return await _context.LoanTypes
-                .FirstOrDefaultAsync(x => x.Id == id);
+            return await _context.LoanTypes.FirstOrDefaultAsync(x => x.Id == id);
         }
     }
 }

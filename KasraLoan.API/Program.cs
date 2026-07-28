@@ -42,17 +42,13 @@ namespace KasraLoan.API
 
                 builder.Host.UseSerilog();
 
-                // Add services to the container.
-
                 builder.Services.AddControllers();
 
-                builder.Services.AddValidatorsFromAssembly(
-                    Assembly.Load("KasraLoan.Application"));
+                builder.Services.AddValidatorsFromAssembly(Assembly.Load("KasraLoan.Application"));
 
                 builder.Services.AddMediatR(cfg =>
                 {
-                    cfg.RegisterServicesFromAssembly(
-                        Assembly.Load("KasraLoan.Application"));
+                    cfg.RegisterServicesFromAssembly(Assembly.Load("KasraLoan.Application"));
                 });
 
                 builder.Services.AddTransient(

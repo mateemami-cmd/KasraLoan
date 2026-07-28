@@ -4,31 +4,22 @@ using System.Diagnostics;
 
 namespace KasraLoan.Application.Behaviors;
 
-public class LoggingBehavior<TRequest, TResponse>
-    : IPipelineBehavior<TRequest, TResponse>
-    where TRequest : notnull
+public class LoggingBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse> where TRequest : notnull
 {
     private readonly ILogger<LoggingBehavior<TRequest, TResponse>> _logger;
 
-    public LoggingBehavior(
-        ILogger<LoggingBehavior<TRequest, TResponse>> logger)
+    public LoggingBehavior(ILogger<LoggingBehavior<TRequest, TResponse>> logger)
     {
         _logger = logger;
     }
 
-    public async Task<TResponse> Handle(
-        TRequest request,
-        RequestHandlerDelegate<TResponse> next,
-        CancellationToken cancellationToken)
+    public async Task<TResponse> Handle(TRequest request, RequestHandlerDelegate<TResponse> next, CancellationToken cancellationToken)
     {
         var requestName = typeof(TRequest).Name;
 
         var stopwatch = Stopwatch.StartNew();
 
-        _logger.LogInformation(
-            "START Request: {RequestName} | Payload: {@Request}",
-            requestName,
-            request);
+        _logger.LogInformation("START Request: {RequestName} | Payload: {@Request}", requestName, request);
 
         try
         {
@@ -36,10 +27,7 @@ public class LoggingBehavior<TRequest, TResponse>
 
             stopwatch.Stop();
 
-            _logger.LogInformation(
-                "END Request: {RequestName} completed in {ElapsedMilliseconds} ms",
-                requestName,
-                stopwatch.ElapsedMilliseconds);
+            _logger.LogInformation("END Request: {RequestName} completed in {ElapsedMilliseconds} ms", requestName, stopwatch.ElapsedMilliseconds);
 
             return response;
         }
@@ -47,11 +35,7 @@ public class LoggingBehavior<TRequest, TResponse>
         {
             stopwatch.Stop();
 
-            _logger.LogError(
-                ex,
-                "ERROR Request: {RequestName} failed after {ElapsedMilliseconds} ms",
-                requestName,
-                stopwatch.ElapsedMilliseconds);
+            _logger.LogError(ex, "ERROR Request: {RequestName} failed after {ElapsedMilliseconds} ms", requestName, stopwatch.ElapsedMilliseconds);
 
             throw;
         }

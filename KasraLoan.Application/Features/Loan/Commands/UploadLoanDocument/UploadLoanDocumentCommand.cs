@@ -7,8 +7,7 @@ using System.Threading.Tasks;
 
 namespace KasraLoan.Application.Features.Loan.Commands.UploadLoanDocument
 {
-    public class UploadLoanDocumentCommand
-        : IRequest<UploadLoanDocumentResponse>
+    public class UploadLoanDocumentCommand : IRequest<UploadLoanDocumentResponse>
     {
         public Guid LoanRequestId { get; set; }
 
