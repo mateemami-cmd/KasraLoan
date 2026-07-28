@@ -48,17 +48,21 @@ namespace KasraLoan.Application.Features.Loan.Commands.CreateLoanRequest
             if (employee == null)
                 throw new KeyNotFoundException("Employee not found");
 
+
             var loanType = await _loanTypeRepository
                 .GetByIdAsync(request.Request.LoanTypeId);
 
             if (loanType == null)
                 throw new KeyNotFoundException("Loan type not found");
 
+
             var employeeScore = await _employeeScoreRepository
                 .GetByEmployeeIdAsync(employeeId);
 
+
             if (employeeScore == null)
                 throw new KeyNotFoundException("Employee score not found");
+
 
             var context = new LoanRuleContext
             {
@@ -68,21 +72,19 @@ namespace KasraLoan.Application.Features.Loan.Commands.CreateLoanRequest
                 EmployeeScore = employeeScore.Score
             };
 
+
             var ruleResult = _loanRuleEngine.Evaluate(context);
+
 
             if (!ruleResult.IsAllowed)
             {
                 throw new Exception(ruleResult.Message);
             }
 
-            // مبلغ تأییدشده هرگز نباید بیشتر از مبلغ درخواستی کارمند باشد،
-            // حتی اگر سقف مجاز قانون بیشتر از آن باشد.
             var approvedAmount = Math.Min(
                 request.Request.RequestedAmount,
                 (int)ruleResult.MaxAllowedAmount);
 
-            // تعداد اقساط درخواستی کارمند را می‌پذیریم، اما هرگز بیشتر از
-            // سقف مجاز همان نوع وام نخواهد بود.
             var installmentCount = Math.Min(
                 request.Request.InstallmentCount,
                 ruleResult.MaxInstallments);
@@ -95,9 +97,11 @@ namespace KasraLoan.Application.Features.Loan.Commands.CreateLoanRequest
                 RequestedAmount = request.Request.RequestedAmount,
                 ApprovedAmount = approvedAmount,
                 InstallmentCount = installmentCount,
+                MonthlyFeePercent = ruleResult.MonthlyFeePercent,
                 Status = Domain.Enums.LoanStatus.Pending,
                 CreatedAt = DateTime.UtcNow
             };
+
 
             await _loanRequestRepository.AddAsync(loanRequest);
             await _loanRequestRepository.SaveChangesAsync();

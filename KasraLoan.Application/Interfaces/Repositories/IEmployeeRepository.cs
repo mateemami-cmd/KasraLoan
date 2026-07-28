@@ -13,6 +13,10 @@ namespace KasraLoan.Application.Interfaces.Repositories
 
         Task<Employee?> GetByUsernameAsync(string username);
 
+        Task<bool> UsernameExistsAsync(string username);
+
+        Task<bool> PersonnelNumberExistsAsync(string personnelNumber);
+
         Task<List<Employee>> GetAllAsync();
 
         Task AddAsync(Employee employee);

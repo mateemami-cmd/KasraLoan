@@ -33,6 +33,18 @@ namespace KasraLoan.Infrastructure.Repositories
                 .FirstOrDefaultAsync(x => x.Username == username);
         }
 
+        public async Task<bool> UsernameExistsAsync(string username)
+        {
+            return await _context.Employees
+                .AnyAsync(x => x.Username == username);
+        }
+
+        public async Task<bool> PersonnelNumberExistsAsync(string personnelNumber)
+        {
+            return await _context.Employees
+                .AnyAsync(x => x.PersonnelNumber == personnelNumber);
+        }
+
         public async Task<List<Employee>> GetAllAsync()
         {
             return await _context.Employees.ToListAsync();

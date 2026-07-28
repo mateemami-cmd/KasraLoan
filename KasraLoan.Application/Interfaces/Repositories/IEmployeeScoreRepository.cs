@@ -11,8 +11,8 @@ namespace KasraLoan.Application.Interfaces.Repositories
     {
         Task<EmployeeScore?> GetByEmployeeIdAsync(Guid employeeId);
 
-        //Task AddAsync(EmployeeScore score);
+        Task AddAsync(EmployeeScore score);
 
-        //Task SaveChangesAsync();
+        Task SaveChangesAsync();
     }
 }

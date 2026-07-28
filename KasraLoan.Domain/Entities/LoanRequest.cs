@@ -21,6 +21,8 @@ namespace KasraLoan.Domain.Entities
 
         public int InstallmentCount { get; set; }
 
+        public decimal MonthlyFeePercent { get; set; }
+
         public LoanStatus Status { get; set; } //= string.Empty;
 
         public DateTime CreatedAt { get; set; }
