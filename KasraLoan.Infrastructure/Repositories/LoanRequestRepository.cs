@@ -50,6 +50,16 @@ namespace KasraLoan.Infrastructure.Repositories
                     x.Status == LoanStatus.Pending);
         }
 
+        public async Task<bool> HasActiveLoanAsync(Guid employeeId)
+        {
+            return await _context.LoanRequests
+                .AnyAsync(x =>
+                    x.EmployeeId == employeeId &&
+                    (x.Status == LoanStatus.Pending ||
+                     x.Status == LoanStatus.Approved ||
+                     x.Status == LoanStatus.Active));
+        }
+
         public async Task<List<LoanRequest>> GetAllAsync()
         {
             return await _context.LoanRequests.ToListAsync();
@@ -110,14 +120,6 @@ namespace KasraLoan.Infrastructure.Repositories
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
                 .ToListAsync();
-        }
-
-        public async Task<bool> HasActiveLoanAsync(Guid employeeId)
-        {
-            return await _context.LoanRequests
-                .AnyAsync(x =>
-                    x.EmployeeId == employeeId &&
-                    x.Status == LoanStatus.Approved);
         }
 
         public async Task SaveChangesAsync()

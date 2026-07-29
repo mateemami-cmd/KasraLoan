@@ -1,28 +1,27 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using KasraLoan.Application.Interfaces.Repositories;
+﻿using KasraLoan.Application.Interfaces.Repositories;
 using KasraLoan.Application.Services.Auth;
 using KasraLoan.Domain.Entities;
 using KasraLoan.Domain.Enums;
 using MediatR;
+using System;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace KasraLoan.Application.Features.Employee.Commands.CreateEmployee
 {
-    public class CreateEmployeeHandler : IRequestHandler<CreateEmployeeCommand, CreateEmployeeResponse>
+    public class CreateEmployeeHandler
+        : IRequestHandler<CreateEmployeeCommand, CreateEmployeeResponse>
     {
-        // امتیاز پیش‌فرض هر کارمند تازه‌وارد که هنوز سابقه‌ای در سیستم ندارد.
-        private const int DefaultInitialScore = 100;
-
         private readonly IEmployeeRepository _employeeRepository;
         private readonly IEmployeeScoreRepository _employeeScoreRepository;
         private readonly IPasswordHasher _passwordHasher;
         private readonly IPasswordGenerator _passwordGenerator;
 
-        public CreateEmployeeHandler(IEmployeeRepository employeeRepository, IEmployeeScoreRepository employeeScoreRepository, IPasswordHasher passwordHasher, IPasswordGenerator passwordGenerator)
+        public CreateEmployeeHandler(
+            IEmployeeRepository employeeRepository,
+            IEmployeeScoreRepository employeeScoreRepository,
+            IPasswordHasher passwordHasher,
+            IPasswordGenerator passwordGenerator)
         {
             _employeeRepository = employeeRepository;
             _employeeScoreRepository = employeeScoreRepository;
@@ -30,7 +29,9 @@ namespace KasraLoan.Application.Features.Employee.Commands.CreateEmployee
             _passwordGenerator = passwordGenerator;
         }
 
-        public async Task<CreateEmployeeResponse> Handle(CreateEmployeeCommand request, CancellationToken cancellationToken)
+        public async Task<CreateEmployeeResponse> Handle(
+            CreateEmployeeCommand request,
+            CancellationToken cancellationToken)
         {
             var dto = request.Request;
 
@@ -67,7 +68,7 @@ namespace KasraLoan.Application.Features.Employee.Commands.CreateEmployee
             await _employeeScoreRepository.AddAsync(new EmployeeScore
             {
                 EmployeeId = employee.Id,
-                Score = DefaultInitialScore,
+                ManualOverrideScore = null,
                 CreatedAt = DateTime.UtcNow
             });
             await _employeeScoreRepository.SaveChangesAsync();

@@ -1,4 +1,5 @@
 ﻿using KasraLoan.Application.Interfaces.Repositories;
+using KasraLoan.Application.Interfaces.Services;
 using KasraLoan.Application.Services.Auth;
 using MediatR;
 using System;
@@ -9,15 +10,24 @@ using System.Threading.Tasks;
 
 namespace KasraLoan.Application.Features.Employee.Queries.GetCurrentUser
 {
-    public class GetCurrentUserHandler : IRequestHandler<GetCurrentUserQuery, GetCurrentUserResponse>
+    public class GetCurrentUserHandler
+        : IRequestHandler<GetCurrentUserQuery, GetCurrentUserResponse>
     {
         private readonly ICurrentUserService _currentUser;
         private readonly IEmployeeRepository _employeeRepository;
+        private readonly IEmployeeScoreRepository _employeeScoreRepository;
+        private readonly IEmployeeScoreService _employeeScoreService;
 
-        public GetCurrentUserHandler(ICurrentUserService currentUser, IEmployeeRepository employeeRepository)
+        public GetCurrentUserHandler(
+            ICurrentUserService currentUser,
+            IEmployeeRepository employeeRepository,
+            IEmployeeScoreRepository employeeScoreRepository,
+            IEmployeeScoreService employeeScoreService)
         {
             _currentUser = currentUser;
             _employeeRepository = employeeRepository;
+            _employeeScoreRepository = employeeScoreRepository;
+            _employeeScoreService = employeeScoreService;
         }
 
         public async Task<GetCurrentUserResponse> Handle(GetCurrentUserQuery request, CancellationToken cancellationToken)
@@ -30,6 +40,10 @@ namespace KasraLoan.Application.Features.Employee.Queries.GetCurrentUser
             if (employee == null)
                 throw new Exception("Employee not found.");
 
+            var scoreRecord = await _employeeScoreRepository.GetByEmployeeIdAsync(employee.Id);
+
+            var effectiveScore = _employeeScoreService.GetEffectiveScore(employee, scoreRecord);
+
             return new GetCurrentUserResponse
             {
                 Id = employee.Id,
@@ -40,9 +54,7 @@ namespace KasraLoan.Application.Features.Employee.Queries.GetCurrentUser
                 PhoneNumber = employee.PhoneNumber,
                 Email = employee.Email,
                 Role = employee.Role.ToString(),
-
-                // فعلاً تا سرویس امتیاز را وصل نکردیم
-                Score = 0
+                Score = effectiveScore
             };
         }
     }

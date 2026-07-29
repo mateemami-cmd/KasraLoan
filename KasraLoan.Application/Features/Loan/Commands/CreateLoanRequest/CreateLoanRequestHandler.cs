@@ -17,15 +17,25 @@ namespace KasraLoan.Application.Features.Loan.Commands.CreateLoanRequest
         private readonly ILoanTypeRepository _loanTypeRepository;
         private readonly IEmployeeRepository _employeeRepository;
         private readonly IEmployeeScoreRepository _employeeScoreRepository;
+        private readonly IEmployeeScoreService _employeeScoreService;
         private readonly ILoanRuleEngine _loanRuleEngine;
         private readonly ICurrentUserService _currentUserService;
         private readonly INotificationService _notificationService;
-        public CreateLoanRequestHandler(ILoanRequestRepository loanRequestRepository, ILoanTypeRepository loanTypeRepository, IEmployeeRepository employeeRepository, IEmployeeScoreRepository employeeScoreRepository, ILoanRuleEngine loanRuleEngine, ICurrentUserService currentUserService, INotificationService notificationService)
+        public CreateLoanRequestHandler(
+        ILoanRequestRepository loanRequestRepository,
+        ILoanTypeRepository loanTypeRepository,
+        IEmployeeRepository employeeRepository,
+        IEmployeeScoreRepository employeeScoreRepository,
+        IEmployeeScoreService employeeScoreService,
+        ILoanRuleEngine loanRuleEngine,
+        ICurrentUserService currentUserService,
+        INotificationService notificationService)
         {
             _loanRequestRepository = loanRequestRepository;
             _loanTypeRepository = loanTypeRepository;
             _employeeRepository = employeeRepository;
             _employeeScoreRepository = employeeScoreRepository;
+            _employeeScoreService = employeeScoreService;
             _loanRuleEngine = loanRuleEngine;
             _currentUserService = currentUserService;
             _notificationService = notificationService;
@@ -41,26 +51,34 @@ namespace KasraLoan.Application.Features.Loan.Commands.CreateLoanRequest
             if (employee == null)
                 throw new KeyNotFoundException("Employee not found");
 
+            var hasActiveLoan = await _loanRequestRepository.HasActiveLoanAsync(employeeId);
 
-            var loanType = await _loanTypeRepository.GetByIdAsync(request.Request.LoanTypeId);
+            if (hasActiveLoan)
+                throw new InvalidOperationException(
+                    "شما در حال حاضر یک وام فعال دارید و تا زمان تسویه‌ی کامل آن، نمی‌توانید درخواست وام جدیدی ثبت کنید.");
+
+            var loanType = await _loanTypeRepository
+                .GetByIdAsync(request.Request.LoanTypeId);
 
             if (loanType == null)
                 throw new KeyNotFoundException("Loan type not found");
 
 
-            var employeeScore = await _employeeScoreRepository.GetByEmployeeIdAsync(employeeId);
+            var employeeScore = await _employeeScoreRepository
+                .GetByEmployeeIdAsync(employeeId);
 
 
             if (employeeScore == null)
                 throw new KeyNotFoundException("Employee score not found");
 
+            var effectiveScore = _employeeScoreService.GetEffectiveScore(employee, employeeScore);
 
             var context = new LoanRuleContext
             {
                 Employee = employee,
                 LoanType = loanType,
                 RequestedAmount = request.Request.RequestedAmount,
-                EmployeeScore = employeeScore.Score
+                EmployeeScore = effectiveScore
             };
 
 

@@ -17,13 +17,13 @@ namespace KasraLoan.Application.Interfaces.Repositories
 
         Task<bool> PersonnelNumberExistsAsync(string personnelNumber);
 
+        Task<Employee?> GetByPersonnelNumberAsync(string personnelNumber);
+
         Task<List<Employee>> GetAllAsync();
 
         Task AddAsync(Employee employee);
 
         Task UpdateAsync(Employee employee);
-
-        Task DeleteAsync(Employee employee);
 
         Task SaveChangesAsync();
     }

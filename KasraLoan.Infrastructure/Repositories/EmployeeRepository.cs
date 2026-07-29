@@ -45,6 +45,12 @@ namespace KasraLoan.Infrastructure.Repositories
                 .AnyAsync(x => x.PersonnelNumber == personnelNumber);
         }
 
+        public async Task<Employee?> GetByPersonnelNumberAsync(string personnelNumber)
+        {
+            return await _context.Employees
+                .FirstOrDefaultAsync(x => x.PersonnelNumber == personnelNumber);
+        }
+
         public async Task<List<Employee>> GetAllAsync()
         {
             return await _context.Employees.ToListAsync();
@@ -58,12 +64,6 @@ namespace KasraLoan.Infrastructure.Repositories
         public Task UpdateAsync(Employee employee)
         {
             _context.Employees.Update(employee);
-            return Task.CompletedTask;
-        }
-
-        public Task DeleteAsync(Employee employee)
-        {
-            _context.Employees.Remove(employee);
             return Task.CompletedTask;
         }
 
