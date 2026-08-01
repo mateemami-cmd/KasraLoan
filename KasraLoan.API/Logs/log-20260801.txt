@@ -108,3 +108,11 @@ KasraLoan.Application.Common.Exceptions.BusinessRuleException: مبلغ درخو
 2026-08-01 15:59:27.419 +03:30 [INF] START Request: GetAllLoansQuery | Payload: {"Page":1,"PageSize":10,"Status":null,"Search":null,"$type":"GetAllLoansQuery"}
 2026-08-01 15:59:27.618 +03:30 [INF] END Request: GetAllLoansQuery completed in 200 ms
 2026-08-01 15:59:27.629 +03:30 [INF] HTTP GET /api/Loan/all responded 200 in 275.4557 ms
+2026-08-01 16:27:51.573 +03:30 [INF] KasraLoan API Started Successfully
+2026-08-01 16:27:51.780 +03:30 [WRN] The ASP.NET Core developer certificate is not trusted. For information about trusting the ASP.NET Core developer certificate, see https://aka.ms/aspnet/https-trust-dev-cert.
+2026-08-01 16:27:52.680 +03:30 [INF] HTTP GET /swagger responded 301 in 6.5209 ms
+2026-08-01 16:27:52.766 +03:30 [INF] HTTP GET /swagger/index.html responded 200 in 62.9331 ms
+2026-08-01 16:27:52.825 +03:30 [INF] HTTP GET /swagger/swagger-ui.css responded 200 in 45.1378 ms
+2026-08-01 16:27:52.825 +03:30 [INF] HTTP GET /swagger/swagger-ui-standalone-preset.js responded 200 in 45.2869 ms
+2026-08-01 16:27:52.854 +03:30 [INF] HTTP GET /swagger/swagger-ui-bundle.js responded 200 in 75.8810 ms
+2026-08-01 16:27:53.017 +03:30 [INF] HTTP GET /swagger/v1/swagger.json responded 200 in 15.6129 ms
