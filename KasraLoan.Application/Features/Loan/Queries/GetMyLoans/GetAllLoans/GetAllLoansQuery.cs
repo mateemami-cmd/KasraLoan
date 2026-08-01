@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace KasraLoan.Application.Features.Loan.Queries.GetMyLoans.GetAllLoans
 {
-    public class GetAllLoansQuery : IRequest<List<GetAllLoansResponse>>
+    public class GetAllLoansQuery : IRequest<GetAllLoansResponse>
     {
         public int Page { get; set; } = 1;
 

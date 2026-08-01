@@ -65,6 +65,11 @@ namespace KasraLoan.Infrastructure.Repositories
             return await _context.LoanRequests.ToListAsync();
         }
 
+        public async Task<int> GetTotalCountAsync()
+        {
+            return await _context.LoanRequests.CountAsync();
+        }
+
         public async Task<int> GetPendingCountAsync()
         {
             return await _context.LoanRequests
@@ -97,6 +102,22 @@ namespace KasraLoan.Infrastructure.Repositories
 
         public async Task<List<LoanRequest>> GetPagedAsync(int page, int pageSize, LoanStatus? status, string? search)
         {
+            var query = BuildPagedFilterQuery(status, search);
+
+            return await query
+                .OrderByDescending(x => x.CreatedAt)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+        }
+
+        public async Task<int> GetPagedCountAsync(LoanStatus? status, string? search)
+        {
+            return await BuildPagedFilterQuery(status, search).CountAsync();
+        }
+
+        private IQueryable<LoanRequest> BuildPagedFilterQuery(LoanStatus? status, string? search)
+        {
             var query = _context.LoanRequests
                 .Include(x => x.Employee)
                 .Include(x => x.LoanType)
@@ -115,11 +136,7 @@ namespace KasraLoan.Infrastructure.Repositories
                     x.Employee.PersonnelNumber.Contains(search));
             }
 
-            return await query
-                .OrderByDescending(x => x.CreatedAt)
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize)
-                .ToListAsync();
+            return query;
         }
 
         public async Task SaveChangesAsync()

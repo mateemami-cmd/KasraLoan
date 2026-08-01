@@ -18,9 +18,15 @@ namespace KasraLoan.Application.Interfaces.Repositories
 
         Task<LoanRequest?> GetPendingLoanByEmployeeIdAsync(Guid employeeId);
 
+        /// <summary>
+        /// آیا کارمند در حال حاضر وامی دارد که هنوز تسویه یا رد نشده است
+        /// (وضعیت Pending، Approved یا Active)؟ اگر بله، اجازه‌ی ثبت درخواست جدید ندارد.
+        /// </summary>
         Task<bool> HasActiveLoanAsync(Guid employeeId);
 
         Task<List<LoanRequest>> GetAllAsync();
+
+        Task<int> GetTotalCountAsync();
 
         Task<int> GetPendingCountAsync();
 
@@ -33,6 +39,12 @@ namespace KasraLoan.Application.Interfaces.Repositories
         Task<decimal> GetTotalApprovedAmountAsync();
 
         Task<List<LoanRequest>> GetPagedAsync(int page, int pageSize, LoanStatus? status, string? search);
+
+        /// <summary>
+        /// تعداد کل رکوردهایی که با همین فیلترهای GetPagedAsync مطابقت دارند
+        /// (برای محاسبه‌ی تعداد کل صفحات، مستقل از page/pageSize).
+        /// </summary>
+        Task<int> GetPagedCountAsync(LoanStatus? status, string? search);
 
         Task SaveChangesAsync();
     }
