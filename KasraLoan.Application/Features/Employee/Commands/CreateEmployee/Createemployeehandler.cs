@@ -1,4 +1,5 @@
 ﻿using KasraLoan.Application.Interfaces.Repositories;
+using KasraLoan.Application.Common.Exceptions;
 using KasraLoan.Application.Services.Auth;
 using KasraLoan.Domain.Entities;
 using KasraLoan.Domain.Enums;
@@ -36,10 +37,10 @@ namespace KasraLoan.Application.Features.Employee.Commands.CreateEmployee
             var dto = request.Request;
 
             if (await _employeeRepository.UsernameExistsAsync(dto.Username))
-                throw new InvalidOperationException("این نام کاربری قبلاً استفاده شده است.");
+                throw new BusinessRuleException("این نام کاربری قبلاً استفاده شده است.");
 
             if (await _employeeRepository.PersonnelNumberExistsAsync(dto.PersonnelNumber))
-                throw new InvalidOperationException("این شماره پرسنلی قبلاً ثبت شده است.");
+                throw new BusinessRuleException("این شماره پرسنلی قبلاً ثبت شده است.");
 
             var role = UserRole.Employee;
 
@@ -65,6 +66,8 @@ namespace KasraLoan.Application.Features.Employee.Commands.CreateEmployee
             await _employeeRepository.AddAsync(employee);
             await _employeeRepository.SaveChangesAsync();
 
+            // بدون override دستی ساخته می‌شود؛ یعنی امتیاز از همان روز اول کاملاً
+            // خودکار و بر اساس سابقه‌ی کار (HireDate) محاسبه می‌شود.
             await _employeeScoreRepository.AddAsync(new EmployeeScore
             {
                 EmployeeId = employee.Id,

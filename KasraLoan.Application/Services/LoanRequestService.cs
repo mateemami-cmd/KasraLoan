@@ -35,7 +35,7 @@ namespace KasraLoan.Application.Services
             _employeeScoreRepository = employeeScoreRepository;
             _loanInstallmentRepository = loanInstallmentRepository;
         }
-
+        
         public async Task<ApiResponse<List<LoanRequestDto>>> GetLoansByEmployeeIdAsync(Guid employeeId)
         {
             var loans = await _loanRequestRepository.GetByEmployeeIdAsync(employeeId);

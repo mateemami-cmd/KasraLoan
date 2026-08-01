@@ -1,4 +1,5 @@
 ﻿using KasraLoan.Application.Interfaces.Repositories;
+using KasraLoan.Application.Common.Exceptions;
 using KasraLoan.Application.Interfaces.Services;
 using KasraLoan.Application.Services;
 using KasraLoan.Domain.Enums;
@@ -18,7 +19,11 @@ namespace KasraLoan.Application.Features.Loan.Commands.ApproveLoan
         private readonly ILoanInstallmentService _loanInstallmentService;
         private readonly INotificationService _notificationService;
 
-        public ApproveLoanHandler(ILoanRequestRepository loanRequestRepository, IAuditLogService auditLogService, ILoanInstallmentService loanInstallmentService, INotificationService notificationService)
+        public ApproveLoanHandler(
+            ILoanRequestRepository loanRequestRepository,
+            IAuditLogService auditLogService,
+            ILoanInstallmentService loanInstallmentService,
+            INotificationService notificationService)
         {
             _loanRequestRepository = loanRequestRepository;
             _auditLogService = auditLogService;
@@ -26,23 +31,35 @@ namespace KasraLoan.Application.Features.Loan.Commands.ApproveLoan
             _notificationService = notificationService;
         }
 
-        public async Task<ApproveLoanResponse> Handle(ApproveLoanCommand request, CancellationToken cancellationToken)
+        public async Task<ApproveLoanResponse> Handle(
+            ApproveLoanCommand request,
+            CancellationToken cancellationToken)
         {
-            var loan = await _loanRequestRepository.GetByIdAsync(request.LoanRequestId);
+            var loan = await _loanRequestRepository
+                .GetByIdAsync(request.LoanRequestId);
 
             if (loan == null)
                 throw new KeyNotFoundException("وام یافت نشد");
 
             if (loan.Status != LoanStatus.Pending)
-                throw new Exception("این وام قابل تأیید نیست");
+                throw new BusinessRuleException("این وام قابل تأیید نیست");
 
             loan.Status = LoanStatus.Approved;
 
-            var totalFee = loan.ApprovedAmount * (loan.MonthlyFeePercent / 100m) * loan.InstallmentCount;
+            // کارمزد کل = مبلغ وام × (درصد کارمزد ماهانه / 100) × تعداد قسط.
+            // درصد کارمزد در لحظه‌ی ثبت درخواست از روی قانون قفل شده (loan.MonthlyFeePercent)
+            // تا تغییرات بعدی قوانین روی وام‌های قبلاً ثبت‌شده اثر نگذارد.
+            var totalFee = loan.ApprovedAmount
+                * (loan.MonthlyFeePercent / 100m)
+                * loan.InstallmentCount;
 
             loan.TotalPayableAmount = loan.ApprovedAmount + (int)Math.Round(totalFee);
 
-            loan.MonthlyPaymentAmount = Math.Round((decimal)loan.TotalPayableAmount / loan.InstallmentCount, 0);
+            // نکته: TotalPayableAmount و InstallmentCount هر دو int هستند؛
+            // بدون کست به decimal، این تقسیم به‌صورت صحیح (truncated) انجام می‌شد
+            // و اعشار مبلغ قسط گم می‌شد.
+            loan.MonthlyPaymentAmount =
+                Math.Round((decimal)loan.TotalPayableAmount / loan.InstallmentCount, 0);
 
             loan.ApprovedAt = DateTime.UtcNow;
 

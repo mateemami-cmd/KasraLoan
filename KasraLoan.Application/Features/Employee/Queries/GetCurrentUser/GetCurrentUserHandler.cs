@@ -38,7 +38,7 @@ namespace KasraLoan.Application.Features.Employee.Queries.GetCurrentUser
             var employee = await _employeeRepository.GetByIdAsync(_currentUser.UserId);
 
             if (employee == null)
-                throw new Exception("Employee not found.");
+                throw new KeyNotFoundException("Employee not found.");
 
             var scoreRecord = await _employeeScoreRepository.GetByEmployeeIdAsync(employee.Id);
 

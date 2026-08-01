@@ -1,4 +1,5 @@
-﻿using KasraLoan.Application.Interfaces.Repositories;
+﻿using KasraLoan.Application.Common.Exceptions;
+using KasraLoan.Application.Interfaces.Repositories;
 using KasraLoan.Application.Interfaces.Services;
 using KasraLoan.Application.LoanRules;
 using KasraLoan.Application.Services.Auth;
@@ -51,10 +52,12 @@ namespace KasraLoan.Application.Features.Loan.Commands.CreateLoanRequest
             if (employee == null)
                 throw new KeyNotFoundException("Employee not found");
 
+            // اگر همین الان یک وام فعال (Pending/Approved/Active) داشته باشد،
+            // نباید بتواند درخواست وام جدیدی ثبت کند (حتی با مجوز استثنایی).
             var hasActiveLoan = await _loanRequestRepository.HasActiveLoanAsync(employeeId);
 
             if (hasActiveLoan)
-                throw new InvalidOperationException(
+                throw new BusinessRuleException(
                     "شما در حال حاضر یک وام فعال دارید و تا زمان تسویه‌ی کامل آن، نمی‌توانید درخواست وام جدیدی ثبت کنید.");
 
             var loanType = await _loanTypeRepository
@@ -62,6 +65,7 @@ namespace KasraLoan.Application.Features.Loan.Commands.CreateLoanRequest
 
             if (loanType == null)
                 throw new KeyNotFoundException("Loan type not found");
+
 
             var employeeScore = await _employeeScoreRepository
                 .GetByEmployeeIdAsync(employeeId);
@@ -72,25 +76,39 @@ namespace KasraLoan.Application.Features.Loan.Commands.CreateLoanRequest
 
             var effectiveScore = _employeeScoreService.GetEffectiveScore(employee, employeeScore);
 
+            var hasPermissionOverride = employeeScore.HasLoanPermissionOverride;
+
+            // اگر ادمین مجوز استثنایی داده باشد، امتیاز کارمند برای همین یک درخواست
+            // به‌اندازه‌ی حداقل لازم در نظر گرفته می‌شود (بدون این‌که امتیاز واقعی‌اش تغییر کند).
+            var scoreForEligibilityCheck = hasPermissionOverride
+                ? Math.Max(effectiveScore, _employeeScoreService.MinimumScoreRequiredForLoan)
+                : effectiveScore;
+
             var context = new LoanRuleContext
             {
                 Employee = employee,
                 LoanType = loanType,
                 RequestedAmount = request.Request.RequestedAmount,
-                EmployeeScore = effectiveScore
+                EmployeeScore = scoreForEligibilityCheck
             };
+
 
             var ruleResult = _loanRuleEngine.Evaluate(context);
 
+
             if (!ruleResult.IsAllowed)
             {
-                throw new Exception(ruleResult.Message);
+                throw new BusinessRuleException(ruleResult.Message);
             }
 
+            // مبلغ تأییدشده هرگز نباید بیشتر از مبلغ درخواستی کارمند باشد،
+            // حتی اگر سقف مجاز قانون بیشتر از آن باشد.
             var approvedAmount = Math.Min(
                 request.Request.RequestedAmount,
                 (int)ruleResult.MaxAllowedAmount);
 
+            // تعداد اقساط درخواستی کارمند را می‌پذیریم، اما هرگز بیشتر از
+            // سقف مجاز همان نوع وام نخواهد بود.
             var installmentCount = Math.Min(
                 request.Request.InstallmentCount,
                 ruleResult.MaxInstallments);
@@ -108,8 +126,17 @@ namespace KasraLoan.Application.Features.Loan.Commands.CreateLoanRequest
                 CreatedAt = DateTime.UtcNow
             };
 
+
             await _loanRequestRepository.AddAsync(loanRequest);
             await _loanRequestRepository.SaveChangesAsync();
+
+            // مجوز استثنایی یک‌بارمصرف است: همین که با موفقیت استفاده شد، مصرف می‌شود.
+            if (hasPermissionOverride)
+            {
+                employeeScore.HasLoanPermissionOverride = false;
+                employeeScore.PermissionGrantedAt = null;
+                await _employeeScoreRepository.SaveChangesAsync();
+            }
 
             await _notificationService.SendAsync(
                 loanRequest.EmployeeId,

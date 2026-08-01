@@ -1,16 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using KasraLoan.Application.DTOs.Employee;
+﻿using KasraLoan.Application.DTOs.Employee;
+using KasraLoan.Application.Common.Exceptions;
 using KasraLoan.Application.Interfaces.Repositories;
 using KasraLoan.Domain.Enums;
 using MediatR;
+using System;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace KasraLoan.Application.Features.Employee.Commands.UpdateEmployeeByAdmin
 {
-    public class UpdateEmployeeByAdminHandler : IRequestHandler<UpdateEmployeeByAdminCommand, AdminEmployeeDetailsDto>
+    public class UpdateEmployeeByAdminHandler
+        : IRequestHandler<UpdateEmployeeByAdminCommand, AdminEmployeeDetailsDto>
     {
         private readonly IEmployeeRepository _employeeRepository;
 
@@ -19,7 +20,9 @@ namespace KasraLoan.Application.Features.Employee.Commands.UpdateEmployeeByAdmin
             _employeeRepository = employeeRepository;
         }
 
-        public async Task<AdminEmployeeDetailsDto> Handle(UpdateEmployeeByAdminCommand request, CancellationToken cancellationToken)
+        public async Task<AdminEmployeeDetailsDto> Handle(
+            UpdateEmployeeByAdminCommand request,
+            CancellationToken cancellationToken)
         {
             var employee = await _employeeRepository.GetByIdAsync(request.EmployeeId);
 
@@ -34,7 +37,7 @@ namespace KasraLoan.Application.Features.Employee.Commands.UpdateEmployeeByAdmin
                 var ownerOfUsername = await _employeeRepository.GetByUsernameAsync(dto.Username);
 
                 if (ownerOfUsername != null && ownerOfUsername.Id != employee.Id)
-                    throw new InvalidOperationException("این نام کاربری قبلاً برای کارمند دیگری استفاده شده است.");
+                    throw new BusinessRuleException("این نام کاربری قبلاً برای کارمند دیگری استفاده شده است.");
             }
 
             // همین‌طور برای شماره پرسنلی.
@@ -43,7 +46,7 @@ namespace KasraLoan.Application.Features.Employee.Commands.UpdateEmployeeByAdmin
                 var ownerOfPersonnelNumber = await _employeeRepository.GetByPersonnelNumberAsync(dto.PersonnelNumber);
 
                 if (ownerOfPersonnelNumber != null && ownerOfPersonnelNumber.Id != employee.Id)
-                    throw new InvalidOperationException("این شماره پرسنلی قبلاً برای کارمند دیگری ثبت شده است.");
+                    throw new BusinessRuleException("این شماره پرسنلی قبلاً برای کارمند دیگری ثبت شده است.");
             }
 
             if (!Enum.TryParse<UserRole>(dto.Role, ignoreCase: true, out var role))

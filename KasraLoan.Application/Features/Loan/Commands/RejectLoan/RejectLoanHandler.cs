@@ -1,4 +1,5 @@
 ﻿using KasraLoan.Application.Interfaces.Repositories;
+using KasraLoan.Application.Common.Exceptions;
 using KasraLoan.Application.Interfaces.Services;
 using KasraLoan.Application.Services;
 using KasraLoan.Domain.Enums;
@@ -32,7 +33,7 @@ namespace KasraLoan.Application.Features.Loan.Commands.RejectLoan
                 throw new KeyNotFoundException("وام یافت نشد");
 
             if (loan.Status != LoanStatus.Pending)
-                throw new Exception("این وام قابل رد نیست");
+                throw new BusinessRuleException("این وام قابل رد نیست");
 
             loan.Status = LoanStatus.Rejected;
 

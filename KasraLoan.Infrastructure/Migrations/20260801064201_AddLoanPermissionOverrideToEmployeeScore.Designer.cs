@@ -3,6 +3,7 @@ using System;
 using KasraLoan.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace KasraLoan.Infrastructure.Migrations
 {
     [DbContext(typeof(KasraLoanDbContext))]
-    partial class KasraLoanDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260801064201_AddLoanPermissionOverrideToEmployeeScore")]
+    partial class AddLoanPermissionOverrideToEmployeeScore
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
