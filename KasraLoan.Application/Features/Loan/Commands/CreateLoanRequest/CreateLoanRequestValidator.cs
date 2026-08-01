@@ -11,14 +11,11 @@ namespace KasraLoan.Application.Features.Loan.Commands.CreateLoanRequest
     {
         public CreateLoanRequestValidator()
         {
-            RuleFor(x => x.Request.LoanTypeId)
-                .GreaterThan(0);
+            RuleFor(x => x.Request.LoanTypeId).GreaterThan(0);
 
-            RuleFor(x => x.Request.RequestedAmount)
-                .GreaterThan(0);
+            RuleFor(x => x.Request.RequestedAmount).GreaterThan(0);
 
-            RuleFor(x => x.Request.InstallmentCount)
-                .GreaterThan(0);
+            RuleFor(x => x.Request.InstallmentCount).GreaterThan(0);
         }
     }
 }

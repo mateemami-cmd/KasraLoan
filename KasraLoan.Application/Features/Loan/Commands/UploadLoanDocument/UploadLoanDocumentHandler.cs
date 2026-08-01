@@ -65,7 +65,8 @@ namespace KasraLoan.Application.Features.Loan.Commands.UploadLoanDocument
             var extension = Path.GetExtension(request.FileName).ToLower();
 
             var allowedExtensions = new[]
-            {".jpg",".jpeg",".png",".pdf"
+            {
+                ".jpg",".jpeg",".png",".pdf"
             };
 
             if (!allowedExtensions.Contains(extension))
@@ -77,10 +78,12 @@ namespace KasraLoan.Application.Features.Loan.Commands.UploadLoanDocument
                 };
             }
 
-            var filePath = await _fileStorageService.SaveFileAsync(
-                request.FileContent,
-                request.FileName,
-                request.ContentType);
+            var filePath = await _fileStorageService.SaveFileAsync
+                (
+                   request.FileContent,
+                   request.FileName,
+                   request.ContentType
+                );
 
             var document = new LoanDocument
             {

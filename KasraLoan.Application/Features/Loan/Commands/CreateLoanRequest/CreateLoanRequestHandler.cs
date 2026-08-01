@@ -63,7 +63,6 @@ namespace KasraLoan.Application.Features.Loan.Commands.CreateLoanRequest
             if (loanType == null)
                 throw new KeyNotFoundException("Loan type not found");
 
-
             var employeeScore = await _employeeScoreRepository
                 .GetByEmployeeIdAsync(employeeId);
 
@@ -81,9 +80,7 @@ namespace KasraLoan.Application.Features.Loan.Commands.CreateLoanRequest
                 EmployeeScore = effectiveScore
             };
 
-
             var ruleResult = _loanRuleEngine.Evaluate(context);
-
 
             if (!ruleResult.IsAllowed)
             {
@@ -110,7 +107,6 @@ namespace KasraLoan.Application.Features.Loan.Commands.CreateLoanRequest
                 Status = Domain.Enums.LoanStatus.Pending,
                 CreatedAt = DateTime.UtcNow
             };
-
 
             await _loanRequestRepository.AddAsync(loanRequest);
             await _loanRequestRepository.SaveChangesAsync();
