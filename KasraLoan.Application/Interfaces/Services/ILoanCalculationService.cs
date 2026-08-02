@@ -8,7 +8,7 @@ namespace KasraLoan.Application.Interfaces.Services
 {
     public interface ILoanCalculationService
     {
-        int CalculateMaxLoan(int score);
-        int CalculateMonthlyPayment(int totalAmount, int months);
+        long CalculateMaxLoan(int score);
+        long CalculateMonthlyPayment(long totalAmount, int months);
     }
 }

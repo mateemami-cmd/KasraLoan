@@ -9,12 +9,12 @@ namespace KasraLoan.Application.Services
 {
     public class LoanCalculationService : ILoanCalculationService
     {
-        public int CalculateMaxLoan(int score)
+        public long CalculateMaxLoan(int score)
         {
-            return (score * 10000) + 10000000;
+            return ((long)score * 10000) + 10000000;
         }
 
-        public int CalculateMonthlyPayment(int totalAmount, int months)
+        public long CalculateMonthlyPayment(long totalAmount, int months)
         {
             if (months == 0) return 0;
 

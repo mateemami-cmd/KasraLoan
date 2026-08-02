@@ -103,9 +103,11 @@ namespace KasraLoan.Application.Features.Loan.Commands.CreateLoanRequest
 
             // مبلغ تأییدشده هرگز نباید بیشتر از مبلغ درخواستی کارمند باشد،
             // حتی اگر سقف مجاز قانون بیشتر از آن باشد.
+            // نکته: مبالغ از نوع long هستند؛ cast به int برای وام‌های بزرگ‌تر از
+            // حدود ۲.۱ میلیارد تومان سرریز (OverflowException) می‌داد، پس long استفاده می‌شود.
             var approvedAmount = Math.Min(
                 request.Request.RequestedAmount,
-                (int)ruleResult.MaxAllowedAmount);
+                (long)ruleResult.MaxAllowedAmount);
 
             // تعداد اقساط درخواستی کارمند را می‌پذیریم، اما هرگز بیشتر از
             // سقف مجاز همان نوع وام نخواهد بود.
