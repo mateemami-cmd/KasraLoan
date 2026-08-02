@@ -50,8 +50,15 @@ export function AdminDashboard() {
     { key: 'permissions', icon: <FileProtectOutlined />, label: 'درخواست‌های مجوز' },
     { key: 'loans', icon: <BankOutlined />, label: 'مدیریت وام‌ها' },
     { key: 'addEmployee', icon: <UserAddOutlined />, label: 'افزودن کاربر' },
-    { key: 'employees', icon: <TeamOutlined />, label: 'کارمندان' },
-    { key: 'admins', icon: <CrownOutlined />, label: 'ادمین‌ها' },
+    {
+      key: 'people',
+      icon: <TeamOutlined />,
+      label: 'لیست افراد',
+      children: [
+        { key: 'employees', icon: <TeamOutlined />, label: 'لیست کارمندان' },
+        { key: 'admins', icon: <CrownOutlined />, label: 'لیست ادمین‌ها' },
+      ],
+    },
   ]
 
   return (

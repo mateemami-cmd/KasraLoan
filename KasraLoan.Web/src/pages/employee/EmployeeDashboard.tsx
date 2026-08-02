@@ -42,8 +42,15 @@ export function EmployeeDashboard() {
   const [section, setSection] = useState('loans')
 
   const menuItems = [
-    { key: 'loans', icon: <BankOutlined />, label: 'وام‌ها' },
-    { key: 'permission', icon: <FileProtectOutlined />, label: 'درخواست مجوز وام' },
+    {
+      key: 'loanGroup',
+      icon: <BankOutlined />,
+      label: 'وام',
+      children: [
+        { key: 'loans', icon: <BankOutlined />, label: 'درخواست وام' },
+        { key: 'permission', icon: <FileProtectOutlined />, label: 'درخواست مجوز وام' },
+      ],
+    },
     { key: 'profile', icon: <UserOutlined />, label: 'اطلاعات کاربری' },
   ]
 
@@ -53,6 +60,7 @@ export function EmployeeDashboard() {
       menuItems={menuItems}
       selectedKey={section}
       onSelect={setSection}
+      defaultOpenKeys={['loanGroup']}
     >
       {section === 'loans' && <LoansSection />}
       {section === 'permission' && <PermissionSection />}

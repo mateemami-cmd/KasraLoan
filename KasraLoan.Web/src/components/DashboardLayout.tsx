@@ -13,6 +13,7 @@ interface Props {
   selectedKey: string
   onSelect: (key: string) => void
   children: ReactNode
+  defaultOpenKeys?: string[]
 }
 
 export function DashboardLayout({
@@ -21,6 +22,7 @@ export function DashboardLayout({
   selectedKey,
   onSelect,
   children,
+  defaultOpenKeys,
 }: Props) {
   const { user, logout } = useAuth()
 
@@ -35,6 +37,7 @@ export function DashboardLayout({
         <Menu
           mode="inline"
           selectedKeys={[selectedKey]}
+          defaultOpenKeys={defaultOpenKeys}
           items={menuItems}
           onClick={(e) => onSelect(e.key)}
           style={{ borderInlineEnd: 'none' }}
