@@ -17,9 +17,9 @@ namespace KasraLoan.Application.Features.Loan.Queries.GetMyLoans.GetAllLoans
 
         public string LoanTypeName { get; set; } = string.Empty;
 
-        public int RequestedAmount { get; set; }
+        public long RequestedAmount { get; set; }
 
-        public int ApprovedAmount { get; set; }
+        public long ApprovedAmount { get; set; }
 
         public int InstallmentCount { get; set; }
 

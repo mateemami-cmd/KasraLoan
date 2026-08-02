@@ -1,5 +1,4 @@
-﻿using Google.GenAI;
-using KasraLoan.Application.DTOs.Loans;
+﻿using KasraLoan.Application.DTOs.Loans;
 using KasraLoan.Application.Features.Loan.Commands.ApproveLoan;
 using KasraLoan.Application.Features.Loan.Commands.CreateLoanRequest;
 using KasraLoan.Application.Features.Loan.Commands.RejectLoan;
@@ -10,7 +9,6 @@ using KasraLoan.Application.Features.Loan.Queries.GetLoanDocuments;
 using KasraLoan.Application.Features.Loan.Queries.GetMyLoans;
 using KasraLoan.Application.Features.Loan.Queries.GetMyLoans.GetAllLoans;
 using KasraLoan.Application.Interfaces.Services;
-using KasraLoan.Application.Services;
 using KasraLoan.Domain.Enums;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -26,14 +24,11 @@ namespace KasraLoan.API.Controllers
     {
         private readonly IMediator _mediator;
         private readonly ILoanInstallmentService _loanInstallmentService;
-        private readonly ILoanRequestService _loanRequestService;
-        //private readonly ILoanRequestService _loanService;
 
-        public LoanController(IMediator mediator, ILoanInstallmentService loanInstallmentService, ILoanRequestService loanRequestService)
+        public LoanController(IMediator mediator, ILoanInstallmentService loanInstallmentService)
         {
             _mediator = mediator;
             _loanInstallmentService = loanInstallmentService;
-            _loanRequestService = loanRequestService;
         }
 
         [HttpPost("request")]
@@ -113,6 +108,10 @@ namespace KasraLoan.API.Controllers
             return Ok(result);
         }
 
+        /// <summary>
+        /// لیست کامل وام‌ها برای ادمین، با صفحه‌بندی، فیلتر وضعیت و جست‌وجو.
+        /// (این تنها اندپوینت لیست وام‌های ادمین است؛ نسخه‌ی موازی و ناقص‌تر قبلی حذف شد.)
+        /// </summary>
         [HttpGet("all")]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetAllLoans(
@@ -128,15 +127,6 @@ namespace KasraLoan.API.Controllers
                 Status = status,
                 Search = search
             });
-
-            return Ok(result);
-        }
-
-        [HttpGet("admin")]
-        [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> GetAdminLoans([FromQuery] LoanStatus? status)
-        {
-            var result = await _loanRequestService.GetAdminLoansAsync(status);
 
             return Ok(result);
         }

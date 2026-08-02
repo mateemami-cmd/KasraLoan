@@ -8,11 +8,9 @@ namespace KasraLoan.Application.DTOs.Loans
 {
     public class CreateLoanRequestDto
     {
-        //public Guid EmployeeId { get; set; }
-
         public int LoanTypeId { get; set; }
 
-        public int RequestedAmount { get; set; }
+        public long RequestedAmount { get; set; }
 
         public int InstallmentCount { get; set; }
     }

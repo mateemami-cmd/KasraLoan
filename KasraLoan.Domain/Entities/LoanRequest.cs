@@ -15,9 +15,9 @@ namespace KasraLoan.Domain.Entities
 
         public int LoanTypeId { get; set; }
 
-        public int RequestedAmount { get; set; }
+        public long RequestedAmount { get; set; }
 
-        public int ApprovedAmount { get; set; }
+        public long ApprovedAmount { get; set; }
 
         public int InstallmentCount { get; set; }
 
@@ -29,7 +29,7 @@ namespace KasraLoan.Domain.Entities
 
         public DateTime? ApprovedAt { get; set; }
 
-        public int TotalPayableAmount { get; set; }
+        public long TotalPayableAmount { get; set; }
 
         public decimal MonthlyPaymentAmount { get; set; }
 

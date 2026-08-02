@@ -44,7 +44,8 @@ namespace KasraLoan.Application.Features.Loan.Queries.GetMyLoans.GetAllLoans
                 InstallmentCount = x.InstallmentCount,
                 Status = x.Status.ToString(),
                 CreatedAt = x.CreatedAt
-            }).ToList();
+            })
+                .ToList();
 
             var totalPages = request.PageSize > 0
                 ? (int)Math.Ceiling(totalCount / (double)request.PageSize)

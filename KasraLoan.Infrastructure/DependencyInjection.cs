@@ -35,8 +35,6 @@ namespace KasraLoan.Infrastructure
 
             services.AddScoped<ILoanRequestRepository, LoanRequestRepository>();
 
-            services.AddScoped<ILoanRequestService, LoanRequestService>();
-
             services.AddScoped<ILoanRuleEngine, LoanRuleEngine>();
 
             services.AddScoped<ILoanRule, TravelLoanRule>();

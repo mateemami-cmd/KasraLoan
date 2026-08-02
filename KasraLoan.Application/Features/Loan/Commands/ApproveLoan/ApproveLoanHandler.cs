@@ -46,18 +46,12 @@ namespace KasraLoan.Application.Features.Loan.Commands.ApproveLoan
 
             loan.Status = LoanStatus.Approved;
 
-            // کارمزد کل = مبلغ وام × (درصد کارمزد ماهانه / 100) × تعداد قسط.
-            // درصد کارمزد در لحظه‌ی ثبت درخواست از روی قانون قفل شده (loan.MonthlyFeePercent)
-            // تا تغییرات بعدی قوانین روی وام‌های قبلاً ثبت‌شده اثر نگذارد.
             var totalFee = loan.ApprovedAmount
                 * (loan.MonthlyFeePercent / 100m)
                 * loan.InstallmentCount;
 
-            loan.TotalPayableAmount = loan.ApprovedAmount + (int)Math.Round(totalFee);
+            loan.TotalPayableAmount = loan.ApprovedAmount + (long)Math.Round(totalFee);
 
-            // نکته: TotalPayableAmount و InstallmentCount هر دو int هستند؛
-            // بدون کست به decimal، این تقسیم به‌صورت صحیح (truncated) انجام می‌شد
-            // و اعشار مبلغ قسط گم می‌شد.
             loan.MonthlyPaymentAmount =
                 Math.Round((decimal)loan.TotalPayableAmount / loan.InstallmentCount, 0);
 
