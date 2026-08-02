@@ -4,3 +4,12 @@ obj/
 *.user
 *.suo
 *.vsidx
+
+# Logs
+Logs/
+*.log
+
+# Local / sensitive settings (never commit real secrets)
+appsettings.Local.json
+appsettings.*.Local.json
+secrets.json
