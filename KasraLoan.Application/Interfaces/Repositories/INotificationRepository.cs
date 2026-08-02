@@ -13,6 +13,10 @@ namespace KasraLoan.Application.Interfaces.Repositories
 
         Task<List<Notification>> GetByEmployeeIdAsync(Guid employeeId);
 
+        Task<List<Notification>> GetUnreadByEmployeeIdAsync(Guid employeeId);
+
+        Task<int> GetUnreadCountAsync(Guid employeeId);
+
         Task<Notification?> GetByIdAsync(Guid id);
 
         Task SaveChangesAsync();

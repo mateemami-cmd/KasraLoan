@@ -32,6 +32,20 @@ namespace KasraLoan.Infrastructure.Repositories
                 .ToListAsync();
         }
 
+        public async Task<List<Notification>> GetUnreadByEmployeeIdAsync(Guid employeeId)
+        {
+            return await _context.Notifications
+                .Where(x => x.EmployeeId == employeeId && !x.IsRead)
+                .OrderByDescending(x => x.CreatedAt)
+                .ToListAsync();
+        }
+
+        public async Task<int> GetUnreadCountAsync(Guid employeeId)
+        {
+            return await _context.Notifications
+                .CountAsync(x => x.EmployeeId == employeeId && !x.IsRead);
+        }
+
         public async Task<Notification?> GetByIdAsync(Guid id)
         {
             return await _context.Notifications
