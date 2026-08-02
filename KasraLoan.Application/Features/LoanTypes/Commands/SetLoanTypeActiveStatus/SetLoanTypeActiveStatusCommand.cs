@@ -1,0 +1,16 @@
+using MediatR;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace KasraLoan.Application.Features.LoanTypes.Commands.SetLoanTypeActiveStatus
+{
+    public class SetLoanTypeActiveStatusCommand : IRequest<SetLoanTypeActiveStatusResponse>
+    {
+        public int LoanTypeId { get; set; }
+
+        public bool IsActive { get; set; }
+    }
+}

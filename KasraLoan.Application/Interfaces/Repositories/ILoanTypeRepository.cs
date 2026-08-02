@@ -10,5 +10,9 @@ namespace KasraLoan.Application.Interfaces.Repositories
     public interface ILoanTypeRepository
     {
         Task<LoanType?> GetByIdAsync(int id);
+
+        Task<List<LoanType>> GetAllAsync();
+
+        Task SaveChangesAsync();
     }
 }

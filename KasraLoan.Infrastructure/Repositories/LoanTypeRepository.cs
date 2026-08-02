@@ -23,5 +23,17 @@ namespace KasraLoan.Infrastructure.Repositories
         {
             return await _context.LoanTypes.FirstOrDefaultAsync(x => x.Id == id);
         }
+
+        public async Task<List<LoanType>> GetAllAsync()
+        {
+            return await _context.LoanTypes
+                .OrderBy(x => x.Id)
+                .ToListAsync();
+        }
+
+        public async Task SaveChangesAsync()
+        {
+            await _context.SaveChangesAsync();
+        }
     }
 }
