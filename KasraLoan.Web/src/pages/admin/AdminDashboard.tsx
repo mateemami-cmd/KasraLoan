@@ -22,6 +22,7 @@ import {
   BankOutlined,
   UserAddOutlined,
   TeamOutlined,
+  CrownOutlined,
 } from '@ant-design/icons'
 import type { ColumnsType } from 'antd/es/table'
 import { DashboardLayout } from '../../components/DashboardLayout'
@@ -50,6 +51,7 @@ export function AdminDashboard() {
     { key: 'loans', icon: <BankOutlined />, label: 'مدیریت وام‌ها' },
     { key: 'addEmployee', icon: <UserAddOutlined />, label: 'افزودن کاربر' },
     { key: 'employees', icon: <TeamOutlined />, label: 'کارمندان' },
+    { key: 'admins', icon: <CrownOutlined />, label: 'ادمین‌ها' },
   ]
 
   return (
@@ -62,7 +64,8 @@ export function AdminDashboard() {
       {section === 'permissions' && <PermissionRequestsSection />}
       {section === 'loans' && <LoanManagementSection />}
       {section === 'addEmployee' && <AddEmployeeSection />}
-      {section === 'employees' && <EmployeesSection />}
+      {section === 'employees' && <PeopleSection role="Employee" title="لیست کارمندان" />}
+      {section === 'admins' && <PeopleSection role="Admin" title="لیست ادمین‌ها" />}
     </DashboardLayout>
   )
 }
@@ -310,26 +313,24 @@ interface EmployeeRow {
   isActive: boolean
 }
 
-function EmployeesSection() {
+function PeopleSection({ role, title }: { role: 'Admin' | 'Employee'; title: string }) {
   const [rows, setRows] = useState<EmployeeRow[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    setLoading(true)
     getAllEmployees()
       .then((data) => setRows(Array.isArray(data) ? data : data.items ?? []))
       .finally(() => setLoading(false))
   }, [])
 
+  // فقط افراد با نقش موردنظر همین بخش نمایش داده می‌شوند.
+  const filtered = rows.filter((r) => r.role === role)
+
   const columns: ColumnsType<EmployeeRow> = [
     { title: 'نام', render: (_, r) => `${r.firstName} ${r.lastName}` },
     { title: 'نام کاربری', dataIndex: 'username' },
     { title: 'شماره پرسنلی', dataIndex: 'personnelNumber' },
-    {
-      title: 'نقش',
-      dataIndex: 'role',
-      render: (r: string) =>
-        r === 'Admin' ? <Tag color="purple">ادمین</Tag> : <Tag color="blue">کارمند</Tag>,
-    },
     {
       title: 'وضعیت',
       dataIndex: 'isActive',
@@ -338,8 +339,8 @@ function EmployeesSection() {
   ]
 
   return (
-    <Card title="لیست کارمندان و ادمین‌ها">
-      <Table rowKey="id" loading={loading} columns={columns} dataSource={rows} pagination={{ pageSize: 10 }} />
+    <Card title={`${title} (${filtered.length})`}>
+      <Table rowKey="id" loading={loading} columns={columns} dataSource={filtered} pagination={{ pageSize: 10 }} />
     </Card>
   )
 }
