@@ -46,3 +46,18 @@ export interface NotificationItem {
   isRead: boolean
   createdAt: string
 }
+
+export interface MyLoanItem {
+  id: string
+  loanType: string
+  requestedAmount: number
+  approvedAmount: number
+  installmentCount: number
+  status: string
+}
+
+export interface UpdateProfilePayload {
+  newPassword?: string
+  phoneNumber?: string
+  email?: string
+}

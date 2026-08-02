@@ -3,7 +3,21 @@ import type {
   LoanType,
   LoanPermissionRequestItem,
   NotificationItem,
+  MyLoanItem,
+  UpdateProfilePayload,
 } from './types'
+
+// ---------- Profile ----------
+export async function updateProfile(payload: UpdateProfilePayload) {
+  const res = await api.put('/auth/profile', payload)
+  return res.data as { message: string }
+}
+
+// ---------- My loans (history) ----------
+export async function getMyLoans(): Promise<MyLoanItem[]> {
+  const res = await api.get<MyLoanItem[]>('/loan/my-loans')
+  return res.data
+}
 
 // ---------- Loan types ----------
 export async function getLoanTypes(activeOnly = false): Promise<LoanType[]> {

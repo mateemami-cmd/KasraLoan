@@ -7,6 +7,7 @@ interface AuthContextValue {
   loading: boolean
   login: (username: string, password: string) => Promise<CurrentUser>
   logout: () => void
+  refreshUser: () => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined)
@@ -42,6 +43,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return me.data
   }
 
+  // بعد از ویرایش پروفایل، اطلاعات کاربر را دوباره از سرور می‌گیریم.
+  async function refreshUser() {
+    const me = await api.get<CurrentUser>('/auth/me')
+    setUser(me.data)
+  }
+
   function logout() {
     const refreshToken = localStorage.getItem('refreshToken')
     if (refreshToken) {
@@ -53,7 +60,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout }}>
+    <AuthContext.Provider value={{ user, loading, login, logout, refreshUser }}>
       {children}
     </AuthContext.Provider>
   )

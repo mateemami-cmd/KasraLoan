@@ -9,7 +9,6 @@ import {
   Select,
   Input,
   Table,
-  Descriptions,
   Statistic,
   Empty,
   App,
@@ -19,6 +18,7 @@ import {
   BankOutlined,
   FileProtectOutlined,
   UserOutlined,
+  HistoryOutlined,
 } from '@ant-design/icons'
 import type { ColumnsType } from 'antd/es/table'
 import { DashboardLayout } from '../../components/DashboardLayout'
@@ -27,8 +27,10 @@ import {
   getLoanTypes,
   getMyPermissionRequests,
   createPermissionRequest,
+  getMyLoans,
+  updateProfile,
 } from '../../api/services'
-import type { LoanType, LoanPermissionRequestItem } from '../../api/types'
+import type { LoanType, LoanPermissionRequestItem, MyLoanItem } from '../../api/types'
 
 const MIN_SCORE = 600
 
@@ -36,6 +38,15 @@ const statusTag: Record<string, { color: string; label: string }> = {
   Pending: { color: 'gold', label: 'در انتظار بررسی' },
   Approved: { color: 'green', label: 'تأیید شده' },
   Rejected: { color: 'red', label: 'رد شده' },
+}
+
+const loanStatusMap: Record<string, { color: string; label: string }> = {
+  Pending: { color: 'gold', label: 'در انتظار' },
+  Approved: { color: 'green', label: 'تأیید شده' },
+  Rejected: { color: 'red', label: 'رد شده' },
+  Active: { color: 'blue', label: 'فعال' },
+  Paid: { color: 'green', label: 'تسویه شده' },
+  Closed: { color: 'default', label: 'بسته شده' },
 }
 
 export function EmployeeDashboard() {
@@ -49,6 +60,7 @@ export function EmployeeDashboard() {
       children: [
         { key: 'loans', icon: <BankOutlined />, label: 'درخواست وام' },
         { key: 'permission', icon: <FileProtectOutlined />, label: 'درخواست مجوز وام' },
+        { key: 'loanHistory', icon: <HistoryOutlined />, label: 'سابقه وام' },
       ],
     },
     { key: 'profile', icon: <UserOutlined />, label: 'اطلاعات کاربری' },
@@ -64,6 +76,7 @@ export function EmployeeDashboard() {
     >
       {section === 'loans' && <LoansSection />}
       {section === 'permission' && <PermissionSection />}
+      {section === 'loanHistory' && <LoanHistorySection />}
       {section === 'profile' && <ProfileSection />}
     </DashboardLayout>
   )
@@ -222,9 +235,76 @@ function PermissionSection() {
   )
 }
 
+function LoanHistorySection() {
+  const [loans, setLoans] = useState<MyLoanItem[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    getMyLoans()
+      .then(setLoans)
+      .finally(() => setLoading(false))
+  }, [])
+
+  const money = (v: number) => `${v.toLocaleString('fa-IR')} تومان`
+
+  const columns: ColumnsType<MyLoanItem> = [
+    { title: 'نوع وام', dataIndex: 'loanType' },
+    { title: 'مبلغ درخواستی', dataIndex: 'requestedAmount', render: money },
+    { title: 'مبلغ تأییدشده', dataIndex: 'approvedAmount', render: money },
+    { title: 'تعداد اقساط', dataIndex: 'installmentCount' },
+    {
+      title: 'وضعیت',
+      dataIndex: 'status',
+      render: (s: string) => (
+        <Tag color={loanStatusMap[s]?.color}>{loanStatusMap[s]?.label ?? s}</Tag>
+      ),
+    },
+  ]
+
+  return (
+    <Card title="سابقه وام‌های من">
+      <Table
+        rowKey="id"
+        loading={loading}
+        columns={columns}
+        dataSource={loans}
+        locale={{ emptyText: <Empty description="هنوز وامی نگرفته‌ای" /> }}
+        pagination={{ pageSize: 8 }}
+      />
+    </Card>
+  )
+}
+
 function ProfileSection() {
-  const { user } = useAuth()
+  const { user, refreshUser } = useAuth()
+  const { message } = App.useApp()
+  const [form] = Form.useForm()
+  const [saving, setSaving] = useState(false)
+
   if (!user) return null
+
+  async function onFinish(values: {
+    phoneNumber?: string
+    email?: string
+    newPassword?: string
+  }) {
+    setSaving(true)
+    try {
+      await updateProfile({
+        phoneNumber: values.phoneNumber,
+        email: values.email,
+        newPassword: values.newPassword || undefined,
+      })
+      await refreshUser()
+      form.setFieldValue('newPassword', '')
+      message.success('اطلاعات با موفقیت به‌روزرسانی شد.')
+    } catch (err: unknown) {
+      const e = err as { response?: { data?: { message?: string } } }
+      message.error(e.response?.data?.message ?? 'خطا در به‌روزرسانی اطلاعات.')
+    } finally {
+      setSaving(false)
+    }
+  }
 
   return (
     <Row gutter={[16, 16]}>
@@ -234,16 +314,53 @@ function ProfileSection() {
         </Card>
       </Col>
       <Col xs={24} lg={16}>
-        <Card title="اطلاعات کاربری">
-          <Descriptions column={1} bordered size="small">
-            <Descriptions.Item label="نام">
-              {user.firstName} {user.lastName}
-            </Descriptions.Item>
-            <Descriptions.Item label="نام کاربری">{user.username}</Descriptions.Item>
-            <Descriptions.Item label="شماره پرسنلی">{user.personnelNumber}</Descriptions.Item>
-            <Descriptions.Item label="تلفن">{user.phoneNumber || '—'}</Descriptions.Item>
-            <Descriptions.Item label="ایمیل">{user.email || '—'}</Descriptions.Item>
-          </Descriptions>
+        <Card title="اطلاعات کاربری و ویرایش">
+          <Form
+            form={form}
+            layout="vertical"
+            onFinish={onFinish}
+            initialValues={{
+              phoneNumber: user.phoneNumber ?? '',
+              email: user.email ?? '',
+            }}
+          >
+            <Row gutter={12}>
+              <Col span={12}>
+                <Form.Item label="نام و نام خانوادگی">
+                  <Input value={`${user.firstName} ${user.lastName}`} disabled />
+                </Form.Item>
+              </Col>
+              <Col span={12}>
+                <Form.Item label="شماره پرسنلی">
+                  <Input value={user.personnelNumber} disabled />
+                </Form.Item>
+              </Col>
+            </Row>
+
+            <Form.Item label="نام کاربری" extra="نام کاربری را فقط ادمین می‌تواند تغییر دهد.">
+              <Input value={user.username} disabled />
+            </Form.Item>
+
+            <Form.Item label="شماره تماس" name="phoneNumber">
+              <Input placeholder="مثلاً 09120000000" />
+            </Form.Item>
+
+            <Form.Item label="ایمیل" name="email">
+              <Input placeholder="example@mail.com" />
+            </Form.Item>
+
+            <Form.Item
+              label="رمز عبور جدید"
+              name="newPassword"
+              extra="اگر نمی‌خواهی رمزت را عوض کنی، این را خالی بگذار."
+            >
+              <Input.Password placeholder="رمز عبور جدید" />
+            </Form.Item>
+
+            <Button type="primary" htmlType="submit" loading={saving}>
+              ذخیره تغییرات
+            </Button>
+          </Form>
         </Card>
       </Col>
     </Row>

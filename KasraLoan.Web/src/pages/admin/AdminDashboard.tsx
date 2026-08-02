@@ -250,6 +250,13 @@ function AddEmployeeSection() {
     <Row gutter={[16, 16]}>
       <Col xs={24} lg={12}>
         <Card title="افزودن کاربر جدید">
+          <Alert
+            type="info"
+            showIcon
+            style={{ marginBottom: 16 }}
+            message="رمز عبور لازم نیست وارد کنید"
+            description="سیستم یک رمز موقت امن به‌صورت خودکار می‌سازد و بعد از ایجاد کاربر همین‌جا نمایش می‌دهد. کاربر بعد از اولین ورود می‌تواند رمزش را از بخش «اطلاعات کاربری» تغییر دهد."
+          />
           <Form form={form} layout="vertical" onFinish={onFinish} initialValues={{ role: 'Employee' }}>
             <Row gutter={12}>
               <Col span={12}>
