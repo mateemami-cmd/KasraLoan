@@ -25,6 +25,9 @@ namespace KasraLoan.Domain.Entities
 
         public string? Email { get; set; }
 
+        /// <summary>مسیر نسبی عکس پروفایل، مثلاً /uploads/xxxx.jpg (اختیاری).</summary>
+        public string? ProfilePictureUrl { get; set; }
+
         public DateTime HireDate { get; set; }
 
         public DateTime? MarriageDate { get; set; }

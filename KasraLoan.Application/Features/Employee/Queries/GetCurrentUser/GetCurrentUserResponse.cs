@@ -25,5 +25,7 @@ namespace KasraLoan.Application.Features.Employee.Queries.GetCurrentUser
         public int Score { get; set; }
 
         public string Role { get; set; } = string.Empty;
+
+        public string? ProfilePictureUrl { get; set; }
     }
 }

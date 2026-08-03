@@ -13,12 +13,15 @@ import {
   Empty,
   App,
   Alert,
+  Avatar,
+  Upload,
 } from 'antd'
 import {
   BankOutlined,
   FileProtectOutlined,
   UserOutlined,
   HistoryOutlined,
+  CameraOutlined,
 } from '@ant-design/icons'
 import type { ColumnsType } from 'antd/es/table'
 import { DashboardLayout } from '../../components/DashboardLayout'
@@ -29,6 +32,7 @@ import {
   createPermissionRequest,
   getMyLoans,
   updateProfile,
+  uploadProfilePicture,
 } from '../../api/services'
 import type { LoanType, LoanPermissionRequestItem, MyLoanItem } from '../../api/types'
 
@@ -298,8 +302,23 @@ function ProfileSection() {
   const { message } = App.useApp()
   const [form] = Form.useForm()
   const [saving, setSaving] = useState(false)
+  const [uploading, setUploading] = useState(false)
 
   if (!user) return null
+
+  async function handleUpload(file: File) {
+    setUploading(true)
+    try {
+      await uploadProfilePicture(file)
+      await refreshUser()
+      message.success('عکس پروفایل به‌روزرسانی شد.')
+    } catch (err: unknown) {
+      const e = err as { response?: { data?: { message?: string } } }
+      message.error(e.response?.data?.message ?? 'خطا در آپلود عکس.')
+    } finally {
+      setUploading(false)
+    }
+  }
 
   async function onFinish(values: {
     phoneNumber?: string
@@ -327,8 +346,47 @@ function ProfileSection() {
   return (
     <Row gutter={[16, 16]}>
       <Col xs={24} lg={8}>
-        <Card>
+        <Card style={{ textAlign: 'center' }}>
+          <Upload
+            showUploadList={false}
+            accept="image/png,image/jpeg,image/webp"
+            beforeUpload={(file) => {
+              handleUpload(file)
+              return false
+            }}
+          >
+            <div style={{ cursor: 'pointer', display: 'inline-block', position: 'relative' }}>
+              <Avatar
+                size={110}
+                src={user.profilePictureUrl || undefined}
+                icon={<UserOutlined />}
+              />
+              <div
+                style={{
+                  position: 'absolute',
+                  insetInlineEnd: 4,
+                  bottom: 4,
+                  background: '#3d3f8c',
+                  color: '#fff',
+                  borderRadius: '50%',
+                  width: 32,
+                  height: 32,
+                  display: 'grid',
+                  placeItems: 'center',
+                }}
+              >
+                <CameraOutlined />
+              </div>
+            </div>
+          </Upload>
+          <div style={{ marginTop: 12, fontWeight: 600, fontSize: 16 }}>
+            {user.firstName} {user.lastName}
+          </div>
+          <div style={{ color: '#888', marginBottom: 16 }}>{user.username}</div>
           <Statistic title="امتیاز شما" value={user.score} suffix={`/ ${MIN_SCORE}`} />
+          <div style={{ marginTop: 10, color: '#888', fontSize: 12 }}>
+            {uploading ? 'در حال آپلود...' : 'برای تغییر عکس، روی تصویر کلیک کن'}
+          </div>
         </Card>
       </Col>
       <Col xs={24} lg={16}>

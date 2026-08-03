@@ -12,6 +12,11 @@ export default defineConfig({
         target: 'http://localhost:5068',
         changeOrigin: true,
       },
+      // عکس‌های آپلودشده (پروفایل، مدارک) هم از بک‌اند سرو می‌شوند.
+      '/uploads': {
+        target: 'http://localhost:5068',
+        changeOrigin: true,
+      },
     },
   },
 })

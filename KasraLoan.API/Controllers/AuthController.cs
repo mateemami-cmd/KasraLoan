@@ -4,6 +4,7 @@ using KasraLoan.Application.Features.Authentication.Login;
 using KasraLoan.Application.Features.Authentication.Logout;
 using KasraLoan.Application.Features.Authentication.Refresh;
 using KasraLoan.Application.Features.Employee.Commands.UpdateProfile;
+using KasraLoan.Application.Features.Employee.Commands.UploadProfilePicture;
 using KasraLoan.Application.Features.Employee.Queries.GetCurrentUser;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -74,6 +75,27 @@ namespace KasraLoan.API.Controllers
             var result = await _mediator.Send(new UpdateProfileCommand
             {
                 Request = request
+            });
+
+            return Ok(result);
+        }
+
+        [Authorize]
+        [HttpPost("profile/picture")]
+        public async Task<IActionResult> UploadProfilePicture(IFormFile file)
+        {
+            if (file == null || file.Length == 0)
+                return BadRequest("فایلی انتخاب نشده است.");
+
+            using var memoryStream = new MemoryStream();
+
+            await file.CopyToAsync(memoryStream);
+
+            var result = await _mediator.Send(new UploadProfilePictureCommand
+            {
+                FileContent = memoryStream.ToArray(),
+                FileName = file.FileName,
+                ContentType = file.ContentType
             });
 
             return Ok(result);

@@ -154,6 +154,9 @@ namespace KasraLoan.API
 
                 app.UseCors("AllowAll");
 
+                // سرو کردن فایل‌های آپلودشده (مثل عکس پروفایل) از wwwroot.
+                app.UseStaticFiles();
+
                 if (app.Environment.IsDevelopment())
                 {
                     app.UseSwagger();

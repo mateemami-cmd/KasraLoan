@@ -54,7 +54,8 @@ namespace KasraLoan.Application.Features.Employee.Queries.GetCurrentUser
                 PhoneNumber = employee.PhoneNumber,
                 Email = employee.Email,
                 Role = employee.Role.ToString(),
-                Score = effectiveScore
+                Score = effectiveScore,
+                ProfilePictureUrl = employee.ProfilePictureUrl
             };
         }
     }

@@ -16,6 +16,7 @@ export interface CurrentUser {
   email?: string | null
   score: number
   role: 'Admin' | 'Employee'
+  profilePictureUrl?: string | null
 }
 
 export interface LoanType {

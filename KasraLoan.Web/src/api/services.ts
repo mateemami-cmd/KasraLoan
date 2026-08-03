@@ -13,6 +13,13 @@ export async function updateProfile(payload: UpdateProfilePayload) {
   return res.data as { message: string }
 }
 
+export async function uploadProfilePicture(file: File) {
+  const form = new FormData()
+  form.append('file', file)
+  const res = await api.post('/auth/profile/picture', form)
+  return res.data as { profilePictureUrl: string; message: string }
+}
+
 // ---------- My loans (history) ----------
 export async function getMyLoans(): Promise<MyLoanItem[]> {
   const res = await api.get<MyLoanItem[]>('/loan/my-loans')
