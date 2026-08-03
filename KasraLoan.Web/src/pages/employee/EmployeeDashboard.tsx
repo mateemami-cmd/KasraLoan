@@ -72,7 +72,6 @@ export function EmployeeDashboard() {
       menuItems={menuItems}
       selectedKey={section}
       onSelect={setSection}
-      defaultOpenKeys={['loanGroup']}
     >
       {section === 'loans' && <LoansSection />}
       {section === 'permission' && <PermissionSection />}
