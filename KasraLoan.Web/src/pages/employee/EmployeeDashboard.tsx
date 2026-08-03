@@ -50,7 +50,7 @@ const loanStatusMap: Record<string, { color: string; label: string }> = {
 }
 
 export function EmployeeDashboard() {
-  const [section, setSection] = useState('loans')
+  const [section, setSection] = useState('welcome')
 
   const menuItems = [
     {
@@ -73,11 +73,30 @@ export function EmployeeDashboard() {
       selectedKey={section}
       onSelect={setSection}
     >
+      {section === 'welcome' && <WelcomeSection />}
       {section === 'loans' && <LoansSection />}
       {section === 'permission' && <PermissionSection />}
       {section === 'loanHistory' && <LoanHistorySection />}
       {section === 'profile' && <ProfileSection />}
     </DashboardLayout>
+  )
+}
+
+function WelcomeSection() {
+  const { user } = useAuth()
+
+  return (
+    <div style={{ display: 'grid', placeItems: 'center', minHeight: '60vh' }}>
+      <Card style={{ textAlign: 'center', maxWidth: 520, width: '100%' }}>
+        <div style={{ fontSize: 56, marginBottom: 12 }}>👋</div>
+        <h2 style={{ margin: '0 0 8px' }}>
+          کاربر {user?.firstName} {user?.lastName}، خوش آمدید
+        </h2>
+        <p style={{ color: '#888', margin: 0 }}>
+          به سامانه‌ی صندوق همیار کسری خوش آمدید. برای شروع، از منوی سمت راست بخش موردنظر را انتخاب کنید.
+        </p>
+      </Card>
+    </div>
   )
 }
 
