@@ -283,6 +283,7 @@ function LoanHistorySection() {
     },
   ]
 
+
   return (
     <Card title="سابقه وام‌های من">
       <Table
@@ -383,7 +384,7 @@ function ProfileSection() {
             {user.firstName} {user.lastName}
           </div>
           <div style={{ color: '#888', marginBottom: 16 }}>{user.username}</div>
-          <Statistic title="امتیاز شما" value={user.score} suffix={`/ ${MIN_SCORE}`} />
+          <Statistic title="امتیاز شما" value={user.score} />
           <div style={{ marginTop: 10, color: '#888', fontSize: 12 }}>
             {uploading ? 'در حال آپلود...' : 'برای تغییر عکس، روی تصویر کلیک کن'}
           </div>
