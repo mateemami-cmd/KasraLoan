@@ -72,7 +72,6 @@ export function EmployeeDashboard() {
 
   return (
     <DashboardLayout
-      title="داشبورد کارمند"
       menuItems={menuItems}
       selectedKey={section}
       onSelect={setSection}
@@ -97,7 +96,7 @@ function WelcomeSection() {
           کاربر {user?.firstName} {user?.lastName}، خوش آمدید
         </h2>
         <p style={{ color: '#888', margin: 0 }}>
-          به سامانه‌ی صندوق همیار کسری خوش آمدید. برای شروع، از منوی سمت راست بخش موردنظر را انتخاب کنید.
+          به سامانه‌ی صندوق همیار کسرا خوش آمدید. برای شروع، از منوی سمت راست بخش موردنظر را انتخاب کنید.
         </p>
       </Card>
     </div>

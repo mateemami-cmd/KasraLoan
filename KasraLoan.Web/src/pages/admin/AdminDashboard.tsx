@@ -63,7 +63,6 @@ export function AdminDashboard() {
 
   return (
     <DashboardLayout
-      title="داشبورد مدیریت"
       menuItems={menuItems}
       selectedKey={section}
       onSelect={setSection}

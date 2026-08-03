@@ -33,7 +33,7 @@ export function LoginPage() {
       <Card className="login-card" variant="borderless">
         <div style={{ textAlign: 'center', marginBottom: 24 }}>
           <Typography.Title level={3} style={{ marginBottom: 4 }}>
-            صندوق همیار کسری
+            صندوق همیار کسرا
           </Typography.Title>
           <Typography.Text type="secondary">سامانه مدیریت وام کارکنان</Typography.Text>
         </div>

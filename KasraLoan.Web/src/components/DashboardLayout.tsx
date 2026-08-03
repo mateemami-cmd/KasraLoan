@@ -8,7 +8,6 @@ import { NotificationBell } from './NotificationBell'
 const { Header, Sider, Content } = Layout
 
 interface Props {
-  title: string
   menuItems: MenuProps['items']
   selectedKey: string
   onSelect: (key: string) => void
@@ -17,7 +16,6 @@ interface Props {
 }
 
 export function DashboardLayout({
-  title,
   menuItems,
   selectedKey,
   onSelect,
@@ -30,8 +28,11 @@ export function DashboardLayout({
     <Layout style={{ minHeight: '100vh' }}>
       <Sider theme="light" width={240} breakpoint="lg" collapsedWidth={0}>
         <div className="brand">
-          <Typography.Text strong style={{ fontSize: 18 }}>
-            کسری
+          <Typography.Text strong style={{ fontSize: 20 }}>
+            کسرا
+          </Typography.Text>
+          <Typography.Text type="secondary" style={{ fontSize: 13 }}>
+            داشبورد
           </Typography.Text>
         </div>
         <Menu
@@ -46,9 +47,7 @@ export function DashboardLayout({
 
       <Layout>
         <Header className="app-header">
-          <Typography.Title level={4} style={{ margin: 0 }}>
-            {title}
-          </Typography.Title>
+          <span />
 
           <Space size="middle">
             <NotificationBell />
