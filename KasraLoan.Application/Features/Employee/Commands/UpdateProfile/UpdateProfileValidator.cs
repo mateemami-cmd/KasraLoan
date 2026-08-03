@@ -11,8 +11,9 @@ namespace KasraLoan.Application.Features.Employee.Commands.UpdateProfile
                 .Must(r =>
                     !string.IsNullOrWhiteSpace(r.NewPassword) ||
                     !string.IsNullOrWhiteSpace(r.PhoneNumber) ||
+                    !string.IsNullOrWhiteSpace(r.SecondaryPhoneNumber) ||
                     !string.IsNullOrWhiteSpace(r.Email))
-                .WithMessage("حداقل یکی از فیلدها (رمز عبور، شماره تماس، ایمیل) باید ارسال شود.");
+                .WithMessage("حداقل یکی از فیلدها (رمز عبور، شماره تماس، شماره تماس دوم، ایمیل) باید ارسال شود.");
 
             When(x => !string.IsNullOrWhiteSpace(x.Request.NewPassword), () =>
             {
@@ -30,6 +31,13 @@ namespace KasraLoan.Application.Features.Employee.Commands.UpdateProfile
                 RuleFor(x => x.Request.PhoneNumber)
                     .Matches(@"^09\d{9}$")
                     .WithMessage("شماره تماس باید یک شماره موبایل معتبر ایران باشد (مثال: 09123456789).");
+            });
+
+            When(x => !string.IsNullOrWhiteSpace(x.Request.SecondaryPhoneNumber), () =>
+            {
+                RuleFor(x => x.Request.SecondaryPhoneNumber)
+                    .Matches(@"^09\d{9}$")
+                    .WithMessage("شماره تماس دوم باید یک شماره موبایل معتبر ایران باشد (مثال: 09123456789).");
             });
 
             When(x => !string.IsNullOrWhiteSpace(x.Request.Email), () =>

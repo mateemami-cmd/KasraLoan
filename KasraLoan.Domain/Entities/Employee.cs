@@ -23,6 +23,9 @@ namespace KasraLoan.Domain.Entities
 
         public string? PhoneNumber { get; set; }
 
+        /// <summary>شماره تماس دوم (اختیاری) که خودِ کارمند می‌تواند اضافه/ویرایش کند.</summary>
+        public string? SecondaryPhoneNumber { get; set; }
+
         public string? Email { get; set; }
 
         /// <summary>مسیر نسبی عکس پروفایل، مثلاً /uploads/xxxx.jpg (اختیاری).</summary>

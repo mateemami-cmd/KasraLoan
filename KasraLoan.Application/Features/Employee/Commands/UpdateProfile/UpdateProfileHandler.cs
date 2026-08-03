@@ -47,6 +47,12 @@ namespace KasraLoan.Application.Features.Employee.Commands.UpdateProfile
                 updatedFields.Add("شماره تماس");
             }
 
+            if (!string.IsNullOrWhiteSpace(request.Request.SecondaryPhoneNumber))
+            {
+                employee.SecondaryPhoneNumber = request.Request.SecondaryPhoneNumber;
+                updatedFields.Add("شماره تماس دوم");
+            }
+
             if (!string.IsNullOrWhiteSpace(request.Request.Email))
             {
                 employee.Email = request.Request.Email;

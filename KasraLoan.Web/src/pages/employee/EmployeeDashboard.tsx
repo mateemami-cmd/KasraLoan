@@ -323,6 +323,7 @@ function ProfileSection() {
 
   async function onFinish(values: {
     phoneNumber?: string
+    secondaryPhoneNumber?: string
     email?: string
     newPassword?: string
   }) {
@@ -330,6 +331,7 @@ function ProfileSection() {
     try {
       await updateProfile({
         phoneNumber: values.phoneNumber,
+        secondaryPhoneNumber: values.secondaryPhoneNumber,
         email: values.email,
         newPassword: values.newPassword || undefined,
       })
@@ -398,6 +400,7 @@ function ProfileSection() {
             onFinish={onFinish}
             initialValues={{
               phoneNumber: user.phoneNumber ?? '',
+              secondaryPhoneNumber: user.secondaryPhoneNumber ?? '',
               email: user.email ?? '',
             }}
           >
@@ -420,6 +423,14 @@ function ProfileSection() {
 
             <Form.Item label="شماره تماس" name="phoneNumber">
               <Input placeholder="مثلاً 09120000000" />
+            </Form.Item>
+
+            <Form.Item
+              label="شماره تماس دوم"
+              name="secondaryPhoneNumber"
+              extra="اختیاری — یک شماره‌ی تماس اضافه."
+            >
+              <Input placeholder="مثلاً 09350000000" />
             </Form.Item>
 
             <Form.Item label="ایمیل" name="email">
