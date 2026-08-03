@@ -34,12 +34,10 @@ body {
 
 /* ---------- Dashboard ---------- */
 .brand {
+  height: 64px;
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 12px 0;
-  line-height: 1.5;
   border-bottom: 1px solid #f0f0f0;
 }
 

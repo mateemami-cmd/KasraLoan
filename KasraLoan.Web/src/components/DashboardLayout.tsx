@@ -31,15 +31,15 @@ export function DashboardLayout({
           <Typography.Text strong style={{ fontSize: 20 }}>
             کسرا
           </Typography.Text>
-          <Typography.Text type="secondary" style={{ fontSize: 13 }}>
-            داشبورد
-          </Typography.Text>
         </div>
         <Menu
           mode="inline"
           selectedKeys={[selectedKey]}
           defaultOpenKeys={defaultOpenKeys}
-          items={menuItems}
+          items={[
+            { key: '__dashboard_label', type: 'group', label: 'Dashboard' },
+            ...(menuItems ?? []),
+          ]}
           onClick={(e) => onSelect(e.key)}
           style={{ borderInlineEnd: 'none' }}
         />
