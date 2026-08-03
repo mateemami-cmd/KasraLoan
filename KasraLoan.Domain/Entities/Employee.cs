@@ -23,8 +23,11 @@ namespace KasraLoan.Domain.Entities
 
         public string? PhoneNumber { get; set; }
 
-        /// <summary>شماره تماس دوم (اختیاری) که خودِ کارمند می‌تواند اضافه/ویرایش کند.</summary>
-        public string? SecondaryPhoneNumber { get; set; }
+        /// <summary>
+        /// شماره‌های تماس اضافه (اختیاری). کارمند می‌تواند هر چند شماره که بخواهد
+        /// اضافه یا حذف کند. در PostgreSQL به‌صورت یک ستون text[] ذخیره می‌شود.
+        /// </summary>
+        public List<string>? AdditionalPhoneNumbers { get; set; }
 
         public string? Email { get; set; }
 

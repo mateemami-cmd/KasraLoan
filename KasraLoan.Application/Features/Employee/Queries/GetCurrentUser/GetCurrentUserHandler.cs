@@ -52,7 +52,7 @@ namespace KasraLoan.Application.Features.Employee.Queries.GetCurrentUser
                 Username = employee.Username,
                 PersonnelNumber = employee.PersonnelNumber ?? "",
                 PhoneNumber = employee.PhoneNumber,
-                SecondaryPhoneNumber = employee.SecondaryPhoneNumber,
+                AdditionalPhoneNumbers = employee.AdditionalPhoneNumbers ?? new List<string>(),
                 Email = employee.Email,
                 Role = employee.Role.ToString(),
                 Score = effectiveScore,

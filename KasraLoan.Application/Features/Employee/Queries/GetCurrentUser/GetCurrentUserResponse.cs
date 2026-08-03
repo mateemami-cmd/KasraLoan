@@ -20,7 +20,7 @@ namespace KasraLoan.Application.Features.Employee.Queries.GetCurrentUser
 
         public string? PhoneNumber { get; set; }
 
-        public string? SecondaryPhoneNumber { get; set; }
+        public List<string> AdditionalPhoneNumbers { get; set; } = new();
 
         public string? Email { get; set; }
 

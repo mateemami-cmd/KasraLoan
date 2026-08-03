@@ -22,6 +22,8 @@ import {
   UserOutlined,
   HistoryOutlined,
   CameraOutlined,
+  PlusOutlined,
+  DeleteOutlined,
 } from '@ant-design/icons'
 import type { ColumnsType } from 'antd/es/table'
 import { DashboardLayout } from '../../components/DashboardLayout'
@@ -322,7 +324,7 @@ function ProfileSection() {
 
   async function onFinish(values: {
     phoneNumber?: string
-    secondaryPhoneNumber?: string
+    additionalPhoneNumbers?: string[]
     email?: string
     newPassword?: string
   }) {
@@ -330,7 +332,9 @@ function ProfileSection() {
     try {
       await updateProfile({
         phoneNumber: values.phoneNumber,
-        secondaryPhoneNumber: values.secondaryPhoneNumber,
+        additionalPhoneNumbers: (values.additionalPhoneNumbers ?? []).filter(
+          (p) => p && p.trim() !== '',
+        ),
         email: values.email,
         newPassword: values.newPassword || undefined,
       })
@@ -399,7 +403,7 @@ function ProfileSection() {
             onFinish={onFinish}
             initialValues={{
               phoneNumber: user.phoneNumber ?? '',
-              secondaryPhoneNumber: user.secondaryPhoneNumber ?? '',
+              additionalPhoneNumbers: user.additionalPhoneNumbers ?? [],
               email: user.email ?? '',
             }}
           >
@@ -424,13 +428,37 @@ function ProfileSection() {
               <Input placeholder="مثلاً 09120000000" />
             </Form.Item>
 
-            <Form.Item
-              label="شماره تماس دوم"
-              name="secondaryPhoneNumber"
-              extra="اختیاری — یک شماره‌ی تماس اضافه."
-            >
-              <Input placeholder="مثلاً 09350000000" />
-            </Form.Item>
+            <Form.List name="additionalPhoneNumbers">
+              {(fields, { add, remove }) => (
+                <div style={{ marginBottom: 8 }}>
+                  <div style={{ marginBottom: 8, color: '#555' }}>شماره‌های تماس اضافه (اختیاری)</div>
+                  {fields.map((field) => (
+                    <div key={field.key} style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
+                      <Form.Item
+                        {...field}
+                        rules={[
+                          {
+                            pattern: /^09\d{9}$/,
+                            message: 'شماره باید مثل 09123456789 باشد',
+                          },
+                        ]}
+                        style={{ flex: 1, marginBottom: 0 }}
+                      >
+                        <Input placeholder="مثلاً 09350000000" />
+                      </Form.Item>
+                      <Button
+                        danger
+                        icon={<DeleteOutlined />}
+                        onClick={() => remove(field.name)}
+                      />
+                    </div>
+                  ))}
+                  <Button type="dashed" onClick={() => add()} block icon={<PlusOutlined />}>
+                    اضافه کردن شماره
+                  </Button>
+                </div>
+              )}
+            </Form.List>
 
             <Form.Item label="ایمیل" name="email">
               <Input placeholder="example@mail.com" />

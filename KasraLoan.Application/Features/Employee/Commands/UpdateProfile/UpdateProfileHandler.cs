@@ -3,6 +3,7 @@ using KasraLoan.Application.Services.Auth;
 using MediatR;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -47,10 +48,15 @@ namespace KasraLoan.Application.Features.Employee.Commands.UpdateProfile
                 updatedFields.Add("شماره تماس");
             }
 
-            if (!string.IsNullOrWhiteSpace(request.Request.SecondaryPhoneNumber))
+            // اگر لیست شماره‌های اضافه ارسال شده باشد (حتی خالی)، کاملاً جایگزین می‌شود
+            // تا کاربر بتواند شماره اضافه یا حذف کند. مقادیر خالی نادیده گرفته می‌شوند.
+            if (request.Request.AdditionalPhoneNumbers != null)
             {
-                employee.SecondaryPhoneNumber = request.Request.SecondaryPhoneNumber;
-                updatedFields.Add("شماره تماس دوم");
+                employee.AdditionalPhoneNumbers = request.Request.AdditionalPhoneNumbers
+                    .Where(p => !string.IsNullOrWhiteSpace(p))
+                    .Select(p => p.Trim())
+                    .ToList();
+                updatedFields.Add("شماره‌های تماس");
             }
 
             if (!string.IsNullOrWhiteSpace(request.Request.Email))

@@ -13,7 +13,7 @@ export interface CurrentUser {
   username: string
   personnelNumber: string
   phoneNumber?: string | null
-  secondaryPhoneNumber?: string | null
+  additionalPhoneNumbers: string[]
   email?: string | null
   score: number
   role: 'Admin' | 'Employee'
@@ -61,6 +61,6 @@ export interface MyLoanItem {
 export interface UpdateProfilePayload {
   newPassword?: string
   phoneNumber?: string
-  secondaryPhoneNumber?: string
+  additionalPhoneNumbers?: string[]
   email?: string
 }

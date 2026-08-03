@@ -13,7 +13,11 @@ namespace KasraLoan.Application.DTOs.Employee
 
         public string? PhoneNumber { get; set; }
 
-        public string? SecondaryPhoneNumber { get; set; }
+        /// <summary>
+        /// لیست کامل شماره‌های اضافه. اگر ارسال شود (حتی خالی)، جایگزین لیست فعلی می‌شود.
+        /// اگر null باشد، لیست دست‌نخورده می‌ماند.
+        /// </summary>
+        public List<string>? AdditionalPhoneNumbers { get; set; }
 
         public string? Email { get; set; }
     }
