@@ -465,11 +465,11 @@ function ProfileSection() {
             </Form.List>
 
             <Form.Item
-              label="رمز عبور جدید"
+              label="رمز عبور"
               name="newPassword"
               extra="اگر نمی‌خواهی رمزت را عوض کنی، این را خالی بگذار."
             >
-              <Input.Password placeholder="رمز عبور جدید" />
+              <Input.Password placeholder="رمز عبور" />
             </Form.Item>
 
             <Button type="primary" htmlType="submit" loading={saving}>
