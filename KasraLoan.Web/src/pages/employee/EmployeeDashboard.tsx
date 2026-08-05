@@ -412,11 +412,7 @@ function ProfileSection() {
                 </Form.Item>
               </Col>
               <Col xs={24} sm={12} lg={6}>
-                <Form.Item
-                  label="رمز عبور"
-                  name="newPassword"
-                  extra="اگر نمی‌خواهی رمزت را عوض کنی، این را خالی بگذار."
-                >
+                <Form.Item label="رمز عبور" name="newPassword">
                   <Input.Password placeholder="رمز عبور" />
                 </Form.Item>
               </Col>
