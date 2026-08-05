@@ -390,6 +390,10 @@ function ProfileSection() {
             form={form}
             layout="vertical"
             onFinish={onFinish}
+            onFinishFailed={(info) => {
+              const first = info.errorFields?.[0]?.errors?.[0]
+              message.error(first ?? 'لطفاً همه‌ی فیلدها را درست وارد کنید.')
+            }}
             initialValues={{
               additionalPhoneNumbers: user.additionalPhoneNumbers ?? [],
               email: user.email ?? '',
