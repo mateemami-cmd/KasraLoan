@@ -323,7 +323,6 @@ function ProfileSection() {
   }
 
   async function onFinish(values: {
-    phoneNumber?: string
     additionalPhoneNumbers?: string[]
     email?: string
     newPassword?: string
@@ -331,7 +330,6 @@ function ProfileSection() {
     setSaving(true)
     try {
       await updateProfile({
-        phoneNumber: values.phoneNumber,
         additionalPhoneNumbers: (values.additionalPhoneNumbers ?? []).filter(
           (p) => p && p.trim() !== '',
         ),
@@ -402,7 +400,6 @@ function ProfileSection() {
             layout="vertical"
             onFinish={onFinish}
             initialValues={{
-              phoneNumber: user.phoneNumber ?? '',
               additionalPhoneNumbers: user.additionalPhoneNumbers ?? [],
               email: user.email ?? '',
             }}
@@ -426,10 +423,9 @@ function ProfileSection() {
 
             <Form.Item
               label="شماره تماس (اصلی)"
-              name="phoneNumber"
-              extra="این شماره‌ی اصلی شماست؛ حذف آن فقط توسط ادمین امکان‌پذیر است."
+              extra="این شماره‌ی اصلی شماست؛ تغییر یا حذف آن فقط توسط ادمین امکان‌پذیر است."
             >
-              <Input placeholder="مثلاً 09120000000" />
+              <Input value={user.phoneNumber ?? '—'} disabled />
             </Form.Item>
 
             <Form.List name="additionalPhoneNumbers">
