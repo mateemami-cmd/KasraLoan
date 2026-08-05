@@ -423,6 +423,15 @@ function ProfileSection() {
               </Col>
             </Row>
 
+            <Form.Item
+              label="رمز عبور"
+              name="newPassword"
+              extra="اگر نمی‌خواهی رمزت را عوض کنی، این را خالی بگذار."
+              style={{ maxWidth: 166 }}
+            >
+              <Input.Password placeholder="رمز عبور" />
+            </Form.Item>
+
             <Form.Item label="شماره تماس (اصلی)" style={{ maxWidth: 300 }}>
               <Input value={user.phoneNumber ?? '—'} disabled />
             </Form.Item>
@@ -463,14 +472,6 @@ function ProfileSection() {
                 </div>
               )}
             </Form.List>
-
-            <Form.Item
-              label="رمز عبور"
-              name="newPassword"
-              extra="اگر نمی‌خواهی رمزت را عوض کنی، این را خالی بگذار."
-            >
-              <Input.Password placeholder="رمز عبور" />
-            </Form.Item>
 
             <Button type="primary" htmlType="submit" loading={saving}>
               ذخیره تغییرات
