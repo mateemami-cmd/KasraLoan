@@ -396,35 +396,44 @@ function ProfileSection() {
             }}
           >
             <Row gutter={12}>
-              <Col xs={24} sm={12} lg={6}>
+              <Col flex="1 1 150px">
                 <Form.Item label="نام و نام خانوادگی">
                   <Input value={`${user.firstName} ${user.lastName}`} disabled />
                 </Form.Item>
               </Col>
-              <Col xs={24} sm={12} lg={6}>
+              <Col flex="1 1 150px">
                 <Form.Item label="شماره پرسنلی">
                   <Input value={user.personnelNumber} disabled />
                 </Form.Item>
               </Col>
-              <Col xs={24} sm={12} lg={6}>
+              <Col flex="1 1 150px">
                 <Form.Item label="نام کاربری">
                   <Input value={user.username} disabled />
                 </Form.Item>
               </Col>
-              <Col xs={24} sm={12} lg={6}>
+              <Col flex="1 1 150px">
                 <Form.Item label="امتیاز">
                   <Input value={String(user.score)} disabled />
                 </Form.Item>
               </Col>
+              <Col flex="1 1 150px">
+                <Form.Item label="شماره تماس (اصلی)">
+                  <Input value={user.phoneNumber ?? '—'} disabled />
+                </Form.Item>
+              </Col>
             </Row>
 
-            <Form.Item label="شماره تماس (اصلی)">
-              <Input value={user.phoneNumber ?? '—'} disabled />
-            </Form.Item>
+            <Row gutter={12}>
+              <Col xs={24} sm={12} lg={8}>
+                <Form.Item label="ایمیل" name="email">
+                  <Input placeholder="example@mail.com" />
+                </Form.Item>
+              </Col>
+            </Row>
 
             <Form.List name="additionalPhoneNumbers">
               {(fields, { add, remove }) => (
-                <div style={{ marginBottom: 8 }}>
+                <div style={{ marginBottom: 8, maxWidth: 340 }}>
                   <div style={{ marginBottom: 8, color: '#555' }}>شماره‌های تماس اضافه (اختیاری)</div>
                   {fields.map((field) => (
                     <div key={field.key} style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
@@ -458,10 +467,6 @@ function ProfileSection() {
                 </div>
               )}
             </Form.List>
-
-            <Form.Item label="ایمیل" name="email">
-              <Input placeholder="example@mail.com" />
-            </Form.Item>
 
             <Form.Item
               label="رمز عبور جدید"
