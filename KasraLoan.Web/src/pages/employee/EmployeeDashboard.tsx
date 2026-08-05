@@ -416,17 +416,17 @@ function ProfileSection() {
                   <Input value={String(user.score)} disabled />
                 </Form.Item>
               </Col>
+              <Col flex="1 1 150px">
+                <Form.Item label="ایمیل" name="email">
+                  <Input placeholder="example@mail.com" />
+                </Form.Item>
+              </Col>
             </Row>
 
             <Row gutter={12}>
               <Col xs={24} sm={12} lg={8}>
                 <Form.Item label="شماره تماس (اصلی)">
                   <Input value={user.phoneNumber ?? '—'} disabled />
-                </Form.Item>
-              </Col>
-              <Col xs={24} sm={12} lg={8}>
-                <Form.Item label="ایمیل" name="email">
-                  <Input placeholder="example@mail.com" />
                 </Form.Item>
               </Col>
             </Row>
