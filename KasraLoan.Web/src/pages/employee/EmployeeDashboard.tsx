@@ -348,17 +348,16 @@ function ProfileSection() {
   }
 
   return (
-    <Row gutter={[16, 16]}>
-      <Col xs={24} lg={8}>
-        <Card style={{ textAlign: 'center' }}>
-          <Upload
-            showUploadList={false}
-            accept="image/png,image/jpeg,image/webp"
-            beforeUpload={(file) => {
-              handleUpload(file)
-              return false
-            }}
-          >
+    <Card title="اطلاعات کاربری و ویرایش">
+      <div style={{ textAlign: 'center', marginBottom: 24 }}>
+        <Upload
+          showUploadList={false}
+          accept="image/png,image/jpeg,image/webp"
+          beforeUpload={(file) => {
+            handleUpload(file)
+            return false
+          }}
+        >
             <div style={{ cursor: 'pointer', display: 'inline-block', position: 'relative' }}>
               <Avatar
                 size={110}
@@ -391,11 +390,9 @@ function ProfileSection() {
           <div style={{ marginTop: 10, color: '#888', fontSize: 12 }}>
             {uploading ? 'در حال آپلود...' : 'برای تغییر عکس، روی تصویر کلیک کن'}
           </div>
-        </Card>
-      </Col>
-      <Col xs={24} lg={16}>
-        <Card title="اطلاعات کاربری و ویرایش">
-          <Form
+      </div>
+
+      <Form
             form={form}
             layout="vertical"
             onFinish={onFinish}
@@ -477,9 +474,7 @@ function ProfileSection() {
             <Button type="primary" htmlType="submit" loading={saving}>
               ذخیره تغییرات
             </Button>
-          </Form>
-        </Card>
-      </Col>
-    </Row>
+      </Form>
+    </Card>
   )
 }
