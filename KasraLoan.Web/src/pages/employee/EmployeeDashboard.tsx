@@ -421,10 +421,7 @@ function ProfileSection() {
               <Input value={user.username} disabled />
             </Form.Item>
 
-            <Form.Item
-              label="شماره تماس (اصلی)"
-              extra="این شماره‌ی اصلی شماست؛ تغییر یا حذف آن فقط توسط ادمین امکان‌پذیر است."
-            >
+            <Form.Item label="شماره تماس (اصلی)">
               <Input value={user.phoneNumber ?? '—'} disabled />
             </Form.Item>
 
