@@ -412,7 +412,18 @@ function ProfileSection() {
                 </Form.Item>
               </Col>
               <Col xs={24} sm={12} lg={6}>
-                <Form.Item label="رمز عبور" name="newPassword">
+                <Form.Item
+                  label="رمز عبور"
+                  name="newPassword"
+                  rules={[
+                    { required: true, message: 'رمز عبور را وارد کنید' },
+                    { min: 8, message: 'رمز عبور باید حداقل ۸ کاراکتر باشد' },
+                    {
+                      pattern: /^(?=.*[A-Za-z])(?=.*\d).+$/,
+                      message: 'رمز عبور باید شامل حرف و عدد باشد',
+                    },
+                  ]}
+                >
                   <Input.Password placeholder="رمز عبور" />
                 </Form.Item>
               </Col>
@@ -425,7 +436,14 @@ function ProfileSection() {
                 </Form.Item>
               </Col>
               <Col xs={24} sm={12} lg={6}>
-                <Form.Item label="ایمیل" name="email">
+                <Form.Item
+                  label="ایمیل"
+                  name="email"
+                  rules={[
+                    { required: true, message: 'ایمیل را وارد کنید' },
+                    { type: 'email', message: 'ایمیل معتبر نیست' },
+                  ]}
+                >
                   <Input placeholder="example@mail.com" />
                 </Form.Item>
               </Col>
