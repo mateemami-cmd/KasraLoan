@@ -423,14 +423,21 @@ function ProfileSection() {
               </Col>
             </Row>
 
-            <Form.Item
-              label="رمز عبور"
-              name="newPassword"
-              extra="اگر نمی‌خواهی رمزت را عوض کنی، این را خالی بگذار."
-              style={{ maxWidth: 166 }}
-            >
-              <Input.Password placeholder="رمز عبور" />
-            </Form.Item>
+            <Row gutter={12}>
+              <Col flex="1 1 150px">
+                <Form.Item
+                  label="رمز عبور"
+                  name="newPassword"
+                  extra="اگر نمی‌خواهی رمزت را عوض کنی، این را خالی بگذار."
+                >
+                  <Input.Password placeholder="رمز عبور" />
+                </Form.Item>
+              </Col>
+              <Col flex="1 1 150px" />
+              <Col flex="1 1 150px" />
+              <Col flex="1 1 150px" />
+              <Col flex="1 1 150px" />
+            </Row>
 
             <Form.Item label="شماره تماس (اصلی)" style={{ maxWidth: 300 }}>
               <Input value={user.phoneNumber ?? '—'} disabled />
