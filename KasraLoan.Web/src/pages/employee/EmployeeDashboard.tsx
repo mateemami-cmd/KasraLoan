@@ -423,13 +423,9 @@ function ProfileSection() {
               </Col>
             </Row>
 
-            <Row gutter={12}>
-              <Col xs={24} sm={12} lg={8}>
-                <Form.Item label="شماره تماس (اصلی)">
-                  <Input value={user.phoneNumber ?? '—'} disabled />
-                </Form.Item>
-              </Col>
-            </Row>
+            <Form.Item label="شماره تماس (اصلی)" style={{ maxWidth: 300 }}>
+              <Input value={user.phoneNumber ?? '—'} disabled />
+            </Form.Item>
 
             <Form.List name="additionalPhoneNumbers">
               {(fields, { add, remove }) => (
