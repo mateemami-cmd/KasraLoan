@@ -381,9 +381,9 @@ function ProfileSection() {
               </div>
             </div>
           </Upload>
-          <div style={{ marginTop: 10, color: '#888', fontSize: 12 }}>
-            {uploading ? 'در حال آپلود...' : 'برای تغییر عکس، روی تصویر کلیک کن'}
-          </div>
+          {uploading && (
+            <div style={{ marginTop: 10, color: '#888', fontSize: 12 }}>در حال آپلود...</div>
+          )}
       </div>
 
       <Form
@@ -416,14 +416,14 @@ function ProfileSection() {
                   <Input value={String(user.score)} disabled />
                 </Form.Item>
               </Col>
-              <Col flex="1 1 150px">
+            </Row>
+
+            <Row gutter={12}>
+              <Col xs={24} sm={12} lg={8}>
                 <Form.Item label="شماره تماس (اصلی)">
                   <Input value={user.phoneNumber ?? '—'} disabled />
                 </Form.Item>
               </Col>
-            </Row>
-
-            <Row gutter={12}>
               <Col xs={24} sm={12} lg={8}>
                 <Form.Item label="ایمیل" name="email">
                   <Input placeholder="example@mail.com" />
