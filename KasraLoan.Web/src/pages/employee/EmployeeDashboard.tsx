@@ -15,6 +15,7 @@ import {
   Alert,
   Avatar,
   Upload,
+  Popconfirm,
 } from 'antd'
 import {
   BankOutlined,
@@ -423,7 +424,11 @@ function ProfileSection() {
               <Input value={user.username} disabled />
             </Form.Item>
 
-            <Form.Item label="شماره تماس" name="phoneNumber">
+            <Form.Item
+              label="شماره تماس (اصلی)"
+              name="phoneNumber"
+              extra="این شماره‌ی اصلی شماست؛ حذف آن فقط توسط ادمین امکان‌پذیر است."
+            >
               <Input placeholder="مثلاً 09120000000" />
             </Form.Item>
 
@@ -445,11 +450,16 @@ function ProfileSection() {
                       >
                         <Input placeholder="مثلاً 09350000000" />
                       </Form.Item>
-                      <Button
-                        danger
-                        icon={<DeleteOutlined />}
-                        onClick={() => remove(field.name)}
-                      />
+                      <Popconfirm
+                        title="حذف شماره"
+                        description="آیا از حذف این شماره مطمئن هستی؟"
+                        okText="بله، حذف کن"
+                        cancelText="انصراف"
+                        okButtonProps={{ danger: true }}
+                        onConfirm={() => remove(field.name)}
+                      >
+                        <Button danger icon={<DeleteOutlined />} />
+                      </Popconfirm>
                     </div>
                   ))}
                   <Button type="dashed" onClick={() => add()} block icon={<PlusOutlined />}>
