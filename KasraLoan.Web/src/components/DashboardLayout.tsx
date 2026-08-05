@@ -26,7 +26,7 @@ export function DashboardLayout({
 
   return (
     <Layout style={{ minHeight: '100vh' }}>
-      <Sider theme="light" width={240} breakpoint="lg" collapsedWidth={0}>
+      <Sider theme="light" width={456} breakpoint="lg" collapsedWidth={0}>
         <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
           <div className="brand">
             <Typography.Text strong style={{ fontSize: 20 }}>

@@ -461,8 +461,8 @@ function ProfileSection() {
               {(fields, { add, remove }) => (
                 <div style={{ marginBottom: 8, maxWidth: 340 }}>
                   <div style={{ marginBottom: 8, color: '#555' }}>شماره‌های تماس اضافه (اختیاری)</div>
-                  {fields.map((field) => (
-                    <div key={field.key} style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
+                  {fields.map(({ key, ...field }) => (
+                    <div key={key} style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
                       <Form.Item
                         {...field}
                         rules={[
