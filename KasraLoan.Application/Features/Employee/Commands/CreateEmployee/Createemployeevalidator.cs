@@ -22,6 +22,7 @@ namespace KasraLoan.Application.Features.Employee.Commands.CreateEmployee
 
             RuleFor(x => x.Request.PersonnelNumber)
                 .NotEmpty().WithMessage("شماره پرسنلی الزامی است.")
+                .Matches("^[0-9]+$").WithMessage("شماره پرسنلی فقط می‌تواند شامل عدد باشد.")
                 .MaximumLength(50);
 
             RuleFor(x => x.Request.Username)

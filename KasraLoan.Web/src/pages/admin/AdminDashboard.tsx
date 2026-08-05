@@ -269,7 +269,14 @@ function AddEmployeeSection() {
                 </Form.Item>
               </Col>
             </Row>
-            <Form.Item label="شماره پرسنلی" name="personnelNumber" rules={[{ required: true }]}>
+            <Form.Item
+              label="شماره پرسنلی"
+              name="personnelNumber"
+              rules={[
+                { required: true, message: 'شماره پرسنلی الزامی است' },
+                { pattern: /^\d+$/, message: 'شماره پرسنلی فقط باید عدد باشد' },
+              ]}
+            >
               <Input />
             </Form.Item>
             <Form.Item label="نام کاربری" name="username" rules={[{ required: true }]}>

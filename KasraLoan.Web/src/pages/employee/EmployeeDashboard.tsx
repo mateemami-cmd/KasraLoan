@@ -9,7 +9,6 @@ import {
   Select,
   Input,
   Table,
-  Statistic,
   Empty,
   App,
   Alert,
@@ -382,11 +381,6 @@ function ProfileSection() {
               </div>
             </div>
           </Upload>
-          <div style={{ marginTop: 12, fontWeight: 600, fontSize: 16 }}>
-            {user.firstName} {user.lastName}
-          </div>
-          <div style={{ color: '#888', marginBottom: 16 }}>{user.username}</div>
-          <Statistic title="امتیاز شما" value={user.score} />
           <div style={{ marginTop: 10, color: '#888', fontSize: 12 }}>
             {uploading ? 'در حال آپلود...' : 'برای تغییر عکس، روی تصویر کلیک کن'}
           </div>
@@ -402,21 +396,27 @@ function ProfileSection() {
             }}
           >
             <Row gutter={12}>
-              <Col span={12}>
+              <Col xs={24} sm={12} lg={6}>
                 <Form.Item label="نام و نام خانوادگی">
                   <Input value={`${user.firstName} ${user.lastName}`} disabled />
                 </Form.Item>
               </Col>
-              <Col span={12}>
+              <Col xs={24} sm={12} lg={6}>
                 <Form.Item label="شماره پرسنلی">
                   <Input value={user.personnelNumber} disabled />
                 </Form.Item>
               </Col>
+              <Col xs={24} sm={12} lg={6}>
+                <Form.Item label="نام کاربری">
+                  <Input value={user.username} disabled />
+                </Form.Item>
+              </Col>
+              <Col xs={24} sm={12} lg={6}>
+                <Form.Item label="امتیاز">
+                  <Input value={String(user.score)} disabled />
+                </Form.Item>
+              </Col>
             </Row>
-
-            <Form.Item label="نام کاربری" extra="نام کاربری را فقط ادمین می‌تواند تغییر دهد.">
-              <Input value={user.username} disabled />
-            </Form.Item>
 
             <Form.Item label="شماره تماس (اصلی)">
               <Input value={user.phoneNumber ?? '—'} disabled />
