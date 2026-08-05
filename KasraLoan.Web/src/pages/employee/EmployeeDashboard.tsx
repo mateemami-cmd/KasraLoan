@@ -396,35 +396,22 @@ function ProfileSection() {
             }}
           >
             <Row gutter={12}>
-              <Col flex="1 1 150px">
+              <Col xs={24} sm={12} lg={6}>
                 <Form.Item label="نام و نام خانوادگی">
                   <Input value={`${user.firstName} ${user.lastName}`} disabled />
                 </Form.Item>
               </Col>
-              <Col flex="1 1 150px">
+              <Col xs={24} sm={12} lg={6}>
                 <Form.Item label="شماره پرسنلی">
                   <Input value={user.personnelNumber} disabled />
                 </Form.Item>
               </Col>
-              <Col flex="1 1 150px">
+              <Col xs={24} sm={12} lg={6}>
                 <Form.Item label="نام کاربری">
                   <Input value={user.username} disabled />
                 </Form.Item>
               </Col>
-              <Col flex="1 1 150px">
-                <Form.Item label="امتیاز">
-                  <Input value={String(user.score)} disabled />
-                </Form.Item>
-              </Col>
-              <Col flex="1 1 150px">
-                <Form.Item label="ایمیل" name="email">
-                  <Input placeholder="example@mail.com" />
-                </Form.Item>
-              </Col>
-            </Row>
-
-            <Row gutter={12}>
-              <Col flex="1 1 150px">
+              <Col xs={24} sm={12} lg={6}>
                 <Form.Item
                   label="رمز عبور"
                   name="newPassword"
@@ -433,10 +420,19 @@ function ProfileSection() {
                   <Input.Password placeholder="رمز عبور" />
                 </Form.Item>
               </Col>
-              <Col flex="1 1 150px" />
-              <Col flex="1 1 150px" />
-              <Col flex="1 1 150px" />
-              <Col flex="1 1 150px" />
+            </Row>
+
+            <Row gutter={12}>
+              <Col xs={24} sm={12} lg={6}>
+                <Form.Item label="امتیاز">
+                  <Input value={String(user.score)} disabled />
+                </Form.Item>
+              </Col>
+              <Col xs={24} sm={12} lg={6}>
+                <Form.Item label="ایمیل" name="email">
+                  <Input placeholder="example@mail.com" />
+                </Form.Item>
+              </Col>
             </Row>
 
             <Form.Item label="شماره تماس (اصلی)" style={{ maxWidth: 300 }}>
