@@ -27,22 +27,29 @@ export function DashboardLayout({
   return (
     <Layout style={{ minHeight: '100vh' }}>
       <Sider theme="light" width={240} breakpoint="lg" collapsedWidth={0}>
-        <div className="brand">
-          <Typography.Text strong style={{ fontSize: 20 }}>
-            کسرا
-          </Typography.Text>
+        <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+          <div className="brand">
+            <Typography.Text strong style={{ fontSize: 20 }}>
+              کسرا
+            </Typography.Text>
+          </div>
+          <Menu
+            mode="inline"
+            selectedKeys={[selectedKey]}
+            defaultOpenKeys={defaultOpenKeys}
+            items={[
+              { key: '__dashboard_label', type: 'group', label: 'Dashboard' },
+              ...(menuItems ?? []),
+            ]}
+            onClick={(e) => onSelect(e.key)}
+            style={{ flex: 1, borderInlineEnd: 'none' }}
+          />
+          <div style={{ padding: 12, borderTop: '1px solid #f0f0f0' }}>
+            <Button icon={<LogoutOutlined />} onClick={logout} danger block>
+              خروج
+            </Button>
+          </div>
         </div>
-        <Menu
-          mode="inline"
-          selectedKeys={[selectedKey]}
-          defaultOpenKeys={defaultOpenKeys}
-          items={[
-            { key: '__dashboard_label', type: 'group', label: 'Dashboard' },
-            ...(menuItems ?? []),
-          ]}
-          onClick={(e) => onSelect(e.key)}
-          style={{ borderInlineEnd: 'none' }}
-        />
       </Sider>
 
       <Layout>
@@ -57,9 +64,6 @@ export function DashboardLayout({
                 {user?.firstName} {user?.lastName}
               </span>
             </Space>
-            <Button icon={<LogoutOutlined />} onClick={logout} danger>
-              خروج
-            </Button>
           </Space>
         </Header>
 
