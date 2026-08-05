@@ -272,8 +272,7 @@ function LoanHistorySection() {
 
   const columns: ColumnsType<MyLoanItem> = [
     { title: 'نوع وام', dataIndex: 'loanType' },
-    { title: 'مبلغ درخواستی', dataIndex: 'requestedAmount', render: money },
-    { title: 'مبلغ تأییدشده', dataIndex: 'approvedAmount', render: money },
+    { title: 'مبلغ وام', dataIndex: 'requestedAmount', render: money },
     { title: 'تعداد اقساط', dataIndex: 'installmentCount' },
     {
       title: 'وضعیت',
