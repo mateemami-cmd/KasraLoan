@@ -1,5 +1,5 @@
 import { type ReactNode } from 'react'
-import { Layout, Menu, Typography, Button, Avatar, Space } from 'antd'
+import { Layout, Menu, Typography, Button, Avatar } from 'antd'
 import { LogoutOutlined, UserOutlined } from '@ant-design/icons'
 import type { MenuProps } from 'antd'
 import { useAuth } from '../auth/AuthContext'
@@ -126,16 +126,7 @@ export function DashboardLayout({
       <Layout>
         <Header className="app-header">
           <span />
-
-          <Space size="middle">
-            <NotificationBell />
-            <Space>
-              <Avatar icon={<UserOutlined />} />
-              <span>
-                {user?.firstName} {user?.lastName}
-              </span>
-            </Space>
-          </Space>
+          <NotificationBell />
         </Header>
 
         <Content className="app-content">{children}</Content>
