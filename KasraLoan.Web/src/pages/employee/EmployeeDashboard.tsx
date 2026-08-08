@@ -18,6 +18,8 @@ import {
   Modal,
   Typography,
   Segmented,
+  Badge,
+  List,
 } from 'antd'
 import {
   BankOutlined,
@@ -27,6 +29,7 @@ import {
   ArrowRightOutlined,
   LogoutOutlined,
   UploadOutlined,
+  BellOutlined,
 } from '@ant-design/icons'
 import type { ColumnsType } from 'antd/es/table'
 import { DashboardLayout } from '../../components/DashboardLayout'
@@ -39,8 +42,16 @@ import {
   updateProfile,
   uploadProfilePicture,
   deleteProfilePicture,
+  getUnreadCount,
+  getMyNotifications,
+  markAllNotificationsRead,
 } from '../../api/services'
-import type { LoanType, LoanPermissionRequestItem, MyLoanItem } from '../../api/types'
+import type {
+  LoanType,
+  LoanPermissionRequestItem,
+  MyLoanItem,
+  NotificationItem,
+} from '../../api/types'
 
 const MIN_SCORE = 600
 
@@ -63,17 +74,44 @@ const LOAN_SECTIONS = ['loans', 'permission', 'loanHistory']
 
 export function EmployeeDashboard() {
   const [section, setSection] = useState('welcome')
+  const [unread, setUnread] = useState(0)
 
-  const menuItems = [{ key: 'loans', icon: <BankOutlined />, label: 'وام' }]
+  useEffect(() => {
+    getUnreadCount().then(setUnread).catch(() => {})
+    const timer = setInterval(() => getUnreadCount().then(setUnread).catch(() => {}), 30000)
+    return () => clearInterval(timer)
+  }, [])
+
+  const menuItems = [
+    { key: 'loans', icon: <BankOutlined />, label: 'وام' },
+    {
+      key: 'notifications',
+      icon: (
+        <Badge count={unread} size="small" offset={[-2, 2]}>
+          <BellOutlined style={{ fontSize: 22 }} />
+        </Badge>
+      ),
+      label: 'اعلان',
+    },
+  ]
 
   // آیتم «وام» در نوار کناری وقتی هر کدام از زیربخش‌های وام باز است، انتخاب‌شده می‌ماند.
   const selectedKey = LOAN_SECTIONS.includes(section) ? 'loans' : section
+
+  function handleSelect(key: string) {
+    setSection(key)
+    if (key === 'notifications') {
+      markAllNotificationsRead()
+        .then(() => setUnread(0))
+        .catch(() => {})
+    }
+  }
 
   return (
     <DashboardLayout
       menuItems={menuItems}
       selectedKey={selectedKey}
-      onSelect={setSection}
+      onSelect={handleSelect}
       hideLogout
       rail
       onAvatarClick={() => setSection('profile')}
@@ -98,6 +136,8 @@ export function EmployeeDashboard() {
         </div>
       )}
 
+      {section === 'notifications' && <NotificationsSection />}
+
       {section === 'profile' && <ProfileSection onClose={() => setSection('welcome')} />}
     </DashboardLayout>
   )
@@ -118,6 +158,38 @@ function WelcomeSection() {
         </p>
       </Card>
     </div>
+  )
+}
+
+function NotificationsSection() {
+  const [items, setItems] = useState<NotificationItem[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    getMyNotifications()
+      .then((d) => setItems(d.items))
+      .finally(() => setLoading(false))
+  }, [])
+
+  return (
+    <Card title="اعلان‌ها">
+      <List
+        loading={loading}
+        dataSource={items}
+        locale={{ emptyText: <Empty description="اعلانی نداری" /> }}
+        renderItem={(n) => (
+          <List.Item>
+            <List.Item.Meta
+              title={<span style={{ fontWeight: 600 }}>{n.title}</span>}
+              description={n.message}
+            />
+            <span style={{ color: 'var(--text-muted)', fontSize: 12, whiteSpace: 'nowrap' }}>
+              {new Date(n.createdAt).toLocaleDateString('fa-IR')}
+            </span>
+          </List.Item>
+        )}
+      />
+    </Card>
   )
 }
 

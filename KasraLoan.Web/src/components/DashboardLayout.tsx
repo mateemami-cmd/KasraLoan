@@ -3,7 +3,6 @@ import { Layout, Menu, Button, Avatar } from 'antd'
 import { LogoutOutlined, UserOutlined } from '@ant-design/icons'
 import type { MenuProps } from 'antd'
 import { useAuth } from '../auth/AuthContext'
-import { NotificationBell } from './NotificationBell'
 
 const { Header, Sider, Content } = Layout
 
@@ -122,7 +121,6 @@ export function DashboardLayout({
       <Layout>
         <Header className="app-header">
           <span />
-          <NotificationBell />
         </Header>
 
         <Content className="app-content">{children}</Content>
