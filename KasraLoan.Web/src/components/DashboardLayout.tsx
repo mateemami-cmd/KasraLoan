@@ -67,8 +67,7 @@ export function DashboardLayout({
           {rail && onAvatarClick && (
             <div
               style={{
-                padding: '12px 0',
-                borderTop: '1px solid var(--border-soft)',
+                padding: '16px 0',
                 textAlign: 'center',
               }}
             >
