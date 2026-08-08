@@ -3,6 +3,7 @@ using KasraLoan.Application.DTOs.Employee;
 using KasraLoan.Application.Features.Authentication.Login;
 using KasraLoan.Application.Features.Authentication.Logout;
 using KasraLoan.Application.Features.Authentication.Refresh;
+using KasraLoan.Application.Features.Employee.Commands.DeleteProfilePicture;
 using KasraLoan.Application.Features.Employee.Commands.UpdateProfile;
 using KasraLoan.Application.Features.Employee.Commands.UploadProfilePicture;
 using KasraLoan.Application.Features.Employee.Queries.GetCurrentUser;
@@ -97,6 +98,15 @@ namespace KasraLoan.API.Controllers
                 FileName = file.FileName,
                 ContentType = file.ContentType
             });
+
+            return Ok(result);
+        }
+
+        [Authorize]
+        [HttpDelete("profile/picture")]
+        public async Task<IActionResult> DeleteProfilePicture()
+        {
+            var result = await _mediator.Send(new DeleteProfilePictureCommand());
 
             return Ok(result);
         }

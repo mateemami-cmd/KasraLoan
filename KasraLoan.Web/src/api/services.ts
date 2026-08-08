@@ -20,6 +20,11 @@ export async function uploadProfilePicture(file: File) {
   return res.data as { profilePictureUrl: string; message: string }
 }
 
+export async function deleteProfilePicture() {
+  const res = await api.delete('/auth/profile/picture')
+  return res.data as { message: string }
+}
+
 // ---------- My loans (history) ----------
 export async function getMyLoans(): Promise<MyLoanItem[]> {
   const res = await api.get<MyLoanItem[]>('/loan/my-loans')

@@ -15,15 +15,19 @@ import {
   Avatar,
   Upload,
   Popconfirm,
+  Modal,
+  Typography,
 } from 'antd'
 import {
   BankOutlined,
   FileProtectOutlined,
   UserOutlined,
   HistoryOutlined,
-  CameraOutlined,
   PlusOutlined,
   DeleteOutlined,
+  ArrowRightOutlined,
+  LogoutOutlined,
+  UploadOutlined,
 } from '@ant-design/icons'
 import type { ColumnsType } from 'antd/es/table'
 import { DashboardLayout } from '../../components/DashboardLayout'
@@ -35,6 +39,7 @@ import {
   getMyLoans,
   updateProfile,
   uploadProfilePicture,
+  deleteProfilePicture,
 } from '../../api/services'
 import type { LoanType, LoanPermissionRequestItem, MyLoanItem } from '../../api/types'
 
@@ -69,7 +74,7 @@ export function EmployeeDashboard() {
         { key: 'loanHistory', icon: <HistoryOutlined />, label: 'سابقه وام' },
       ],
     },
-    { key: 'profile', icon: <UserOutlined />, label: 'اطلاعات کاربری' },
+    { key: 'profile', icon: <UserOutlined />, label: 'پروفایل' },
   ]
 
   return (
@@ -82,7 +87,7 @@ export function EmployeeDashboard() {
       {section === 'loans' && <LoansSection />}
       {section === 'permission' && <PermissionSection />}
       {section === 'loanHistory' && <LoanHistorySection />}
-      {section === 'profile' && <ProfileSection />}
+      {section === 'profile' && <ProfileSection onClose={() => setSection('welcome')} />}
     </DashboardLayout>
   )
 }
@@ -298,17 +303,16 @@ function LoanHistorySection() {
   )
 }
 
-function ProfileSection() {
-  const { user, refreshUser } = useAuth()
+function ProfileSection({ onClose }: { onClose: () => void }) {
+  const { user, refreshUser, logout } = useAuth()
   const { message } = App.useApp()
   const [form] = Form.useForm()
   const [saving, setSaving] = useState(false)
-  const [uploading, setUploading] = useState(false)
+  const [photoOpen, setPhotoOpen] = useState(false)
 
   if (!user) return null
 
   async function handleUpload(file: File) {
-    setUploading(true)
     try {
       await uploadProfilePicture(file)
       await refreshUser()
@@ -316,8 +320,16 @@ function ProfileSection() {
     } catch (err: unknown) {
       const e = err as { response?: { data?: { message?: string } } }
       message.error(e.response?.data?.message ?? 'خطا در آپلود عکس.')
-    } finally {
-      setUploading(false)
+    }
+  }
+
+  async function handleDeletePhoto() {
+    try {
+      await deleteProfilePicture()
+      await refreshUser()
+      message.success('عکس پروفایل حذف شد.')
+    } catch {
+      message.error('خطا در حذف عکس.')
     }
   }
 
@@ -347,44 +359,86 @@ function ProfileSection() {
   }
 
   return (
-    <Card title="اطلاعات کاربری و ویرایش">
-      <div style={{ textAlign: 'center', marginBottom: 24 }}>
-        <Upload
-          showUploadList={false}
-          accept="image/png,image/jpeg,image/webp"
-          beforeUpload={(file) => {
-            handleUpload(file)
-            return false
-          }}
-        >
-            <div style={{ cursor: 'pointer', display: 'inline-block', position: 'relative' }}>
-              <Avatar
-                size={110}
-                src={user.profilePictureUrl || undefined}
-                icon={<UserOutlined />}
-              />
-              <div
-                style={{
-                  position: 'absolute',
-                  insetInlineEnd: 4,
-                  bottom: 4,
-                  background: '#3d3f8c',
-                  color: '#fff',
-                  borderRadius: '50%',
-                  width: 32,
-                  height: 32,
-                  display: 'grid',
-                  placeItems: 'center',
-                }}
-              >
-                <CameraOutlined />
-              </div>
-            </div>
-          </Upload>
-          {uploading && (
-            <div style={{ marginTop: 10, color: '#888', fontSize: 12 }}>در حال آپلود...</div>
-          )}
+    <Card>
+      {/* هدر پروفایل + فلش بستن */}
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          borderBottom: '1px solid #f0f0f0',
+          paddingBottom: 12,
+          marginBottom: 20,
+        }}
+      >
+        <Typography.Title level={4} style={{ margin: 0 }}>
+          پروفایل
+        </Typography.Title>
+        <Button type="text" icon={<ArrowRightOutlined />} onClick={onClose} />
       </div>
+
+      {/* عکس + نام + شماره پرسنلی */}
+      <div style={{ textAlign: 'center', marginBottom: 24 }}>
+        <div
+          onClick={() => setPhotoOpen(true)}
+          style={{ cursor: 'pointer', display: 'inline-block' }}
+        >
+          <Avatar size={110} src={user.profilePictureUrl || undefined} icon={<UserOutlined />} />
+        </div>
+        <div style={{ marginTop: 12, fontWeight: 700, fontSize: 18 }}>
+          {user.firstName} {user.lastName}
+        </div>
+        <div style={{ color: '#888', direction: 'ltr' }}>#{user.personnelNumber}</div>
+      </div>
+
+      {/* مودال عکس: آپلود و حذف بالای صفحه */}
+      <Modal
+        open={photoOpen}
+        onCancel={() => setPhotoOpen(false)}
+        footer={null}
+        title={
+          <div style={{ display: 'flex', gap: 8 }}>
+            <Upload
+              showUploadList={false}
+              accept="image/png,image/jpeg,image/webp"
+              beforeUpload={(file) => {
+                handleUpload(file)
+                setPhotoOpen(false)
+                return false
+              }}
+            >
+              <Button icon={<UploadOutlined />}>آپلود</Button>
+            </Upload>
+            <Popconfirm
+              title="حذف عکس پروفایل"
+              description="آیا از حذف عکس پروفایل مطمئن هستی؟"
+              okText="بله، حذف کن"
+              cancelText="انصراف"
+              okButtonProps={{ danger: true }}
+              onConfirm={() => {
+                handleDeletePhoto()
+                setPhotoOpen(false)
+              }}
+            >
+              <Button danger icon={<DeleteOutlined />}>
+                حذف
+              </Button>
+            </Popconfirm>
+          </div>
+        }
+      >
+        <div style={{ textAlign: 'center', padding: '12px 0' }}>
+          {user.profilePictureUrl ? (
+            <img
+              src={user.profilePictureUrl}
+              alt="profile"
+              style={{ maxWidth: '100%', maxHeight: 360, borderRadius: 8 }}
+            />
+          ) : (
+            <Avatar size={200} icon={<UserOutlined />} />
+          )}
+        </div>
+      </Modal>
 
       <Form
             form={form}
@@ -400,16 +454,6 @@ function ProfileSection() {
             }}
           >
             <Row gutter={12}>
-              <Col xs={24} sm={12} lg={6}>
-                <Form.Item label="نام و نام خانوادگی">
-                  <Input value={`${user.firstName} ${user.lastName}`} disabled />
-                </Form.Item>
-              </Col>
-              <Col xs={24} sm={12} lg={6}>
-                <Form.Item label="شماره پرسنلی">
-                  <Input value={user.personnelNumber} disabled />
-                </Form.Item>
-              </Col>
               <Col xs={24} sm={12} lg={6}>
                 <Form.Item label="نام کاربری">
                   <Input value={user.username} disabled />
@@ -498,6 +542,18 @@ function ProfileSection() {
               ذخیره تغییرات
             </Button>
       </Form>
+
+      <div style={{ borderTop: '1px solid #f0f0f0', marginTop: 20, paddingTop: 12 }}>
+        <Button
+          type="text"
+          danger
+          icon={<LogoutOutlined />}
+          onClick={logout}
+          style={{ paddingInline: 0 }}
+        >
+          خروج
+        </Button>
+      </div>
     </Card>
   )
 }
