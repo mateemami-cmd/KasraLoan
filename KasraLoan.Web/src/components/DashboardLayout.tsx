@@ -14,6 +14,8 @@ interface Props {
   children: ReactNode
   defaultOpenKeys?: string[]
   hideLogout?: boolean
+  /** نوار کناری باریک (سبک نکسوس): آیکون بالا، متن پایین. */
+  rail?: boolean
 }
 
 export function DashboardLayout({
@@ -23,36 +25,77 @@ export function DashboardLayout({
   children,
   defaultOpenKeys,
   hideLogout,
+  rail,
 }: Props) {
   const { user, logout } = useAuth()
 
   return (
     <Layout style={{ minHeight: '100vh' }}>
-      <Sider theme="light" width={456} breakpoint="lg" collapsedWidth={0}>
+      <Sider
+        theme="light"
+        width={rail ? 84 : 456}
+        breakpoint="lg"
+        collapsedWidth={0}
+        className={rail ? 'app-sider' : undefined}
+      >
         <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
           <div className="brand">
-            <Typography.Text strong style={{ fontSize: 20 }}>
+            <Typography.Text strong style={{ fontSize: rail ? 15 : 20 }}>
               کسرا
             </Typography.Text>
           </div>
+
           <Menu
-            mode="inline"
+            mode={rail ? 'vertical' : 'inline'}
             selectedKeys={[selectedKey]}
             defaultOpenKeys={defaultOpenKeys}
-            items={[
-              { key: '__dashboard_label', type: 'group', label: 'Dashboard' },
-              ...(menuItems ?? []),
-            ]}
+            items={
+              rail
+                ? menuItems
+                : [
+                    { key: '__dashboard_label', type: 'group', label: 'Dashboard' },
+                    ...(menuItems ?? []),
+                  ]
+            }
             onClick={(e) => onSelect(e.key)}
             style={{ flex: 1, borderInlineEnd: 'none' }}
           />
-          {!hideLogout && (
-            <div style={{ padding: 12, borderTop: '1px solid #f0f0f0' }}>
-              <Button icon={<LogoutOutlined />} onClick={logout} danger block>
-                خروج
-              </Button>
-            </div>
-          )}
+
+          {!hideLogout &&
+            (rail ? (
+              <div
+                style={{
+                  padding: '10px 4px',
+                  borderTop: '1px solid #f0f0f0',
+                  textAlign: 'center',
+                }}
+              >
+                <Button
+                  type="text"
+                  danger
+                  onClick={logout}
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 2,
+                    height: 'auto',
+                    width: '100%',
+                    fontSize: 12,
+                  }}
+                >
+                  <LogoutOutlined style={{ fontSize: 18 }} />
+                  خروج
+                </Button>
+              </div>
+            ) : (
+              <div style={{ padding: 12, borderTop: '1px solid #f0f0f0' }}>
+                <Button icon={<LogoutOutlined />} onClick={logout} danger block>
+                  خروج
+                </Button>
+              </div>
+            ))}
         </div>
       </Sider>
 

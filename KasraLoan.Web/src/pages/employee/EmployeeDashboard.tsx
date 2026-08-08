@@ -17,12 +17,11 @@ import {
   Popconfirm,
   Modal,
   Typography,
+  Segmented,
 } from 'antd'
 import {
   BankOutlined,
-  FileProtectOutlined,
   UserOutlined,
-  HistoryOutlined,
   PlusOutlined,
   DeleteOutlined,
   ArrowRightOutlined,
@@ -60,34 +59,47 @@ const loanStatusMap: Record<string, { color: string; label: string }> = {
   Closed: { color: 'default', label: 'بسته شده' },
 }
 
+const LOAN_SECTIONS = ['loans', 'permission', 'loanHistory']
+
 export function EmployeeDashboard() {
   const [section, setSection] = useState('welcome')
 
   const menuItems = [
-    {
-      key: 'loanGroup',
-      icon: <BankOutlined />,
-      label: 'وام',
-      children: [
-        { key: 'loans', icon: <BankOutlined />, label: 'درخواست وام' },
-        { key: 'permission', icon: <FileProtectOutlined />, label: 'درخواست مجوز وام' },
-        { key: 'loanHistory', icon: <HistoryOutlined />, label: 'سابقه وام' },
-      ],
-    },
+    { key: 'loans', icon: <BankOutlined />, label: 'وام' },
     { key: 'profile', icon: <UserOutlined />, label: 'پروفایل' },
   ]
+
+  // آیتم «وام» در نوار کناری وقتی هر کدام از زیربخش‌های وام باز است، انتخاب‌شده می‌ماند.
+  const selectedKey = LOAN_SECTIONS.includes(section) ? 'loans' : section
 
   return (
     <DashboardLayout
       menuItems={menuItems}
-      selectedKey={section}
+      selectedKey={selectedKey}
       onSelect={setSection}
       hideLogout
+      rail
     >
       {section === 'welcome' && <WelcomeSection />}
-      {section === 'loans' && <LoansSection />}
-      {section === 'permission' && <PermissionSection />}
-      {section === 'loanHistory' && <LoanHistorySection />}
+
+      {LOAN_SECTIONS.includes(section) && (
+        <div>
+          <Segmented
+            value={section}
+            onChange={(v) => setSection(v as string)}
+            options={[
+              { label: 'درخواست وام', value: 'loans' },
+              { label: 'درخواست مجوز وام', value: 'permission' },
+              { label: 'سابقه وام', value: 'loanHistory' },
+            ]}
+            style={{ marginBottom: 16 }}
+          />
+          {section === 'loans' && <LoansSection />}
+          {section === 'permission' && <PermissionSection />}
+          {section === 'loanHistory' && <LoanHistorySection />}
+        </div>
+      )}
+
       {section === 'profile' && <ProfileSection onClose={() => setSection('welcome')} />}
     </DashboardLayout>
   )
