@@ -13,6 +13,7 @@ interface Props {
   onSelect: (key: string) => void
   children: ReactNode
   defaultOpenKeys?: string[]
+  hideLogout?: boolean
 }
 
 export function DashboardLayout({
@@ -21,6 +22,7 @@ export function DashboardLayout({
   onSelect,
   children,
   defaultOpenKeys,
+  hideLogout,
 }: Props) {
   const { user, logout } = useAuth()
 
@@ -44,11 +46,13 @@ export function DashboardLayout({
             onClick={(e) => onSelect(e.key)}
             style={{ flex: 1, borderInlineEnd: 'none' }}
           />
-          <div style={{ padding: 12, borderTop: '1px solid #f0f0f0' }}>
-            <Button icon={<LogoutOutlined />} onClick={logout} danger block>
-              خروج
-            </Button>
-          </div>
+          {!hideLogout && (
+            <div style={{ padding: 12, borderTop: '1px solid #f0f0f0' }}>
+              <Button icon={<LogoutOutlined />} onClick={logout} danger block>
+                خروج
+              </Button>
+            </div>
+          )}
         </div>
       </Sider>
 

@@ -82,6 +82,7 @@ export function EmployeeDashboard() {
       menuItems={menuItems}
       selectedKey={section}
       onSelect={setSection}
+      hideLogout
     >
       {section === 'welcome' && <WelcomeSection />}
       {section === 'loans' && <LoansSection />}
