@@ -4,7 +4,7 @@ import { LogoutOutlined, UserOutlined } from '@ant-design/icons'
 import type { MenuProps } from 'antd'
 import { useAuth } from '../auth/AuthContext'
 
-const { Header, Sider, Content } = Layout
+const { Sider, Content } = Layout
 
 interface Props {
   menuItems: MenuProps['items']
@@ -41,8 +41,6 @@ export function DashboardLayout({
         className={rail ? 'app-sider' : undefined}
       >
         <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-          <div className="brand" />
-
           <Menu
             mode={rail ? 'vertical' : 'inline'}
             selectedKeys={[selectedKey]}
@@ -119,10 +117,6 @@ export function DashboardLayout({
       </Sider>
 
       <Layout>
-        <Header className="app-header">
-          <span />
-        </Header>
-
         <Content className="app-content">{children}</Content>
       </Layout>
     </Layout>
