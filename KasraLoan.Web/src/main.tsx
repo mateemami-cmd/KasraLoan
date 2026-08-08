@@ -15,10 +15,11 @@ createRoot(document.getElementById('root')!).render(
       theme={{
         algorithm: theme.darkAlgorithm,
         token: {
-          colorPrimary: '#6c5ce7',
-          colorBgLayout: '#161a38',
-          colorBgContainer: '#20244c',
-          colorBgElevated: '#262a54',
+          colorPrimary: '#2f80ff',
+          colorInfo: '#2f80ff',
+          colorBgLayout: '#0f1a33',
+          colorBgContainer: '#182640',
+          colorBgElevated: '#1e2c4a',
           fontFamily: 'Vazirmatn, Tahoma, sans-serif',
           borderRadius: 10,
         },
