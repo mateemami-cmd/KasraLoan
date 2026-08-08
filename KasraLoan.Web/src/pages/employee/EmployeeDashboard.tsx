@@ -64,10 +64,7 @@ const LOAN_SECTIONS = ['loans', 'permission', 'loanHistory']
 export function EmployeeDashboard() {
   const [section, setSection] = useState('welcome')
 
-  const menuItems = [
-    { key: 'loans', icon: <BankOutlined />, label: 'وام' },
-    { key: 'profile', icon: <UserOutlined />, label: 'پروفایل' },
-  ]
+  const menuItems = [{ key: 'loans', icon: <BankOutlined />, label: 'وام' }]
 
   // آیتم «وام» در نوار کناری وقتی هر کدام از زیربخش‌های وام باز است، انتخاب‌شده می‌ماند.
   const selectedKey = LOAN_SECTIONS.includes(section) ? 'loans' : section
@@ -79,6 +76,7 @@ export function EmployeeDashboard() {
       onSelect={setSection}
       hideLogout
       rail
+      onAvatarClick={() => setSection('profile')}
     >
       {section === 'welcome' && <WelcomeSection />}
 

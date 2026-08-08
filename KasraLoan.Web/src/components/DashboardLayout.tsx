@@ -16,6 +16,8 @@ interface Props {
   hideLogout?: boolean
   /** نوار کناری باریک (سبک نکسوس): آیکون بالا، متن پایین. */
   rail?: boolean
+  /** اگر داده شود، عکس کاربر پایینِ نوارِ باریک نمایش داده می‌شود و با کلیک این تابع صدا زده می‌شود. */
+  onAvatarClick?: () => void
 }
 
 export function DashboardLayout({
@@ -26,6 +28,7 @@ export function DashboardLayout({
   defaultOpenKeys,
   hideLogout,
   rail,
+  onAvatarClick,
 }: Props) {
   const { user, logout } = useAuth()
 
@@ -60,6 +63,28 @@ export function DashboardLayout({
             onClick={(e) => onSelect(e.key)}
             style={{ flex: 1, borderInlineEnd: 'none' }}
           />
+
+          {rail && onAvatarClick && (
+            <div
+              style={{
+                padding: '12px 0',
+                borderTop: '1px solid #f0f0f0',
+                textAlign: 'center',
+              }}
+            >
+              <div
+                onClick={onAvatarClick}
+                title="پروفایل"
+                style={{ cursor: 'pointer', display: 'inline-block' }}
+              >
+                <Avatar
+                  size={44}
+                  src={user?.profilePictureUrl || undefined}
+                  icon={<UserOutlined />}
+                />
+              </div>
+            </div>
+          )}
 
           {!hideLogout &&
             (rail ? (
