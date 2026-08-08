@@ -113,7 +113,7 @@ function WelcomeSection() {
         <h2 style={{ margin: '0 0 8px' }}>
           کاربر {user?.firstName} {user?.lastName}، خوش آمدید
         </h2>
-        <p style={{ color: '#888', margin: 0 }}>
+        <p style={{ color: 'var(--text-muted)', margin: 0 }}>
           به سامانه‌ی صندوق همیار کسرا خوش آمدید. برای شروع، از منوی سمت راست بخش موردنظر را انتخاب کنید.
         </p>
       </Card>
@@ -377,7 +377,7 @@ function ProfileSection({ onClose }: { onClose: () => void }) {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          borderBottom: '1px solid #f0f0f0',
+          borderBottom: '1px solid var(--border-soft)',
           paddingBottom: 12,
           marginBottom: 20,
         }}
@@ -399,7 +399,7 @@ function ProfileSection({ onClose }: { onClose: () => void }) {
         <div style={{ marginTop: 12, fontWeight: 700, fontSize: 18 }}>
           {user.firstName} {user.lastName}
         </div>
-        <div style={{ color: '#888', direction: 'ltr' }}>#{user.personnelNumber}</div>
+        <div style={{ color: 'var(--text-muted)', direction: 'ltr' }}>#{user.personnelNumber}</div>
       </div>
 
       {/* مودال عکس: آپلود و حذف بالای صفحه */}
@@ -515,7 +515,7 @@ function ProfileSection({ onClose }: { onClose: () => void }) {
             <Form.List name="additionalPhoneNumbers">
               {(fields, { add, remove }) => (
                 <div style={{ marginBottom: 8, maxWidth: 340 }}>
-                  <div style={{ marginBottom: 8, color: '#555' }}>شماره‌های تماس اضافه (اختیاری)</div>
+                  <div style={{ marginBottom: 8, color: 'var(--text-muted)' }}>شماره‌های تماس اضافه (اختیاری)</div>
                   {fields.map(({ key, ...field }) => (
                     <div key={key} style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
                       <Form.Item
@@ -554,7 +554,7 @@ function ProfileSection({ onClose }: { onClose: () => void }) {
             </Button>
       </Form>
 
-      <div style={{ borderTop: '1px solid #f0f0f0', marginTop: 20, paddingTop: 12 }}>
+      <div style={{ borderTop: '1px solid var(--border-soft)', marginTop: 20, paddingTop: 12 }}>
         <Button
           type="text"
           danger

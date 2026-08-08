@@ -35,7 +35,7 @@ export function DashboardLayout({
   return (
     <Layout style={{ minHeight: '100vh' }}>
       <Sider
-        theme="light"
+        theme="dark"
         width={rail ? 84 : 456}
         breakpoint="lg"
         collapsedWidth={0}
@@ -68,7 +68,7 @@ export function DashboardLayout({
             <div
               style={{
                 padding: '12px 0',
-                borderTop: '1px solid #f0f0f0',
+                borderTop: '1px solid var(--border-soft)',
                 textAlign: 'center',
               }}
             >
@@ -91,7 +91,7 @@ export function DashboardLayout({
               <div
                 style={{
                   padding: '10px 4px',
-                  borderTop: '1px solid #f0f0f0',
+                  borderTop: '1px solid var(--border-soft)',
                   textAlign: 'center',
                 }}
               >
@@ -115,7 +115,7 @@ export function DashboardLayout({
                 </Button>
               </div>
             ) : (
-              <div style={{ padding: 12, borderTop: '1px solid #f0f0f0' }}>
+              <div style={{ padding: 12, borderTop: '1px solid var(--border-soft)' }}>
                 <Button icon={<LogoutOutlined />} onClick={logout} danger block>
                   خروج
                 </Button>
