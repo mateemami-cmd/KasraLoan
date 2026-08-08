@@ -1,5 +1,5 @@
 import { type ReactNode } from 'react'
-import { Layout, Menu, Typography, Button, Avatar } from 'antd'
+import { Layout, Menu, Button, Avatar } from 'antd'
 import { LogoutOutlined, UserOutlined } from '@ant-design/icons'
 import type { MenuProps } from 'antd'
 import { useAuth } from '../auth/AuthContext'
@@ -42,11 +42,7 @@ export function DashboardLayout({
         className={rail ? 'app-sider' : undefined}
       >
         <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-          <div className="brand">
-            <Typography.Text strong style={{ fontSize: rail ? 15 : 20 }}>
-              کسرا
-            </Typography.Text>
-          </div>
+          <div className="brand" />
 
           <Menu
             mode={rail ? 'vertical' : 'inline'}
