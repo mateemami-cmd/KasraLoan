@@ -140,12 +140,28 @@ export function EmployeeDashboard() {
       {section === 'notifications' && <NotificationsSection />}
 
       <Drawer
-        title="پروفایل"
         placement="right"
         width={400}
         open={profileOpen}
         onClose={() => setProfileOpen(false)}
-        closeIcon={<ArrowRightOutlined />}
+        closable={false}
+        title={
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              width: '100%',
+            }}
+          >
+            <span>پروفایل</span>
+            <Button
+              type="text"
+              icon={<ArrowRightOutlined />}
+              onClick={() => setProfileOpen(false)}
+            />
+          </div>
+        }
         styles={{ body: { display: 'flex', flexDirection: 'column' } }}
       >
         <ProfileSection />
@@ -531,12 +547,14 @@ function ProfileSection() {
             }}
           >
             <Row gutter={12}>
-              <Col xs={24} sm={12} lg={6}>
+              <Col xs={24} sm={12} lg={24}>
                 <Form.Item label="نام کاربری">
                   <Input value={user.username} disabled />
                 </Form.Item>
               </Col>
-              <Col xs={24} sm={12} lg={6}>
+            </Row>
+              <Row>
+                <Col xs={24} sm={12} lg={12}>
                 <Form.Item
                   label="رمز عبور"
                   name="newPassword"
@@ -552,15 +570,15 @@ function ProfileSection() {
                   <Input.Password placeholder="رمز عبور" />
                 </Form.Item>
               </Col>
-            </Row>
+              </Row>
 
             <Row gutter={12}>
-              <Col xs={24} sm={12} lg={6}>
+              <Col xs={24} sm={12} lg={12}>
                 <Form.Item label="امتیاز">
                   <Input value={String(user.score)} disabled />
                 </Form.Item>
               </Col>
-              <Col xs={24} sm={12} lg={6}>
+              <Col xs={24} sm={12} lg={12}>
                 <Form.Item
                   label="ایمیل"
                   name="email"
@@ -619,8 +637,6 @@ function ProfileSection() {
               ذخیره تغییرات
             </Button>
       </Form>
-
-      <div style={{ marginTop: 'auto', paddingTop: 24, paddingBottom: 24 }}>
         <Button
           type="text"
           danger
@@ -630,7 +646,7 @@ function ProfileSection() {
         >
           خروج
         </Button>
-      </div>
+
     </>
   )
 }
