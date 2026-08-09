@@ -16,10 +16,10 @@ import {
   Upload,
   Popconfirm,
   Modal,
-  Typography,
   Segmented,
   Badge,
   List,
+  Drawer,
 } from 'antd'
 import {
   BankOutlined,
@@ -75,6 +75,7 @@ const LOAN_SECTIONS = ['loans', 'permission', 'loanHistory']
 export function EmployeeDashboard() {
   const [section, setSection] = useState('welcome')
   const [unread, setUnread] = useState(0)
+  const [profileOpen, setProfileOpen] = useState(false)
 
   useEffect(() => {
     getUnreadCount().then(setUnread).catch(() => {})
@@ -114,7 +115,7 @@ export function EmployeeDashboard() {
       onSelect={handleSelect}
       hideLogout
       rail
-      onAvatarClick={() => setSection('profile')}
+      onAvatarClick={() => setProfileOpen(true)}
     >
       {section === 'welcome' && <WelcomeSection />}
 
@@ -138,7 +139,16 @@ export function EmployeeDashboard() {
 
       {section === 'notifications' && <NotificationsSection />}
 
-      {section === 'profile' && <ProfileSection onClose={() => setSection('welcome')} />}
+      <Drawer
+        title="پروفایل"
+        placement="right"
+        width={400}
+        open={profileOpen}
+        onClose={() => setProfileOpen(false)}
+        closeIcon={<ArrowRightOutlined />}
+      >
+        <ProfileSection />
+      </Drawer>
     </DashboardLayout>
   )
 }
@@ -386,7 +396,7 @@ function LoanHistorySection() {
   )
 }
 
-function ProfileSection({ onClose }: { onClose: () => void }) {
+function ProfileSection() {
   const { user, refreshUser, logout } = useAuth()
   const { message } = App.useApp()
   const [form] = Form.useForm()
@@ -442,24 +452,7 @@ function ProfileSection({ onClose }: { onClose: () => void }) {
   }
 
   return (
-    <Card>
-      {/* هدر پروفایل + فلش بستن */}
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          borderBottom: '1px solid var(--border-soft)',
-          paddingBottom: 12,
-          marginBottom: 20,
-        }}
-      >
-        <Typography.Title level={4} style={{ margin: 0 }}>
-          پروفایل
-        </Typography.Title>
-        <Button type="text" icon={<ArrowRightOutlined />} onClick={onClose} />
-      </div>
-
+    <>
       {/* عکس + نام + شماره پرسنلی */}
       <div style={{ textAlign: 'center', marginBottom: 24 }}>
         <div
@@ -637,6 +630,6 @@ function ProfileSection({ onClose }: { onClose: () => void }) {
           خروج
         </Button>
       </div>
-    </Card>
+    </>
   )
 }
