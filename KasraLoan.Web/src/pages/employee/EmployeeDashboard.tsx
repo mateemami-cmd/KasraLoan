@@ -146,6 +146,7 @@ export function EmployeeDashboard() {
         open={profileOpen}
         onClose={() => setProfileOpen(false)}
         closeIcon={<ArrowRightOutlined />}
+        styles={{ body: { display: 'flex', flexDirection: 'column' } }}
       >
         <ProfileSection />
       </Drawer>
@@ -619,7 +620,7 @@ function ProfileSection() {
             </Button>
       </Form>
 
-      <div style={{ borderTop: '1px solid var(--border-soft)', marginTop: 20, paddingTop: 12 }}>
+      <div style={{ marginTop: 'auto', paddingTop: 24, paddingBottom: 24 }}>
         <Button
           type="text"
           danger
