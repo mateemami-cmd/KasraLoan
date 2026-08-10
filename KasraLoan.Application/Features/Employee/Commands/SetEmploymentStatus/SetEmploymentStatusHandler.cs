@@ -1,5 +1,6 @@
 using KasraLoan.Application.Common.Exceptions;
 using KasraLoan.Application.DTOs.Employee;
+using KasraLoan.Application.DTOs.Loans;
 using KasraLoan.Application.Interfaces.Repositories;
 using KasraLoan.Application.Interfaces.Services;
 using KasraLoan.Application.Services.Auth;
@@ -20,6 +21,7 @@ namespace KasraLoan.Application.Features.Employee.Commands.SetEmploymentStatus
         private readonly IEmploymentStatusChangeRepository _statusChangeRepository;
         private readonly ILoanRequestRepository _loanRequestRepository;
         private readonly IPayrollCalendarService _payrollCalendar;
+        private readonly ILoanSettlementService _loanSettlementService;
         private readonly IAuditLogService _auditLogService;
         private readonly INotificationService _notificationService;
         private readonly ICurrentUserService _currentUserService;
@@ -29,6 +31,7 @@ namespace KasraLoan.Application.Features.Employee.Commands.SetEmploymentStatus
             IEmploymentStatusChangeRepository statusChangeRepository,
             ILoanRequestRepository loanRequestRepository,
             IPayrollCalendarService payrollCalendar,
+            ILoanSettlementService loanSettlementService,
             IAuditLogService auditLogService,
             INotificationService notificationService,
             ICurrentUserService currentUserService)
@@ -37,6 +40,7 @@ namespace KasraLoan.Application.Features.Employee.Commands.SetEmploymentStatus
             _statusChangeRepository = statusChangeRepository;
             _loanRequestRepository = loanRequestRepository;
             _payrollCalendar = payrollCalendar;
+            _loanSettlementService = loanSettlementService;
             _auditLogService = auditLogService;
             _notificationService = notificationService;
             _currentUserService = currentUserService;
@@ -85,6 +89,18 @@ namespace KasraLoan.Application.Features.Employee.Commands.SetEmploymentStatus
             employee.TerminationDate =
                 newStatus == EmploymentStatus.Terminated ? now : null;
 
+            // با پایان همکاری، حقوقی نمی‌ماند که قسط از آن کسر شود؛ پس کل مانده
+            // یکجا مطالبه می‌شود (با مهلت، چون در عمل از تسویه‌حساب پایان کار
+            // برداشت می‌شود). اقساط پاک نمی‌شوند تا سابقه‌شان بماند.
+            LoanSettlementDemandDto? settlement = null;
+
+            if (newStatus == EmploymentStatus.Terminated)
+            {
+                settlement = await _loanSettlementService.DemandSettlementForEmployeeAsync(
+                    employee.Id,
+                    $"پایان همکاری — {request.Request.Reason.Trim()}");
+            }
+
             await _statusChangeRepository.AddAsync(new EmploymentStatusChange
             {
                 Id = Guid.NewGuid(),
@@ -104,9 +120,11 @@ namespace KasraLoan.Application.Features.Employee.Commands.SetEmploymentStatus
                 null,
                 "SetEmploymentStatus",
                 $"{currentStatus} -> {newStatus}. Reason: {request.Request.Reason.Trim()}" +
-                (hasOutstandingLoan ? " (has outstanding loan)" : string.Empty));
+                (settlement != null
+                    ? $" | Settlement demanded: {settlement.TotalOutstandingAmount} due {settlement.SettlementDueDate:yyyy-MM-dd}"
+                    : string.Empty));
 
-            var message = BuildMessage(newStatus, hasOutstandingLoan);
+            var message = BuildMessage(newStatus, settlement);
 
             await _notificationService.SendAsync(
                 employee.Id,
@@ -120,21 +138,26 @@ namespace KasraLoan.Application.Features.Employee.Commands.SetEmploymentStatus
                 TerminationDate = employee.TerminationDate,
                 ChangedAtPersian = _payrollCalendar.ToPersianDateString(now),
                 HasOutstandingLoan = hasOutstandingLoan,
+                Settlement = settlement,
                 Message = message
             };
         }
 
-        private static string BuildMessage(EmploymentStatus newStatus, bool hasOutstandingLoan)
+        private static string BuildMessage(
+            EmploymentStatus newStatus,
+            LoanSettlementDemandDto? settlement)
         {
             if (newStatus == EmploymentStatus.Active)
                 return "وضعیت اشتغال شما به «مشغول به کار» تغییر کرد.";
 
-            // کارمندِ رفته حسابش بسته نمی‌شود؛ باید بتواند بدهی‌اش را ببیند و بپردازد.
-            return hasOutstandingLoan
-                ? "وضعیت اشتغال شما به «پایان همکاری» تغییر کرد. " +
-                  "وام تسویه‌نشده‌ی شما همچنان پابرجاست و اقساط آن باید پرداخت شود؛ " +
-                  "دسترسی شما به سامانه برای مشاهده و پرداخت اقساط باز می‌ماند."
-                : "وضعیت اشتغال شما به «پایان همکاری» تغییر کرد.";
+            if (settlement == null)
+                return "وضعیت اشتغال شما به «پایان همکاری» تغییر کرد.";
+
+            // کارمندِ رفته حسابش بسته نمی‌شود؛ باید بتواند مانده‌اش را ببیند و بپردازد.
+            return "وضعیت اشتغال شما به «پایان همکاری» تغییر کرد. " +
+                   $"مانده‌ی وام شما {settlement.TotalOutstandingAmount:N0} تومان است و " +
+                   $"به‌صورت یکجا تا تاریخ {settlement.SettlementDueDatePersian} قابل پرداخت است. " +
+                   "دسترسی شما به سامانه برای مشاهده و تسویه باز می‌ماند.";
         }
     }
 }

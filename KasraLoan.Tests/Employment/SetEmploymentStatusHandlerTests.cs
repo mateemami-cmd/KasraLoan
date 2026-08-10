@@ -1,6 +1,7 @@
 using FluentAssertions;
 using KasraLoan.Application.Common.Exceptions;
 using KasraLoan.Application.DTOs.Employee;
+using KasraLoan.Application.DTOs.Loans;
 using KasraLoan.Application.Features.Employee.Commands.SetEmploymentStatus;
 using KasraLoan.Application.Interfaces.Repositories;
 using KasraLoan.Application.Interfaces.Services;
@@ -21,6 +22,7 @@ public class SetEmploymentStatusHandlerTests
     private readonly Mock<IEmploymentStatusChangeRepository> _statusChangeRepository = new();
     private readonly Mock<ILoanRequestRepository> _loanRequestRepository = new();
     private readonly Mock<IPayrollCalendarService> _payrollCalendar = new();
+    private readonly Mock<ILoanSettlementService> _loanSettlementService = new();
     private readonly Mock<IAuditLogService> _auditLogService = new();
     private readonly Mock<INotificationService> _notificationService = new();
     private readonly Mock<ICurrentUserService> _currentUserService = new();
@@ -43,6 +45,7 @@ public class SetEmploymentStatusHandlerTests
             _statusChangeRepository.Object,
             _loanRequestRepository.Object,
             _payrollCalendar.Object,
+            _loanSettlementService.Object,
             _auditLogService.Object,
             _notificationService.Object,
             _currentUserService.Object);
@@ -132,17 +135,57 @@ public class SetEmploymentStatusHandlerTests
     }
 
     [Fact]
-    public async Task Outstanding_Loan_Is_Reported_And_Does_Not_Block_Termination()
+    public async Task Termination_Demands_Full_Settlement_Of_Outstanding_Loan()
     {
         GivenEmployee();
         _payrollCalendar.Setup(x => x.IsWithinEmploymentChangeWindow(It.IsAny<DateTime>()))
             .Returns(true);
         _loanRequestRepository.Setup(x => x.HasActiveLoanAsync(_employeeId)).ReturnsAsync(true);
 
+        _loanSettlementService
+            .Setup(x => x.DemandSettlementForEmployeeAsync(_employeeId, It.IsAny<string>()))
+            .ReturnsAsync(new LoanSettlementDemandDto
+            {
+                TotalOutstandingAmount = 80_000_000,
+                RemainingInstallments = 8,
+                SettlementDueDate = DateTime.UtcNow.AddDays(30),
+                SettlementDueDatePersian = "1405/06/18"
+            });
+
         var result = await _handler.Handle(Command("Terminated"), CancellationToken.None);
 
-        result.HasOutstandingLoan.Should().BeTrue();
-        result.Message.Should().Contain("اقساط");
+        result.Settlement.Should().NotBeNull();
+        result.Settlement!.TotalOutstandingAmount.Should().Be(80_000_000);
+        result.Message.Should().Contain("80,000,000");
+        result.Message.Should().Contain("1405/06/18");
+    }
+
+    [Fact]
+    public async Task Termination_Without_An_Open_Loan_Demands_Nothing()
+    {
+        GivenEmployee();
+        _payrollCalendar.Setup(x => x.IsWithinEmploymentChangeWindow(It.IsAny<DateTime>()))
+            .Returns(true);
+        _loanSettlementService
+            .Setup(x => x.DemandSettlementForEmployeeAsync(_employeeId, It.IsAny<string>()))
+            .ReturnsAsync((LoanSettlementDemandDto?)null);
+
+        var result = await _handler.Handle(Command("Terminated"), CancellationToken.None);
+
+        result.Settlement.Should().BeNull();
+        result.Message.Should().NotContain("مانده");
+    }
+
+    [Fact]
+    public async Task Reactivation_Never_Demands_Settlement()
+    {
+        GivenEmployee(EmploymentStatus.Terminated);
+
+        await _handler.Handle(Command("Active", "بازگشت به کار"), CancellationToken.None);
+
+        _loanSettlementService.Verify(
+            x => x.DemandSettlementForEmployeeAsync(It.IsAny<Guid>(), It.IsAny<string>()),
+            Times.Never);
     }
 
     [Fact]

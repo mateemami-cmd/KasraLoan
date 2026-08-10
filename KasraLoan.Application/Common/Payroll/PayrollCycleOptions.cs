@@ -36,5 +36,12 @@ namespace KasraLoan.Application.Common.Payroll
         /// پنجره دور ماه می‌پیچد: از EmploymentChangeOpenDay تا این روز از ماه بعد.
         /// </summary>
         public int EmploymentChangeCloseDay { get; set; } = 1;
+
+        /// <summary>
+        /// مهلت تسویه‌ی کل مانده‌ی وام بعد از پایان همکاری (روز).
+        /// مطالبه‌ی «همین امروز کل بدهی را بده» غیرواقعی است؛ در عمل مانده از
+        /// تسویه‌حسابِ پایان کار برداشت می‌شود و آن هم چند هفته طول می‌کشد.
+        /// </summary>
+        public int SettlementGraceDays { get; set; } = 30;
     }
 }

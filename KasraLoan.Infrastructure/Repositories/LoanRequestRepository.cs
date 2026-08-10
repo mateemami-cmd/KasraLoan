@@ -42,6 +42,16 @@ namespace KasraLoan.Infrastructure.Repositories
                 .ToListAsync();
         }
 
+        public async Task<List<LoanRequest>> GetOpenLoansWithInstallmentsAsync(Guid employeeId)
+        {
+            return await _context.LoanRequests
+                .Include(x => x.LoanInstallments)
+                .Where(x =>
+                    x.EmployeeId == employeeId &&
+                    (x.Status == LoanStatus.Approved || x.Status == LoanStatus.Active))
+                .ToListAsync();
+        }
+
         public async Task<LoanRequest?> GetPendingLoanByEmployeeIdAsync(Guid employeeId)
         {
             return await _context.LoanRequests

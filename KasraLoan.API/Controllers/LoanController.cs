@@ -6,6 +6,7 @@ using KasraLoan.Application.Features.Loan.Commands.UploadLoanDocument;
 using KasraLoan.Application.Features.Loan.Queries.GetAdminDashboard;
 using KasraLoan.Application.Features.Loan.Queries.GetLoanById;
 using KasraLoan.Application.Features.Loan.Queries.GetLoanDocuments;
+using KasraLoan.Application.Features.Loan.Queries.GetLoanOutstanding;
 using KasraLoan.Application.Features.Loan.Queries.GetMyLoans;
 using KasraLoan.Application.Features.Loan.Queries.GetMyLoans.GetAllLoans;
 using KasraLoan.Application.Interfaces.Services;
@@ -126,6 +127,21 @@ namespace KasraLoan.API.Controllers
                 PageSize = pageSize,
                 Status = status,
                 Search = search
+            });
+
+            return Ok(result);
+        }
+
+        /// <summary>
+        /// مانده‌ی وام: چقدر پرداخت شده، چقدر مانده، و اگر تسویه‌ی یکجا مطالبه
+        /// شده باشد مبلغ و مهلتش. مانده همیشه از روی اقساط پرداخت‌نشده حساب می‌شود.
+        /// </summary>
+        [HttpGet("{loanId}/outstanding")]
+        public async Task<IActionResult> GetOutstanding(Guid loanId)
+        {
+            var result = await _mediator.Send(new GetLoanOutstandingQuery
+            {
+                LoanRequestId = loanId
             });
 
             return Ok(result);

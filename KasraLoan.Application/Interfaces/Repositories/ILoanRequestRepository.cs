@@ -24,6 +24,13 @@ namespace KasraLoan.Application.Interfaces.Repositories
         /// </summary>
         Task<bool> HasActiveLoanAsync(Guid employeeId);
 
+        /// <summary>
+        /// وام‌های تسویه‌نشده‌ی کارمند (Approved یا Active) همراه با اقساطشان.
+        /// برای محاسبه‌ی مانده و مطالبه‌ی تسویه‌ی یکجا. وام‌های Pending عمداً
+        /// نمی‌آیند: هنوز پولی پرداخت نشده که مانده‌ای داشته باشد.
+        /// </summary>
+        Task<List<LoanRequest>> GetOpenLoansWithInstallmentsAsync(Guid employeeId);
+
         Task<List<LoanRequest>> GetAllAsync();
 
         Task<int> GetTotalCountAsync();

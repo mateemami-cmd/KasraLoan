@@ -39,6 +39,26 @@ namespace KasraLoan.Domain.Entities
 
         public string? RejectReason { get; set; }
 
+        // ───── تسویه‌ی زودهنگام ─────
+        // وقتی کل مانده‌ی وام یکجا مطالبه می‌شود و دیگر منتظر اقساط ماهانه نمی‌مانیم.
+        // فعلاً تنها محرکش پایان همکاری است (حقوقی نمانده که ازش کسر شود)، ولی
+        // مدل عمداً عمومی است تا بعداً «می‌خواهم زودتر تسویه کنم» هم روی همین بنشیند.
+
+        /// <summary>مهلت پرداخت کل مانده. اگر null باشد، وام روال عادی اقساط را دارد.</summary>
+        public DateTime? SettlementDueDate { get; set; }
+
+        /// <summary>لحظه‌ی مطالبه‌ی تسویه.</summary>
+        public DateTime? SettlementDemandedAt { get; set; }
+
+        /// <summary>مانده‌ی وام در لحظه‌ی مطالبه (تومان). برای رکورد نگه داشته می‌شود.</summary>
+        public long SettlementAmount { get; set; }
+
+        /// <summary>چرا تسویه مطالبه شد؛ مثلاً «پایان همکاری».</summary>
+        public string? SettlementReason { get; set; }
+
+        /// <summary>آیا کل مانده یکجا مطالبه شده است.</summary>
+        public bool IsSettlementDemanded => SettlementDemandedAt.HasValue;
+
         public Employee Employee { get; set; }
 
         public LoanType LoanType { get; set; }
