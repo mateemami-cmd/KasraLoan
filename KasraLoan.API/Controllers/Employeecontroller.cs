@@ -2,9 +2,11 @@
 using KasraLoan.Application.Features.Employee.Commands.CreateEmployee;
 using KasraLoan.Application.Features.Employee.Commands.GrantLoanPermission;
 using KasraLoan.Application.Features.Employee.Commands.SetEmployeeScoreOverride;
+using KasraLoan.Application.Features.Employee.Commands.SetEmploymentStatus;
 using KasraLoan.Application.Features.Employee.Commands.UpdateEmployeeByAdmin;
 using KasraLoan.Application.Features.Employee.Queries.GetAllEmployees;
 using KasraLoan.Application.Features.Employee.Queries.GetEmployeeById;
+using KasraLoan.Application.Features.Employee.Queries.GetEmploymentStatusHistory;
 using KasraLoan.Application.Features.Employee.Queries.GetEmployeeScore;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -92,6 +94,39 @@ namespace KasraLoan.API.Controllers
             {
                 EmployeeId = employeeId,
                 Request = request
+            });
+
+            return Ok(result);
+        }
+
+        /// <summary>
+        /// تغییر وضعیت اشتغال (مشغول به کار / پایان همکاری).
+        ///
+        /// عمداً اندپوینت جداست و در PUT معمولیِ ویرایش کارمند نیست: یک رویداد مالی
+        /// است، پنجره‌ی زمانی دارد (غیرفعال کردن فقط نزدیک قطعی‌شدن لیست حقوق) و
+        /// لاگ و تاریخچه ثبت می‌کند. نباید به‌عنوان عارضه‌ی جانبیِ ویرایش پروفایل رخ دهد.
+        /// </summary>
+        [HttpPut("{employeeId}/employment-status")]
+        public async Task<IActionResult> SetEmploymentStatus(
+            Guid employeeId,
+            [FromBody] SetEmploymentStatusRequestDto request)
+        {
+            var result = await _mediator.Send(new SetEmploymentStatusCommand
+            {
+                EmployeeId = employeeId,
+                Request = request
+            });
+
+            return Ok(result);
+        }
+
+        /// <summary>تاریخچه‌ی تغییرات وضعیت اشتغال یک کارمند.</summary>
+        [HttpGet("{employeeId}/employment-status/history")]
+        public async Task<IActionResult> GetEmploymentStatusHistory(Guid employeeId)
+        {
+            var result = await _mediator.Send(new GetEmploymentStatusHistoryQuery
+            {
+                EmployeeId = employeeId
             });
 
             return Ok(result);

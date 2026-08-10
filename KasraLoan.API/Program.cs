@@ -2,6 +2,7 @@
 using KasraLoan.API.Authorization;
 using KasraLoan.API.Middlewares;
 using KasraLoan.Application.Behaviors;
+using KasraLoan.Application.Common.Payroll;
 using KasraLoan.Infrastructure;
 using KasraLoan.Infrastructure.Data;
 using KasraLoan.Infrastructure.Data.Seed;
@@ -58,6 +59,11 @@ namespace KasraLoan.API
                 builder.Services.AddTransient(
                     typeof(IPipelineBehavior<,>),
                     typeof(LoggingBehavior<,>));
+
+                // پنجره‌های زمانی چرخه‌ی حقوق. اگر بخش PayrollCycle در تنظیمات نباشد،
+                // مقادیر پیش‌فرضِ PayrollCycleOptions استفاده می‌شوند.
+                builder.Services.Configure<PayrollCycleOptions>(
+                    builder.Configuration.GetSection(PayrollCycleOptions.SectionName));
 
                 builder.Services.AddInfrastructure();
 
