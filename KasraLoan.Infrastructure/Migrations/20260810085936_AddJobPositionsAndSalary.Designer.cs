@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using KasraLoan.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -12,9 +13,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace KasraLoan.Infrastructure.Migrations
 {
     [DbContext(typeof(KasraLoanDbContext))]
-    partial class KasraLoanDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260810085936_AddJobPositionsAndSalary")]
+    partial class AddJobPositionsAndSalary
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -69,9 +72,6 @@ namespace KasraLoan.Infrastructure.Migrations
                     b.Property<string>("Email")
                         .HasColumnType("text");
 
-                    b.Property<int>("EmploymentStatus")
-                        .HasColumnType("integer");
-
                     b.Property<string>("FirstName")
                         .IsRequired()
                         .HasColumnType("text");
@@ -111,9 +111,6 @@ namespace KasraLoan.Infrastructure.Migrations
 
                     b.Property<int>("Role")
                         .HasColumnType("integer");
-
-                    b.Property<DateTime?>("TerminationDate")
-                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Username")
                         .IsRequired()
@@ -163,39 +160,6 @@ namespace KasraLoan.Infrastructure.Migrations
                     b.HasIndex("EmployeeId");
 
                     b.ToTable("EmployeeScores");
-                });
-
-            modelBuilder.Entity("KasraLoan.Domain.Entities.EmploymentStatusChange", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTime>("ChangedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<Guid>("ChangedByAdminId")
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("EmployeeId")
-                        .HasColumnType("uuid");
-
-                    b.Property<int>("FromStatus")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("Reason")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)");
-
-                    b.Property<int>("ToStatus")
-                        .HasColumnType("integer");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("EmployeeId", "ChangedAt");
-
-                    b.ToTable("EmploymentStatusChanges");
                 });
 
             modelBuilder.Entity("KasraLoan.Domain.Entities.JobPosition", b =>
@@ -534,17 +498,6 @@ namespace KasraLoan.Infrastructure.Migrations
                 });
 
             modelBuilder.Entity("KasraLoan.Domain.Entities.EmployeeScore", b =>
-                {
-                    b.HasOne("KasraLoan.Domain.Entities.Employee", "Employee")
-                        .WithMany()
-                        .HasForeignKey("EmployeeId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Employee");
-                });
-
-            modelBuilder.Entity("KasraLoan.Domain.Entities.EmploymentStatusChange", b =>
                 {
                     b.HasOne("KasraLoan.Domain.Entities.Employee", "Employee")
                         .WithMany()

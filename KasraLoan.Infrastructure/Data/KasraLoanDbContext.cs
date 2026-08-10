@@ -25,6 +25,8 @@ namespace KasraLoan.Infrastructure.Data
         public DbSet<AuditLog> AuditLogs { get; set; }
         public DbSet<Notification> Notifications { get; set; }
         public DbSet<LoanPermissionRequest> LoanPermissionRequests { get; set; }
+        public DbSet<JobPosition> JobPositions { get; set; }
+        public DbSet<EmploymentStatusChange> EmploymentStatusChanges { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -33,6 +35,46 @@ namespace KasraLoan.Infrastructure.Data
             modelBuilder.Entity<Employee>()
                 .HasIndex(x => x.Username)
                 .IsUnique();
+
+            modelBuilder.Entity<JobPosition>(entity =>
+            {
+                entity.HasKey(x => x.Id);
+
+                entity.Property(x => x.Title)
+                    .HasMaxLength(100)
+                    .IsRequired();
+
+                entity.HasIndex(x => x.Title)
+                    .IsUnique();
+
+                entity.Property(x => x.IsActive)
+                    .HasDefaultValue(true);
+            });
+
+            modelBuilder.Entity<Employee>()
+                .HasOne(x => x.JobPosition)
+                .WithMany(x => x.Employees)
+                .HasForeignKey(x => x.JobPositionId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<EmploymentStatusChange>(entity =>
+            {
+                entity.HasKey(x => x.Id);
+
+                entity.Property(x => x.Reason)
+                    .HasMaxLength(500)
+                    .IsRequired();
+
+                entity.Property(x => x.ChangedAt)
+                    .IsRequired();
+
+                entity.HasIndex(x => new { x.EmployeeId, x.ChangedAt });
+
+                entity.HasOne(x => x.Employee)
+                    .WithMany()
+                    .HasForeignKey(x => x.EmployeeId)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
 
             modelBuilder.Entity<EmployeeScore>()
                 .HasOne(x => x.Employee)

@@ -29,7 +29,13 @@ namespace KasraLoan.Infrastructure
 
             services.AddScoped<IEmployeeScoreService, EmployeeScoreService>();
 
-            services.AddScoped<ILoanEligibilityService, LoanEligibilityService>();
+            services.AddScoped<IEmployeeSalaryService, EmployeeSalaryService>();
+
+            services.AddScoped<IJobPositionRepository, JobPositionRepository>();
+
+            services.AddScoped<IEmploymentStatusChangeRepository, EmploymentStatusChangeRepository>();
+
+            services.AddScoped<IPayrollCalendarService, PayrollCalendarService>();
 
             services.AddScoped<ILoanCalculationService, LoanCalculationService>();
 
