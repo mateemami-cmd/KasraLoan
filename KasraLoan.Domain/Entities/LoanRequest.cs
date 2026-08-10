@@ -21,7 +21,11 @@ namespace KasraLoan.Domain.Entities
 
         public int InstallmentCount { get; set; }
 
-        public decimal MonthlyFeePercent { get; set; }
+        /// <summary>
+        /// کارمزد صندوق به‌صورت درصد <b>سالانه</b> روی اصل مبلغ تأییدشده.
+        /// فرمول: کارمزد کل = مبلغ تأییدشده × (درصد ÷ ۱۰۰) × (تعداد اقساط ÷ ۱۲)
+        /// </summary>
+        public decimal AnnualFeePercent { get; set; }
 
         public LoanStatus Status { get; set; }
 

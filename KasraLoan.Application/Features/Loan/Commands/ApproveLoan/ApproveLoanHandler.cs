@@ -18,17 +18,20 @@ namespace KasraLoan.Application.Features.Loan.Commands.ApproveLoan
         private readonly IAuditLogService _auditLogService;
         private readonly ILoanInstallmentService _loanInstallmentService;
         private readonly INotificationService _notificationService;
+        private readonly ILoanCalculationService _loanCalculationService;
 
         public ApproveLoanHandler(
             ILoanRequestRepository loanRequestRepository,
             IAuditLogService auditLogService,
             ILoanInstallmentService loanInstallmentService,
-            INotificationService notificationService)
+            INotificationService notificationService,
+            ILoanCalculationService loanCalculationService)
         {
             _loanRequestRepository = loanRequestRepository;
             _auditLogService = auditLogService;
             _loanInstallmentService = loanInstallmentService;
             _notificationService = notificationService;
+            _loanCalculationService = loanCalculationService;
         }
 
         public async Task<ApproveLoanResponse> Handle(
@@ -46,14 +49,14 @@ namespace KasraLoan.Application.Features.Loan.Commands.ApproveLoan
 
             loan.Status = LoanStatus.Approved;
 
-            var totalFee = loan.ApprovedAmount
-                * (loan.MonthlyFeePercent / 100m)
-                * loan.InstallmentCount;
+            loan.TotalPayableAmount = _loanCalculationService.CalculateTotalPayable(
+                loan.ApprovedAmount,
+                loan.AnnualFeePercent,
+                loan.InstallmentCount);
 
-            loan.TotalPayableAmount = loan.ApprovedAmount + (long)Math.Round(totalFee);
-
-            loan.MonthlyPaymentAmount =
-                Math.Round((decimal)loan.TotalPayableAmount / loan.InstallmentCount, 0);
+            loan.MonthlyPaymentAmount = _loanCalculationService.CalculateMonthlyPayment(
+                loan.TotalPayableAmount,
+                loan.InstallmentCount);
 
             loan.ApprovedAt = DateTime.UtcNow;
 

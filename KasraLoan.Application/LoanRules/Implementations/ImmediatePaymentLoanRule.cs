@@ -22,7 +22,7 @@ namespace KasraLoan.Application.LoanRules.Implementations
                 Message = "OK",
                 MaxAllowedAmount = 100_000_000,
                 MaxInstallments = 12,
-                MonthlyFeePercent = 2
+                AnnualFeePercent = 2
             };
         }
     }

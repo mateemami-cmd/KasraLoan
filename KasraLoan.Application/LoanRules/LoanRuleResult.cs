@@ -12,6 +12,7 @@ namespace KasraLoan.Application.LoanRules
         public string? Message { get; set; }
         public decimal MaxAllowedAmount { get; set; }
         public int MaxInstallments { get; set; }
-        public decimal MonthlyFeePercent { get; set; }
+        /// <summary>کارمزد صندوق به‌صورت درصد <b>سالانه</b> روی اصل مبلغ.</summary>
+        public decimal AnnualFeePercent { get; set; }
     }
 }
