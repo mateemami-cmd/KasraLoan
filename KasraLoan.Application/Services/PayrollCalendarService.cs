@@ -2,6 +2,7 @@ using KasraLoan.Application.Common.Payroll;
 using KasraLoan.Application.Interfaces.Services;
 using Microsoft.Extensions.Options;
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 
 namespace KasraLoan.Application.Services
@@ -69,6 +70,62 @@ namespace KasraLoan.Application.Services
         {
             return $"از روز {_options.EmploymentChangeOpenDay} هر ماه شمسی " +
                    $"تا روز {_options.EmploymentChangeCloseDay} ماه بعد";
+        }
+
+        public List<DateTime> GetInstallmentDueDatesUtc(DateTime approvedAtUtc, int count)
+        {
+            var dates = new List<DateTime>();
+
+            if (count <= 0)
+                return dates;
+
+            var approvedIran = ToIranTime(approvedAtUtc);
+
+            var year = Persian.GetYear(approvedIran);
+            var month = Persian.GetMonth(approvedIran);
+
+            // از روزِ حقوقِ همین ماه شمسی شروع می‌کنیم و آن‌قدر جلو می‌رویم تا
+            // فاصله‌ی کافی از تاریخ تأیید داشته باشیم.
+            var first = PayrollDateInIran(year, month);
+
+            while ((first - approvedIran).TotalDays < _options.MinDaysToFirstInstallment)
+            {
+                (year, month) = NextPersianMonth(year, month);
+                first = PayrollDateInIran(year, month);
+            }
+
+            for (var i = 0; i < count; i++)
+            {
+                dates.Add(ToUtc(PayrollDateInIran(year, month)));
+
+                (year, month) = NextPersianMonth(year, month);
+            }
+
+            return dates;
+        }
+
+        /// <summary>
+        /// روزِ پرداخت حقوق در یک ماه شمسی مشخص، به وقت ایران و ساعت ۰۰:۰۰.
+        /// اگر آن روز در ماه وجود نداشته باشد (مثلاً روز ۳۱ در ماهی ۳۰ روزه)،
+        /// به آخرین روز ماه محدود می‌شود.
+        /// </summary>
+        private DateTime PayrollDateInIran(int persianYear, int persianMonth)
+        {
+            var daysInMonth = Persian.GetDaysInMonth(persianYear, persianMonth);
+
+            var day = Math.Min(_options.PayrollRunDay, daysInMonth);
+
+            return Persian.ToDateTime(persianYear, persianMonth, day, 0, 0, 0, 0);
+        }
+
+        private static (int Year, int Month) NextPersianMonth(int year, int month)
+        {
+            return month == 12 ? (year + 1, 1) : (year, month + 1);
+        }
+
+        private static DateTime ToUtc(DateTime iranTime)
+        {
+            return DateTime.SpecifyKind(iranTime - IranOffset, DateTimeKind.Utc);
         }
 
         private static DateTime ToIranTime(DateTime utc)

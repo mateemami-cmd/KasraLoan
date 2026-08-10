@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace KasraLoan.Application.Interfaces.Services
 {
@@ -32,5 +33,16 @@ namespace KasraLoan.Application.Interfaces.Services
 
         /// <summary>توضیح متنی پنجره‌ی تغییر وضعیت اشتغال، برای پیام خطا.</summary>
         string DescribeEmploymentChangeWindow();
+
+        /// <summary>
+        /// سررسید اقساط یک وام: روزِ پرداخت حقوق در ماه‌های شمسیِ پیاپی.
+        ///
+        /// سررسیدها عمداً به چرخه‌ی حقوق گره خورده‌اند نه به تاریخ تأیید وام —
+        /// چون قسط از حقوق کسر می‌شود، و پنجره‌ی انتخاب روش پرداخت هم حول همان
+        /// تاریخ تعریف شده است.
+        /// </summary>
+        /// <param name="approvedAtUtc">لحظه‌ی تأیید وام.</param>
+        /// <param name="count">تعداد اقساط.</param>
+        List<DateTime> GetInstallmentDueDatesUtc(DateTime approvedAtUtc, int count);
     }
 }

@@ -4,6 +4,7 @@ using KasraLoan.Application.Services;
 using Microsoft.Extensions.Options;
 using System;
 using System.Globalization;
+using System.Linq;
 using Xunit;
 
 namespace KasraLoan.Tests
@@ -117,6 +118,89 @@ namespace KasraLoan.Tests
 
             sut.GetDaysInPersianMonth(UtcForPersianDay(1405, 1, 15)).Should().Be(31); // فروردین
             sut.GetDaysInPersianMonth(UtcForPersianDay(1405, 8, 15)).Should().Be(30); // آبان
+        }
+
+        // ───────── سررسید اقساط ─────────
+
+        [Fact]
+        public void Every_Due_Date_Falls_On_The_Payroll_Day()
+        {
+            var sut = CreateSut();
+
+            var dates = sut.GetInstallmentDueDatesUtc(UtcForPersianDay(1405, 5, 19), 12);
+
+            dates.Should().HaveCount(12);
+
+            foreach (var d in dates)
+                sut.GetPersianDayOfMonth(d).Should().Be(2); // PayrollRunDay
+        }
+
+        [Fact]
+        public void Due_Dates_Are_Consecutive_Persian_Months()
+        {
+            var sut = CreateSut();
+
+            // ۱۴ قسط باید از مرز سال شمسی هم درست عبور کند.
+            var dates = sut.GetInstallmentDueDatesUtc(UtcForPersianDay(1405, 5, 19), 14);
+
+            var months = dates
+                .Select(d => Persian.GetMonth(d + TimeSpan.FromMinutes(210)))
+                .ToList();
+
+            for (var i = 1; i < months.Count; i++)
+            {
+                var expected = months[i - 1] == 12 ? 1 : months[i - 1] + 1;
+                months[i].Should().Be(expected);
+            }
+        }
+
+        [Fact]
+        public void First_Installment_Is_Never_Right_After_Approval()
+        {
+            var sut = CreateSut();
+
+            // تأیید در روز ۱ام؛ روزِ حقوق (۲) فرداست و نباید قسط اول شود.
+            var approved = UtcForPersianDay(1405, 5, 1);
+
+            var dates = sut.GetInstallmentDueDatesUtc(approved, 3);
+
+            (dates[0] - approved).TotalDays.Should().BeGreaterThanOrEqualTo(10);
+        }
+
+        [Fact]
+        public void Approval_Well_Before_Payroll_Uses_The_Coming_Payroll()
+        {
+            var sut = CreateSut();
+
+            // تأیید ۱۵ مرداد؛ حقوقِ ۲ شهریور بیش از ۱۰ روز فاصله دارد.
+            var dates = sut.GetInstallmentDueDatesUtc(UtcForPersianDay(1405, 5, 15), 1);
+
+            var iran = dates[0] + TimeSpan.FromMinutes(210);
+
+            Persian.GetMonth(iran).Should().Be(6);
+            Persian.GetDayOfMonth(iran).Should().Be(2);
+        }
+
+        [Fact]
+        public void Zero_Installments_Yields_No_Dates()
+        {
+            CreateSut()
+                .GetInstallmentDueDatesUtc(UtcForPersianDay(1405, 5, 19), 0)
+                .Should().BeEmpty();
+        }
+
+        [Fact]
+        public void Payroll_Day_Is_Clamped_When_The_Month_Is_Short()
+        {
+            // با روز حقوقِ ۳۱، ماه‌های ۳۰ روزه باید به آخرین روز ماه محدود شوند.
+            var sut = new PayrollCalendarService(
+                Options.Create(new PayrollCycleOptions { PayrollRunDay = 31 }));
+
+            var dates = sut.GetInstallmentDueDatesUtc(UtcForPersianDay(1405, 5, 1), 6);
+
+            foreach (var d in dates)
+                sut.GetPersianDayOfMonth(d)
+                    .Should().Be(Math.Min(31, sut.GetDaysInPersianMonth(d)));
         }
     }
 }

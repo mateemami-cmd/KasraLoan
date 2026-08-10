@@ -19,17 +19,20 @@ namespace KasraLoan.Application.Services
         private readonly ILoanRequestRepository _loanRequestRepository;
         private readonly INotificationService _notificationService;
         private readonly ICurrentUserService _currentUserService;
+        private readonly IPayrollCalendarService _payrollCalendar;
 
         public LoanInstallmentService(
             ILoanInstallmentRepository repo,
             ILoanRequestRepository loanRequestRepository,
             INotificationService notificationService,
-            ICurrentUserService currentUserService)
+            ICurrentUserService currentUserService,
+            IPayrollCalendarService payrollCalendar)
         {
             _repo = repo;
             _loanRequestRepository = loanRequestRepository;
             _notificationService = notificationService;
             _currentUserService = currentUserService;
+            _payrollCalendar = payrollCalendar;
         }
 
         public async Task<ApiResponse<List<LoanInstallmentDto>>> GetLoanInstallmentsAsync(Guid loanId)
@@ -141,6 +144,14 @@ namespace KasraLoan.Application.Services
             var remainder =
                 loan.TotalPayableAmount - (baseInstallmentAmount * loan.InstallmentCount);
 
+            // سررسیدها به روزِ پرداخت حقوق در ماه‌های شمسی گره می‌خورند، نه به
+            // تاریخ تأیید وام. اگر به تاریخ تأیید گره می‌خوردند، وامی که روز ۱۷ام
+            // تأیید شود اقساطش سررسید ۱۷ام می‌شد و کسر از حقوق و پنجره‌ی انتخاب
+            // روش پرداخت هیچ‌کدام سر جای خودشان نمی‌نشستند.
+            var dueDates = _payrollCalendar.GetInstallmentDueDatesUtc(
+                loan.ApprovedAt ?? DateTime.UtcNow,
+                loan.InstallmentCount);
+
             var installments = new List<LoanInstallment>();
 
             for (int i = 1; i <= loan.InstallmentCount; i++)
@@ -161,7 +172,7 @@ namespace KasraLoan.Application.Services
 
                     Amount = amount,
 
-                    DueDate = DateTime.UtcNow.Date.AddMonths(i),
+                    DueDate = dueDates[i - 1],
 
                     IsPaid = false,
 
