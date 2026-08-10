@@ -33,5 +33,14 @@ namespace KasraLoan.Application.DTOs.Employee
         public string Role { get; set; } = "Employee";
 
         public bool IsActive { get; set; }
+
+        /// <summary>سمت شغلی. برای نقش Employee الزامی است.</summary>
+        public int? JobPositionId { get; set; }
+
+        /// <summary>
+        /// حقوق ماهانه‌ی اختصاصی به تومان. اگر null باشد، حقوق پایه‌ی سمت شغلی
+        /// استفاده می‌شود.
+        /// </summary>
+        public long? MonthlySalary { get; set; }
     }
 }

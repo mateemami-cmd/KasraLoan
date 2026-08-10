@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using KasraLoan.Application.DTOs.Employee;
 using KasraLoan.Application.Interfaces.Repositories;
+using KasraLoan.Application.Interfaces.Services;
 using MediatR;
 
 namespace KasraLoan.Application.Features.Employee.Queries.GetAllEmployees
@@ -13,10 +14,14 @@ namespace KasraLoan.Application.Features.Employee.Queries.GetAllEmployees
         : IRequestHandler<GetAllEmployeesQuery, List<AdminEmployeeDetailsDto>>
     {
         private readonly IEmployeeRepository _employeeRepository;
+        private readonly IEmployeeSalaryService _employeeSalaryService;
 
-        public GetAllEmployeesHandler(IEmployeeRepository employeeRepository)
+        public GetAllEmployeesHandler(
+            IEmployeeRepository employeeRepository,
+            IEmployeeSalaryService employeeSalaryService)
         {
             _employeeRepository = employeeRepository;
+            _employeeSalaryService = employeeSalaryService;
         }
 
         public async Task<List<AdminEmployeeDetailsDto>> Handle(
@@ -37,7 +42,14 @@ namespace KasraLoan.Application.Features.Employee.Queries.GetAllEmployees
                 HireDate = e.HireDate,
                 MarriageDate = e.MarriageDate,
                 Role = e.Role.ToString(),
-                IsActive = e.IsActive
+                IsActive = e.IsActive,
+                EmploymentStatus = e.EmploymentStatus.ToString(),
+                TerminationDate = e.TerminationDate,
+                JobPositionId = e.JobPositionId,
+                JobPositionTitle = e.JobPosition?.Title,
+                MonthlySalary = e.MonthlySalary,
+                EffectiveMonthlySalary = _employeeSalaryService.GetEffectiveMonthlySalary(e),
+                MaxMonthlyInstallment = _employeeSalaryService.GetMaxMonthlyInstallment(e)
             })
                 .ToList();
         }

@@ -40,6 +40,27 @@ namespace KasraLoan.Application.Features.Employee.Commands.CreateEmployee
                     .Must(r => Enum.TryParse<UserRole>(r, ignoreCase: true, out _))
                     .WithMessage("نقش واردشده معتبر نیست (باید Employee یا Admin باشد).");
             });
+
+            // سمت شغلی فقط برای کارمند اجباری است: حقوق — و در نتیجه سقف قسط وام —
+            // از روی آن حساب می‌شود. ادمین می‌تواند بدون سمت ثبت شود.
+            When(x => !IsAdmin(x.Request.Role), () =>
+            {
+                RuleFor(x => x.Request.JobPositionId)
+                    .NotNull().WithMessage("انتخاب سمت شغلی برای کارمند الزامی است.")
+                    .GreaterThan(0).WithMessage("سمت شغلی انتخاب‌شده معتبر نیست.");
+            });
+
+            When(x => x.Request.MonthlySalary.HasValue, () =>
+            {
+                RuleFor(x => x.Request.MonthlySalary!.Value)
+                    .GreaterThan(0).WithMessage("حقوق ماهانه باید بزرگ‌تر از صفر باشد.");
+            });
+        }
+
+        private static bool IsAdmin(string? role)
+        {
+            return Enum.TryParse<UserRole>(role, ignoreCase: true, out var parsed)
+                && parsed == UserRole.Admin;
         }
     }
 }

@@ -1,6 +1,7 @@
 ﻿using KasraLoan.Application.DTOs.Employee;
 using KasraLoan.Application.Common.Exceptions;
 using KasraLoan.Application.Interfaces.Repositories;
+using KasraLoan.Application.Interfaces.Services;
 using KasraLoan.Domain.Enums;
 using MediatR;
 using System;
@@ -14,10 +15,17 @@ namespace KasraLoan.Application.Features.Employee.Commands.UpdateEmployeeByAdmin
         : IRequestHandler<UpdateEmployeeByAdminCommand, AdminEmployeeDetailsDto>
     {
         private readonly IEmployeeRepository _employeeRepository;
+        private readonly IJobPositionRepository _jobPositionRepository;
+        private readonly IEmployeeSalaryService _employeeSalaryService;
 
-        public UpdateEmployeeByAdminHandler(IEmployeeRepository employeeRepository)
+        public UpdateEmployeeByAdminHandler(
+            IEmployeeRepository employeeRepository,
+            IJobPositionRepository jobPositionRepository,
+            IEmployeeSalaryService employeeSalaryService)
         {
             _employeeRepository = employeeRepository;
+            _jobPositionRepository = jobPositionRepository;
+            _employeeSalaryService = employeeSalaryService;
         }
 
         public async Task<AdminEmployeeDetailsDto> Handle(
@@ -52,6 +60,28 @@ namespace KasraLoan.Application.Features.Employee.Commands.UpdateEmployeeByAdmin
             if (!Enum.TryParse<UserRole>(dto.Role, ignoreCase: true, out var role))
                 role = employee.Role;
 
+            Domain.Entities.JobPosition? newJobPosition = null;
+
+            if (dto.JobPositionId.HasValue)
+            {
+                newJobPosition = await _jobPositionRepository.GetByIdAsync(dto.JobPositionId.Value);
+
+                if (newJobPosition == null)
+                    throw new BusinessRuleException("سمت شغلی انتخاب‌شده یافت نشد.");
+
+                // سمت غیرفعال فقط وقتی مجاز است که کارمند از قبل همان سمت را داشته باشد
+                // (تا ویرایش سایر فیلدهایش قفل نشود).
+                if (!newJobPosition.IsActive && employee.JobPositionId != newJobPosition.Id)
+                    throw new BusinessRuleException("سمت شغلی انتخاب‌شده غیرفعال است.");
+            }
+            else if (role != UserRole.Admin)
+            {
+                throw new BusinessRuleException("انتخاب سمت شغلی برای کارمند الزامی است.");
+            }
+
+            if (dto.MonthlySalary.HasValue && dto.MonthlySalary.Value <= 0)
+                throw new BusinessRuleException("حقوق ماهانه باید بزرگ‌تر از صفر باشد.");
+
             // نکته‌ی امنیتی مهم: این هندلر عمداً به EmployeeScore هیچ دسترسی و ارجاعی ندارد.
             // امتیاز فقط از طریق SetEmployeeScoreOverrideHandler قابل تغییر است، نه از اینجا.
             employee.FirstName = dto.FirstName;
@@ -64,12 +94,23 @@ namespace KasraLoan.Application.Features.Employee.Commands.UpdateEmployeeByAdmin
             employee.MarriageDate = dto.MarriageDate;
             employee.Role = role;
             employee.IsActive = dto.IsActive;
+            employee.JobPositionId = dto.JobPositionId;
+            employee.MonthlySalary = dto.MonthlySalary;
 
             await _employeeRepository.UpdateAsync(employee);
             await _employeeRepository.SaveChangesAsync();
 
+            // navigation property را هم‌راستا می‌کنیم تا محاسبه‌ی حقوق مؤثر پایین
+            // بر اساس سمت جدید انجام شود، نه سمت قبلیِ بارگذاری‌شده.
+            employee.JobPosition = newJobPosition;
+
             return new AdminEmployeeDetailsDto
             {
+                JobPositionId = employee.JobPositionId,
+                JobPositionTitle = newJobPosition?.Title,
+                MonthlySalary = employee.MonthlySalary,
+                EffectiveMonthlySalary = _employeeSalaryService.GetEffectiveMonthlySalary(employee),
+                MaxMonthlyInstallment = _employeeSalaryService.GetMaxMonthlyInstallment(employee),
                 Id = employee.Id,
                 FirstName = employee.FirstName,
                 LastName = employee.LastName,
@@ -80,7 +121,10 @@ namespace KasraLoan.Application.Features.Employee.Commands.UpdateEmployeeByAdmin
                 HireDate = employee.HireDate,
                 MarriageDate = employee.MarriageDate,
                 Role = employee.Role.ToString(),
-                IsActive = employee.IsActive
+                IsActive = employee.IsActive,
+                // EmploymentStatus عمداً از این هندلر تغییر نمی‌کند؛ فقط برگردانده می‌شود.
+                EmploymentStatus = employee.EmploymentStatus.ToString(),
+                TerminationDate = employee.TerminationDate
             };
         }
     }

@@ -32,6 +32,25 @@ namespace KasraLoan.Application.DTOs.Employee
 
         public string Role { get; set; } = string.Empty;
 
+        /// <summary>وضعیت حساب کاربری (اجازه‌ی ورود به سیستم).</summary>
         public bool IsActive { get; set; }
+
+        /// <summary>وضعیت اشتغال: "Active" یا "Terminated". با IsActive یکی نیست.</summary>
+        public string EmploymentStatus { get; set; } = string.Empty;
+
+        public DateTime? TerminationDate { get; set; }
+
+        public int? JobPositionId { get; set; }
+
+        public string? JobPositionTitle { get; set; }
+
+        /// <summary>حقوق اختصاصی، اگر ثبت شده باشد.</summary>
+        public long? MonthlySalary { get; set; }
+
+        /// <summary>حقوقی که واقعاً در محاسبات استفاده می‌شود (اختصاصی یا پایه‌ی سمت).</summary>
+        public long EffectiveMonthlySalary { get; set; }
+
+        /// <summary>سقف قسط ماهانه بر اساس حقوق مؤثر.</summary>
+        public decimal MaxMonthlyInstallment { get; set; }
     }
 }

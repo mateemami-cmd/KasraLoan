@@ -40,7 +40,33 @@ namespace KasraLoan.Domain.Entities
 
         public int? Year { get; set; }
 
+        /// <summary>
+        /// وضعیت <b>حساب کاربری</b>: آیا اجازه‌ی ورود به سیستم دارد یا نه.
+        /// این با «مشغول به کار بودن» یکی نیست؛ آن را در
+        /// <see cref="EmploymentStatus"/> ببینید.
+        /// </summary>
         public bool IsActive { get; set; }
+
+        /// <summary>وضعیت اشتغال. فقط از اندپوینت اختصاصی خودش قابل تغییر است.</summary>
+        public EmploymentStatus EmploymentStatus { get; set; } = EmploymentStatus.Active;
+
+        /// <summary>تاریخ پایان همکاری، اگر وضعیت Terminated باشد.</summary>
+        public DateTime? TerminationDate { get; set; }
+
+        /// <summary>
+        /// سمت شغلی. برای کارمند اجباری است و برای ادمین می‌تواند خالی بماند
+        /// (اعتبارسنجی‌اش در CreateEmployeeValidator انجام می‌شود، نه اینجا).
+        /// </summary>
+        public int? JobPositionId { get; set; }
+
+        public JobPosition? JobPosition { get; set; }
+
+        /// <summary>
+        /// حقوق ماهانه‌ی واقعی به تومان. اگر null باشد، حقوق پایه‌ی
+        /// <see cref="JobPosition"/> استفاده می‌شود.
+        /// همان الگوی <see cref="EmployeeScore.ManualOverrideScore"/>.
+        /// </summary>
+        public long? MonthlySalary { get; set; }
 
         public UserRole Role { get; set; } = UserRole.Employee;
 

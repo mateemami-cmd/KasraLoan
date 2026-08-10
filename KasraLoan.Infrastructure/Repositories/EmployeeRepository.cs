@@ -21,7 +21,12 @@ namespace KasraLoan.Infrastructure.Repositories
 
         public async Task<Employee?> GetByIdAsync(Guid id)
         {
-            return await _context.Employees.FindAsync(id);
+            // JobPosition عمداً همیشه Include می‌شود: محاسبه‌ی حقوق مؤثر به آن نیاز دارد
+            // و اگر بارگذاری نشده باشد، حقوق بی‌سروصدا صفر حساب می‌شود. یک join روی
+            // جدولی چند‌رکوردی ارزشش را دارد که این دام وجود نداشته باشد.
+            return await _context.Employees
+                .Include(x => x.JobPosition)
+                .FirstOrDefaultAsync(x => x.Id == id);
         }
 
         public async Task<Employee?> GetByUsernameAsync(string username)
@@ -53,7 +58,9 @@ namespace KasraLoan.Infrastructure.Repositories
 
         public async Task<List<Employee>> GetAllAsync()
         {
-            return await _context.Employees.ToListAsync();
+            return await _context.Employees
+                .Include(x => x.JobPosition)
+                .ToListAsync();
         }
 
         public async Task AddAsync(Employee employee)

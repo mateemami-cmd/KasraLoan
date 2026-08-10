@@ -15,17 +15,20 @@ namespace KasraLoan.Application.Features.Employee.Commands.CreateEmployee
     {
         private readonly IEmployeeRepository _employeeRepository;
         private readonly IEmployeeScoreRepository _employeeScoreRepository;
+        private readonly IJobPositionRepository _jobPositionRepository;
         private readonly IPasswordHasher _passwordHasher;
         private readonly IPasswordGenerator _passwordGenerator;
 
         public CreateEmployeeHandler(
             IEmployeeRepository employeeRepository,
             IEmployeeScoreRepository employeeScoreRepository,
+            IJobPositionRepository jobPositionRepository,
             IPasswordHasher passwordHasher,
             IPasswordGenerator passwordGenerator)
         {
             _employeeRepository = employeeRepository;
             _employeeScoreRepository = employeeScoreRepository;
+            _jobPositionRepository = jobPositionRepository;
             _passwordHasher = passwordHasher;
             _passwordGenerator = passwordGenerator;
         }
@@ -47,6 +50,18 @@ namespace KasraLoan.Application.Features.Employee.Commands.CreateEmployee
             if (!string.IsNullOrWhiteSpace(dto.Role))
                 Enum.TryParse(dto.Role, ignoreCase: true, out role);
 
+            // ولیدیتور فقط اجباری‌بودن را چک می‌کند؛ وجود واقعی سمت اینجا تأیید می‌شود.
+            if (dto.JobPositionId.HasValue)
+            {
+                var jobPosition = await _jobPositionRepository.GetByIdAsync(dto.JobPositionId.Value);
+
+                if (jobPosition == null)
+                    throw new BusinessRuleException("سمت شغلی انتخاب‌شده یافت نشد.");
+
+                if (!jobPosition.IsActive)
+                    throw new BusinessRuleException("سمت شغلی انتخاب‌شده غیرفعال است.");
+            }
+
             var temporaryPassword = _passwordGenerator.Generate();
 
             var employee = new Domain.Entities.Employee
@@ -60,7 +75,9 @@ namespace KasraLoan.Application.Features.Employee.Commands.CreateEmployee
                 HireDate = dto.HireDate,
                 MarriageDate = dto.MarriageDate,
                 IsActive = true,
-                Role = role
+                Role = role,
+                JobPositionId = dto.JobPositionId,
+                MonthlySalary = dto.MonthlySalary
             };
 
             await _employeeRepository.AddAsync(employee);
