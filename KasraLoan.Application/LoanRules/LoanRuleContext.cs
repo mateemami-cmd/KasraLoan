@@ -19,5 +19,11 @@ namespace KasraLoan.Application.LoanRules
         public decimal RequestedAmount { get; set; }
 
         public int EmployeeScore { get; set; }
+
+        /// <summary>
+        /// تعداد اقساط درخواستی کارمند. برای گیت DTI لازم است، چون سقف مبلغ
+        /// از روی حقوق فقط وقتی قابل محاسبه است که بدانیم در چند قسط پرداخت می‌شود.
+        /// </summary>
+        public int RequestedInstallmentCount { get; set; }
     }
 }

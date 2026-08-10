@@ -52,6 +52,12 @@ namespace KasraLoan.Application.Features.Loan.Commands.CreateLoanRequest
             if (employee == null)
                 throw new KeyNotFoundException("Employee not found");
 
+            // کارمندی که دیگر مشغول به کار نیست، وام جدید نمی‌گیرد. حسابش باز می‌ماند
+            // تا بتواند اقساط وام قبلی‌اش را ببیند و بپردازد، ولی درخواست تازه ممنوع است.
+            if (employee.EmploymentStatus != Domain.Enums.EmploymentStatus.Active)
+                throw new BusinessRuleException(
+                    "وضعیت اشتغال شما فعال نیست و امکان ثبت درخواست وام جدید وجود ندارد.");
+
             // اگر همین الان یک وام فعال (Pending/Approved/Active) داشته باشد،
             // نباید بتواند درخواست وام جدیدی ثبت کند (حتی با مجوز استثنایی).
             var hasActiveLoan = await _loanRequestRepository.HasActiveLoanAsync(employeeId);
@@ -89,7 +95,8 @@ namespace KasraLoan.Application.Features.Loan.Commands.CreateLoanRequest
                 Employee = employee,
                 LoanType = loanType,
                 RequestedAmount = request.Request.RequestedAmount,
-                EmployeeScore = scoreForEligibilityCheck
+                EmployeeScore = scoreForEligibilityCheck,
+                RequestedInstallmentCount = request.Request.InstallmentCount
             };
 
 
@@ -123,7 +130,7 @@ namespace KasraLoan.Application.Features.Loan.Commands.CreateLoanRequest
                 RequestedAmount = request.Request.RequestedAmount,
                 ApprovedAmount = approvedAmount,
                 InstallmentCount = installmentCount,
-                MonthlyFeePercent = ruleResult.MonthlyFeePercent,
+                AnnualFeePercent = ruleResult.AnnualFeePercent,
                 Status = Domain.Enums.LoanStatus.Pending,
                 CreatedAt = DateTime.UtcNow
             };
