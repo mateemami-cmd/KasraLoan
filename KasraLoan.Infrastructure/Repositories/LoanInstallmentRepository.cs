@@ -49,6 +49,17 @@ namespace KasraLoan.Infrastructure.Repositories
                 .FirstOrDefaultAsync(x => x.Id == installmentId);
         }
 
+        public async Task<bool> HasOtherUnpaidInstallmentsAsync(
+            Guid loanRequestId,
+            Guid excludingInstallmentId)
+        {
+            return await _context.LoanInstallments
+                .AnyAsync(x =>
+                    x.LoanRequestId == loanRequestId &&
+                    x.Id != excludingInstallmentId &&
+                    !x.IsPaid);
+        }
+
         public async Task<bool> AreAllInstallmentsPaidAsync(Guid loanRequestId)
         {
             return await _context.LoanInstallments

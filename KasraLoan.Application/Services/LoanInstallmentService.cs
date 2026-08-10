@@ -80,7 +80,6 @@ namespace KasraLoan.Application.Services
 
         public async Task<ApiResponse<bool>> PayInstallmentAsync(Guid installmentId, Guid employeeId)
         {
-            //var installment = await _repo.GetByIdAsync(installmentId);
             var installment = await _repo.GetByIdWithLoanAsync(installmentId);
 
             if (installment == null)

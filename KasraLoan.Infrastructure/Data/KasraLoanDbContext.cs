@@ -27,6 +27,7 @@ namespace KasraLoan.Infrastructure.Data
         public DbSet<LoanPermissionRequest> LoanPermissionRequests { get; set; }
         public DbSet<JobPosition> JobPositions { get; set; }
         public DbSet<EmploymentStatusChange> EmploymentStatusChanges { get; set; }
+        public DbSet<InstallmentPayment> InstallmentPayments { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -56,6 +57,37 @@ namespace KasraLoan.Infrastructure.Data
                 .WithMany(x => x.Employees)
                 .HasForeignKey(x => x.JobPositionId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<InstallmentPayment>(entity =>
+            {
+                entity.HasKey(x => x.Id);
+
+                entity.Property(x => x.ChequeNumber).HasMaxLength(50);
+                entity.Property(x => x.ChequeBankName).HasMaxLength(100);
+                entity.Property(x => x.ChequeImageUrl).HasMaxLength(500);
+                entity.Property(x => x.GatewayRefId).HasMaxLength(100);
+                entity.Property(x => x.RejectReason).HasMaxLength(500);
+
+                // صف تأیید چک و «آخرین تلاش این قسط» هر دو از این ایندکس می‌آیند.
+                entity.HasIndex(x => new { x.LoanInstallmentId, x.CreatedAt });
+
+                entity.HasIndex(x => x.Status);
+
+                // نشستِ درگاه با همین شناسه پیدا می‌شود، پس باید یکتا باشد.
+                entity.HasIndex(x => x.GatewayAuthority)
+                    .IsUnique()
+                    .HasFilter("\"GatewayAuthority\" IS NOT NULL");
+
+                entity.HasOne(x => x.LoanInstallment)
+                    .WithMany(x => x.Payments)
+                    .HasForeignKey(x => x.LoanInstallmentId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(x => x.Employee)
+                    .WithMany()
+                    .HasForeignKey(x => x.EmployeeId)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
 
             modelBuilder.Entity<EmploymentStatusChange>(entity =>
             {

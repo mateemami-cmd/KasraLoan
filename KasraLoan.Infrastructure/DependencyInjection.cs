@@ -39,6 +39,13 @@ namespace KasraLoan.Infrastructure
 
             services.AddScoped<ILoanSettlementService, LoanSettlementService>();
 
+            services.AddScoped<IInstallmentPaymentRepository, InstallmentPaymentRepository>();
+
+            services.AddScoped<IInstallmentPaymentService, InstallmentPaymentService>();
+
+            // درگاه نمادین. وقتی زرین‌پال یا شاپرک اضافه شود، فقط همین خط عوض می‌شود.
+            services.AddScoped<IPaymentGateway, MockPaymentGateway>();
+
             services.AddScoped<ILoanCalculationService, LoanCalculationService>();
 
             services.AddScoped<ILoanRequestRepository, LoanRequestRepository>();

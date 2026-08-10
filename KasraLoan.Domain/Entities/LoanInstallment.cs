@@ -1,4 +1,5 @@
-﻿using System;
+﻿using KasraLoan.Domain.Enums;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -28,6 +29,18 @@ namespace KasraLoan.Domain.Entities
 
         // تاریخ پرداخت واقعی (اگر پرداخت شده باشد)
         public DateTime? PaidAt { get; set; }
+
+        /// <summary>
+        /// روشی که این قسط با آن تسویه شد (یا قرار است بشود).
+        /// خلاصه‌ی رکورد تأییدشده در <see cref="Payments"/> است تا برای نمایش
+        /// لازم نباشد هر بار تاریخچه‌ی پرداخت‌ها خوانده شود.
+        /// </summary>
+        public PaymentMethod? PaidMethod { get; set; }
+
+        /// <summary>
+        /// تاریخچه‌ی تلاش‌های پرداخت این قسط؛ شامل چک‌های ردشده و پرداخت‌های ناموفق.
+        /// </summary>
+        public ICollection<InstallmentPayment> Payments { get; set; } = new List<InstallmentPayment>();
 
         // تاریخ ایجاد رکورد
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
