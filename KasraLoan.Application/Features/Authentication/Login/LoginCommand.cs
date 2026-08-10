@@ -1,4 +1,5 @@
-﻿using KasraLoan.Application.DTOs.Auth;
+﻿using KasraLoan.Application.Common.Logging;
+using KasraLoan.Application.DTOs.Auth;
 using KasraLoan.Application.DTOs.Loans;
 using MediatR;
 using System;
@@ -9,7 +10,8 @@ using System.Threading.Tasks;
 
 namespace KasraLoan.Application.Features.Authentication.Login
 {
-    public class LoginCommand : IRequest<LoginResponseDto>
+    // ISensitiveRequest: رمز عبور خام دارد و نباید در لاگ نوشته شود.
+    public class LoginCommand : IRequest<LoginResponseDto>, ISensitiveRequest
     {
         public LoginRequestDto LoginRequest { get; set; } = null!;
     }

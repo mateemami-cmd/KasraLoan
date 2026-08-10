@@ -1,4 +1,5 @@
-﻿using MediatR;
+﻿using KasraLoan.Application.Common.Logging;
+using MediatR;
 using Microsoft.Extensions.Logging;
 using System.Diagnostics;
 
@@ -19,7 +20,16 @@ public class LoggingBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, 
 
         var stopwatch = Stopwatch.StartNew();
 
-        _logger.LogInformation("START Request: {RequestName} | Payload: {@Request}", requestName, request);
+        // درخواست‌های حساس (رمز عبور، اطلاعات کارت بانکی و ...) نباید payload‌شان
+        // در لاگ نوشته شود؛ لاگ‌ها روی دیسک ذخیره می‌شوند و ممکن است جایی منتشر شوند.
+        if (request is ISensitiveRequest)
+        {
+            _logger.LogInformation("START Request: {RequestName} | Payload: [redacted]", requestName);
+        }
+        else
+        {
+            _logger.LogInformation("START Request: {RequestName} | Payload: {@Request}", requestName, request);
+        }
 
         try
         {
