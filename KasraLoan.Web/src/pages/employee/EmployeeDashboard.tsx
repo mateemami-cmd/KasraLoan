@@ -20,6 +20,9 @@ import {
   Badge,
   List,
   Drawer,
+  InputNumber,
+  Descriptions,
+  Progress,
 } from 'antd'
 import {
   BankOutlined,
@@ -45,15 +48,33 @@ import {
   getUnreadCount,
   getMyNotifications,
   markAllNotificationsRead,
+  createLoanRequest,
+  getLoanInstallments,
+  getLoanOutstanding,
+  payInstallment,
 } from '../../api/services'
 import type {
   LoanType,
   LoanPermissionRequestItem,
   MyLoanItem,
   NotificationItem,
+  LoanInstallment,
+  LoanOutstanding,
 } from '../../api/types'
 
 const MIN_SCORE = 600
+
+/**
+ * کارمزد سالانه‌ی هر نوع وام، برای تخمین قسط در فرم — همان اعدادی که در
+ * قوانین بک‌اند هستند. اگر آن‌جا عوض شد، اینجا هم باید عوض شود؛ تا وقتی
+ * قوانین از دیتابیس خوانده نشوند راه بهتری نیست.
+ */
+const LOAN_FEE_PERCENT: Record<string, number> = {
+  TravelLoan: 0,
+  SpecialCaseLoan: 4,
+  MarriageLoan: 5,
+  ImmediatePaymentLoan: 2,
+}
 
 const statusTag: Record<string, { color: string; label: string }> = {
   Pending: { color: 'gold', label: 'در انتظار بررسی' },
@@ -70,7 +91,7 @@ const loanStatusMap: Record<string, { color: string; label: string }> = {
   Closed: { color: 'default', label: 'بسته شده' },
 }
 
-const LOAN_SECTIONS = ['loans', 'permission', 'loanHistory']
+const LOAN_SECTIONS = ['loans', 'permission', 'loanHistory', 'installments']
 
 export function EmployeeDashboard() {
   const [section, setSection] = useState('welcome')
@@ -127,12 +148,14 @@ export function EmployeeDashboard() {
             options={[
               { label: 'درخواست وام', value: 'loans' },
               { label: 'درخواست مجوز وام', value: 'permission' },
+              { label: 'اقساط من', value: 'installments' },
               { label: 'سابقه وام', value: 'loanHistory' },
             ]}
             style={{ marginBottom: 16 }}
           />
           {section === 'loans' && <LoansSection />}
           {section === 'permission' && <PermissionSection />}
+          {section === 'installments' && <InstallmentsSection />}
           {section === 'loanHistory' && <LoanHistorySection />}
         </div>
       )}
@@ -224,6 +247,7 @@ function LoansSection() {
   const { user } = useAuth()
   const [loans, setLoans] = useState<LoanType[]>([])
   const [loading, setLoading] = useState(true)
+  const [selected, setSelected] = useState<LoanType | null>(null)
 
   useEffect(() => {
     getLoanTypes()
@@ -232,10 +256,20 @@ function LoansSection() {
   }, [])
 
   const scoreOk = (user?.score ?? 0) >= MIN_SCORE
+  const employed = user?.employmentStatus !== 'Terminated'
 
   return (
     <>
-      {!scoreOk && (
+      {!employed && (
+        <Alert
+          type="error"
+          showIcon
+          style={{ marginBottom: 16 }}
+          message="وضعیت اشتغال شما فعال نیست."
+          description="امکان ثبت درخواست وام جدید وجود ندارد، اما همچنان می‌توانید اقساط وام‌های قبلی را ببینید و پرداخت کنید."
+        />
+      )}
+      {employed && !scoreOk && (
         <Alert
           type="warning"
           showIcon
@@ -244,6 +278,22 @@ function LoansSection() {
           description="می‌توانید از بخش «درخواست مجوز وام» درخواست استثنا ثبت کنید."
         />
       )}
+      {employed && scoreOk && (
+        <Alert
+          type="info"
+          showIcon
+          style={{ marginBottom: 16 }}
+          message={
+            <span>
+              سمت شما «{user?.jobPositionTitle ?? '—'}» است و سقف قسط ماهانه‌تان{' '}
+              <b>{(user?.maxMonthlyInstallment ?? 0).toLocaleString('fa-IR')} تومان</b> است
+              (یک‌سوم حقوق).
+            </span>
+          }
+          description="مبلغ وامی که می‌توانید بگیرید به همین سقف و تعداد اقساط انتخابی بستگی دارد."
+        />
+      )}
+
       <Row gutter={[16, 16]}>
         {loans.map((loan) => (
           <Col xs={24} sm={12} lg={8} key={loan.id}>
@@ -260,8 +310,12 @@ function LoansSection() {
             >
               {!loan.isActive ? (
                 <Alert type="error" message="این وام در حال حاضر غیرفعال است." />
+              ) : !employed ? (
+                <Button block disabled>
+                  وضعیت اشتغال فعال نیست
+                </Button>
               ) : scoreOk ? (
-                <Button type="primary" block>
+                <Button type="primary" block onClick={() => setSelected(loan)}>
                   درخواست این وام
                 </Button>
               ) : (
@@ -273,7 +327,168 @@ function LoansSection() {
           </Col>
         ))}
       </Row>
+
+      <LoanRequestModal
+        loanType={selected}
+        onClose={() => setSelected(null)}
+      />
     </>
+  )
+}
+
+/**
+ * فرم درخواست وام.
+ *
+ * سقف مبلغ همین‌جا و پیش از ارسال تخمین زده می‌شود تا کارمند قبل از خوردن به
+ * خطای سرور بداند چه چیزی ممکن است. مرجع نهایی همچنان بک‌اند است — این فقط
+ * راهنماست، نه جایگزین قانون.
+ */
+function LoanRequestModal({
+  loanType,
+  onClose,
+}: {
+  loanType: LoanType | null
+  onClose: () => void
+}) {
+  const { user } = useAuth()
+  const { message } = App.useApp()
+  const [form] = Form.useForm()
+  const [submitting, setSubmitting] = useState(false)
+  const [amount, setAmount] = useState<number>(0)
+  const [months, setMonths] = useState<number>(12)
+
+  useEffect(() => {
+    if (loanType) {
+      form.resetFields()
+      setAmount(0)
+      setMonths(12)
+    }
+  }, [loanType, form])
+
+  if (!loanType) return null
+
+  const cap = user?.maxMonthlyInstallment ?? 0
+
+  // همان فرمول بک‌اند: کارمزد سالانه‌ی ساده روی اصل مبلغ.
+  const feeRate = (LOAN_FEE_PERCENT[loanType.type] ?? 0) / 100
+  const feeMultiplier = 1 + feeRate * (months / 12)
+
+  const maxBySalary = cap > 0 ? Math.floor((cap * months) / feeMultiplier) : 0
+  const estimatedTotal = Math.round(amount * feeMultiplier)
+  const estimatedMonthly = months > 0 ? Math.round(estimatedTotal / months) : 0
+  const overCap = amount > 0 && estimatedMonthly > cap
+
+  async function onFinish(values: { requestedAmount: number; installmentCount: number }) {
+    setSubmitting(true)
+    try {
+      await createLoanRequest({
+        loanTypeId: loanType!.id,
+        requestedAmount: values.requestedAmount,
+        installmentCount: values.installmentCount,
+      })
+      message.success('درخواست وام ثبت شد و در انتظار بررسی ادمین است.')
+      onClose()
+    } catch (err: unknown) {
+      const e = err as { response?: { data?: { message?: string } } }
+      message.error(e.response?.data?.message ?? 'خطا در ثبت درخواست وام.')
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  const money = (v: number) => `${Math.max(0, v).toLocaleString('fa-IR')} تومان`
+
+  return (
+    <Modal
+      open
+      onCancel={onClose}
+      footer={null}
+      title={`درخواست ${loanType.name}`}
+      destroyOnHidden
+    >
+      <Form
+        form={form}
+        layout="vertical"
+        onFinish={onFinish}
+        initialValues={{ installmentCount: 12 }}
+      >
+        <Form.Item
+          label="مبلغ درخواستی (تومان)"
+          name="requestedAmount"
+          rules={[
+            { required: true, message: 'مبلغ را وارد کنید' },
+            {
+              type: 'number',
+              min: 1_000_000,
+              message: 'مبلغ باید حداقل ۱,۰۰۰,۰۰۰ تومان باشد',
+            },
+          ]}
+        >
+          <InputNumber
+            style={{ width: '100%' }}
+            step={1_000_000}
+            controls={false}
+            formatter={(v) => `${v}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+            parser={(v) => Number((v ?? '').replace(/,/g, ''))}
+            onChange={(v) => setAmount(Number(v) || 0)}
+            placeholder="مثلاً 100000000"
+          />
+        </Form.Item>
+
+        <Form.Item
+          label="تعداد اقساط"
+          name="installmentCount"
+          rules={[{ required: true, message: 'تعداد اقساط را انتخاب کنید' }]}
+        >
+          <Select
+            onChange={(v) => setMonths(Number(v))}
+            options={[6, 12, 18, 24, 36].map((m) => ({
+              value: m,
+              label: `${m.toLocaleString('fa-IR')} قسط`,
+            }))}
+          />
+        </Form.Item>
+
+        <Card size="small" style={{ marginBottom: 16, background: 'rgba(0,0,0,0.02)' }}>
+          <Row gutter={[8, 8]}>
+            <Col span={12}>سقف قسط ماهانه شما:</Col>
+            <Col span={12} style={{ textAlign: 'left', fontWeight: 600 }}>{money(cap)}</Col>
+
+            <Col span={12}>بیشترین وام در {months.toLocaleString('fa-IR')} قسط:</Col>
+            <Col span={12} style={{ textAlign: 'left', fontWeight: 600 }}>{money(maxBySalary)}</Col>
+
+            {amount > 0 && (
+              <>
+                <Col span={12}>کل بازپرداخت:</Col>
+                <Col span={12} style={{ textAlign: 'left' }}>{money(estimatedTotal)}</Col>
+
+                <Col span={12}>قسط ماهانه:</Col>
+                <Col
+                  span={12}
+                  style={{ textAlign: 'left', fontWeight: 700, color: overCap ? '#cf1322' : '#389e0d' }}
+                >
+                  {money(estimatedMonthly)}
+                </Col>
+              </>
+            )}
+          </Row>
+        </Card>
+
+        {overCap && (
+          <Alert
+            type="warning"
+            showIcon
+            style={{ marginBottom: 16 }}
+            message="قسط از سقف حقوق شما بیشتر است"
+            description={`مبلغ را کمتر کنید یا تعداد اقساط را بالا ببرید. با ${months.toLocaleString('fa-IR')} قسط، حداکثر ${money(maxBySalary)} می‌توانید بگیرید.`}
+          />
+        )}
+
+        <Button type="primary" htmlType="submit" block loading={submitting}>
+          ثبت درخواست
+        </Button>
+      </Form>
+    </Modal>
   )
 }
 
@@ -373,6 +588,178 @@ function PermissionSection() {
   )
 }
 
+/**
+ * اقساط وام‌های فعال کارمند، همراه با مانده و دکمه‌ی پرداخت.
+ * فقط وام‌هایی که اقساط دارند (تأییدشده یا فعال) نمایش داده می‌شوند؛
+ * وام در انتظار بررسی هنوز قسطی ندارد.
+ */
+function InstallmentsSection() {
+  const { message } = App.useApp()
+  const [loans, setLoans] = useState<MyLoanItem[]>([])
+  const [selectedId, setSelectedId] = useState<string | null>(null)
+  const [installments, setInstallments] = useState<LoanInstallment[]>([])
+  const [outstanding, setOutstanding] = useState<LoanOutstanding | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [payingId, setPayingId] = useState<string | null>(null)
+
+  const payable = loans.filter((l) => l.status === 'Approved' || l.status === 'Active')
+
+  useEffect(() => {
+    getMyLoans()
+      .then((all) => {
+        setLoans(all)
+        const first = all.find((l) => l.status === 'Approved' || l.status === 'Active')
+        if (first) setSelectedId(first.id)
+      })
+      .finally(() => setLoading(false))
+  }, [])
+
+  async function loadDetails(loanId: string) {
+    const [inst, out] = await Promise.all([
+      getLoanInstallments(loanId),
+      getLoanOutstanding(loanId),
+    ])
+    setInstallments(inst.sort((a, b) => a.installmentNumber - b.installmentNumber))
+    setOutstanding(out)
+  }
+
+  useEffect(() => {
+    if (selectedId) loadDetails(selectedId).catch(() => {})
+  }, [selectedId])
+
+  async function pay(installmentId: string) {
+    setPayingId(installmentId)
+    try {
+      await payInstallment(installmentId)
+      message.success('قسط با موفقیت پرداخت شد.')
+      if (selectedId) await loadDetails(selectedId)
+    } catch (err: unknown) {
+      const e = err as { response?: { data?: { message?: string } } }
+      message.error(e.response?.data?.message ?? 'خطا در پرداخت قسط.')
+    } finally {
+      setPayingId(null)
+    }
+  }
+
+  const money = (v: number) => `${v.toLocaleString('fa-IR')} تومان`
+
+  const columns: ColumnsType<LoanInstallment> = [
+    { title: 'شماره قسط', dataIndex: 'installmentNumber', width: 100 },
+    { title: 'مبلغ', dataIndex: 'amount', render: money },
+    {
+      title: 'سررسید',
+      dataIndex: 'dueDate',
+      render: (d: string) => new Date(d).toLocaleDateString('fa-IR'),
+    },
+    {
+      title: 'وضعیت',
+      dataIndex: 'isPaid',
+      render: (paid: boolean) =>
+        paid ? <Tag color="green">پرداخت شده</Tag> : <Tag color="gold">پرداخت نشده</Tag>,
+    },
+    {
+      title: 'عملیات',
+      render: (_, row) =>
+        row.isPaid ? (
+          <span style={{ color: 'var(--text-muted)' }}>—</span>
+        ) : (
+          <Popconfirm
+            title="پرداخت قسط"
+            description={`مبلغ ${money(row.amount)} پرداخت شود؟`}
+            okText="بله، پرداخت کن"
+            cancelText="انصراف"
+            onConfirm={() => pay(row.id)}
+          >
+            <Button type="primary" size="small" loading={payingId === row.id}>
+              پرداخت
+            </Button>
+          </Popconfirm>
+        ),
+    },
+  ]
+
+  if (loading) return <Card loading />
+
+  if (payable.length === 0) {
+    return (
+      <Card>
+        <Empty description="وام فعالی نداری که قسط داشته باشد" />
+      </Card>
+    )
+  }
+
+  const progress = outstanding && outstanding.totalInstallments > 0
+    ? Math.round((outstanding.paidInstallments / outstanding.totalInstallments) * 100)
+    : 0
+
+  return (
+    <Row gutter={[16, 16]}>
+      <Col xs={24} lg={8}>
+        <Card title="وام‌های فعال">
+          <Select
+            style={{ width: '100%', marginBottom: 16 }}
+            value={selectedId}
+            onChange={setSelectedId}
+            options={payable.map((l) => ({
+              value: l.id,
+              label: `${l.loanType} — ${money(l.approvedAmount)}`,
+            }))}
+          />
+
+          {outstanding && (
+            <>
+              <Progress percent={progress} status={progress === 100 ? 'success' : 'active'} />
+              <Descriptions column={1} size="small" style={{ marginTop: 12 }}>
+                <Descriptions.Item label="کل بازپرداخت">
+                  {money(outstanding.totalPayableAmount)}
+                </Descriptions.Item>
+                <Descriptions.Item label="پرداخت‌شده">
+                  {money(outstanding.paidAmount)}
+                </Descriptions.Item>
+                <Descriptions.Item label="مانده">
+                  <b>{money(outstanding.outstandingAmount)}</b>
+                </Descriptions.Item>
+                <Descriptions.Item label="اقساط باقی‌مانده">
+                  {outstanding.remainingInstallments.toLocaleString('fa-IR')} از{' '}
+                  {outstanding.totalInstallments.toLocaleString('fa-IR')}
+                </Descriptions.Item>
+              </Descriptions>
+
+              {outstanding.isSettlementDemanded && (
+                <Alert
+                  type="error"
+                  showIcon
+                  style={{ marginTop: 12 }}
+                  message="تسویه‌ی یکجا مطالبه شده است"
+                  description={
+                    <>
+                      کل مانده باید تا تاریخ <b>{outstanding.settlementDueDatePersian}</b> پرداخت
+                      شود.
+                      {outstanding.settlementReason && <div>دلیل: {outstanding.settlementReason}</div>}
+                    </>
+                  }
+                />
+              )}
+            </>
+          )}
+        </Card>
+      </Col>
+
+      <Col xs={24} lg={16}>
+        <Card title="اقساط">
+          <Table
+            rowKey="id"
+            columns={columns}
+            dataSource={installments}
+            pagination={{ pageSize: 12 }}
+            locale={{ emptyText: <Empty description="قسطی ثبت نشده" /> }}
+          />
+        </Card>
+      </Col>
+    </Row>
+  )
+}
+
 function LoanHistorySection() {
   const [loans, setLoans] = useState<MyLoanItem[]>([])
   const [loading, setLoading] = useState(true)
@@ -387,8 +774,20 @@ function LoanHistorySection() {
 
   const columns: ColumnsType<MyLoanItem> = [
     { title: 'نوع وام', dataIndex: 'loanType' },
-    { title: 'مبلغ وام', dataIndex: 'requestedAmount', render: money },
+    { title: 'مبلغ درخواستی', dataIndex: 'requestedAmount', render: money },
+    { title: 'مبلغ تأییدشده', dataIndex: 'approvedAmount', render: money },
     { title: 'تعداد اقساط', dataIndex: 'installmentCount' },
+    {
+      title: 'کل بازپرداخت',
+      dataIndex: 'totalPayableAmount',
+      // تا قبل از تأیید هنوز محاسبه نشده و صفر است.
+      render: (v: number) => (v > 0 ? money(v) : '—'),
+    },
+    {
+      title: 'قسط ماهانه',
+      dataIndex: 'monthlyPaymentAmount',
+      render: (v: number) => (v > 0 ? money(v) : '—'),
+    },
     {
       title: 'وضعیت',
       dataIndex: 'status',

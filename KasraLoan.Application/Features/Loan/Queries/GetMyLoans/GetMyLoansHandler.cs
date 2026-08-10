@@ -42,7 +42,10 @@ namespace KasraLoan.Application.Features.Loan.Queries.GetMyLoans
                 RequestedAmount = loan.RequestedAmount,
                 ApprovedAmount = loan.ApprovedAmount,
                 InstallmentCount = loan.InstallmentCount,
-                Status = loan.Status.ToString()
+                Status = loan.Status.ToString(),
+                TotalPayableAmount = loan.TotalPayableAmount,
+                MonthlyPaymentAmount = loan.MonthlyPaymentAmount,
+                CreatedAt = loan.CreatedAt
             })
                 .ToList();
 

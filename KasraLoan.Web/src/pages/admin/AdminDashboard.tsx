@@ -23,6 +23,7 @@ import {
   UserAddOutlined,
   TeamOutlined,
   CrownOutlined,
+  AuditOutlined,
 } from '@ant-design/icons'
 import type { ColumnsType } from 'antd/es/table'
 import { DashboardLayout } from '../../components/DashboardLayout'
@@ -34,19 +35,34 @@ import {
   setLoanTypeStatus,
   createEmployee,
   getAllEmployees,
+  getAllLoans,
+  approveLoan,
+  rejectLoan,
+  getLoanInstallments,
+  getJobPositions,
 } from '../../api/services'
-import type { LoanType, LoanPermissionRequestItem } from '../../api/types'
+import type { JobPosition } from '../../api/services'
+import type {
+  LoanType,
+  LoanPermissionRequestItem,
+  AdminLoanItem,
+  LoanInstallment,
+} from '../../api/types'
 
 const statusTag: Record<string, { color: string; label: string }> = {
   Pending: { color: 'gold', label: 'در انتظار' },
   Approved: { color: 'green', label: 'تأیید شده' },
   Rejected: { color: 'red', label: 'رد شده' },
+  Active: { color: 'blue', label: 'فعال' },
+  Paid: { color: 'green', label: 'تسویه شده' },
+  Closed: { color: 'default', label: 'بسته شده' },
 }
 
 export function AdminDashboard() {
-  const [section, setSection] = useState('permissions')
+  const [section, setSection] = useState('loanRequests')
 
   const menuItems = [
+    { key: 'loanRequests', icon: <AuditOutlined />, label: 'درخواست‌های وام' },
     { key: 'permissions', icon: <FileProtectOutlined />, label: 'درخواست‌های مجوز' },
     { key: 'loans', icon: <BankOutlined />, label: 'مدیریت وام‌ها' },
     { key: 'addEmployee', icon: <UserAddOutlined />, label: 'افزودن کاربر' },
@@ -67,12 +83,193 @@ export function AdminDashboard() {
       selectedKey={section}
       onSelect={setSection}
     >
+      {section === 'loanRequests' && <LoanRequestsSection />}
       {section === 'permissions' && <PermissionRequestsSection />}
       {section === 'loans' && <LoanManagementSection />}
       {section === 'addEmployee' && <AddEmployeeSection />}
       {section === 'employees' && <PeopleSection role="Employee" title="لیست کارمندان" />}
       {section === 'admins' && <PeopleSection role="Admin" title="لیست ادمین‌ها" />}
     </DashboardLayout>
+  )
+}
+
+/**
+ * صف بررسی درخواست‌های وام.
+ *
+ * تأیید همین‌جا اقساط را می‌سازد، پس عمداً مبلغ و تعداد اقساط قبل از تأیید
+ * در جدول دیده می‌شوند تا ادمین کورکورانه تأیید نکند.
+ */
+function LoanRequestsSection() {
+  const { message } = App.useApp()
+  const [items, setItems] = useState<AdminLoanItem[]>([])
+  const [loading, setLoading] = useState(true)
+  const [busyId, setBusyId] = useState<string | null>(null)
+  const [detail, setDetail] = useState<{ loan: AdminLoanItem; installments: LoanInstallment[] } | null>(null)
+
+  async function load() {
+    setLoading(true)
+    try {
+      setItems(await getAllLoans())
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    load()
+  }, [])
+
+  async function approve(item: AdminLoanItem) {
+    setBusyId(item.id)
+    try {
+      await approveLoan(item.id)
+      message.success('وام تأیید شد و اقساط ساخته شدند.')
+      await load()
+    } catch (err: unknown) {
+      const e = err as { response?: { data?: { message?: string } } }
+      message.error(e.response?.data?.message ?? 'خطا در تأیید وام.')
+    } finally {
+      setBusyId(null)
+    }
+  }
+
+  function reject(item: AdminLoanItem) {
+    let reason = ''
+    Modal.confirm({
+      title: 'رد درخواست وام',
+      content: (
+        <Input.TextArea
+          rows={3}
+          placeholder="دلیل رد (به کارمند نمایش داده می‌شود)"
+          onChange={(e) => (reason = e.target.value)}
+        />
+      ),
+      okText: 'رد کن',
+      okButtonProps: { danger: true },
+      cancelText: 'انصراف',
+      onOk: async () => {
+        try {
+          await rejectLoan(item.id, reason)
+          message.success('درخواست وام رد شد.')
+          await load()
+        } catch (err: unknown) {
+          const e = err as { response?: { data?: { message?: string } } }
+          message.error(e.response?.data?.message ?? 'خطا در رد وام.')
+        }
+      },
+    })
+  }
+
+  async function showInstallments(loan: AdminLoanItem) {
+    const installments = await getLoanInstallments(loan.id)
+    setDetail({ loan, installments: installments.sort((a, b) => a.installmentNumber - b.installmentNumber) })
+  }
+
+  const money = (v: number) => (v > 0 ? `${v.toLocaleString('fa-IR')} تومان` : '—')
+
+  const columns: ColumnsType<AdminLoanItem> = [
+    { title: 'کارمند', dataIndex: 'employeeName' },
+    { title: 'نوع وام', dataIndex: 'loanTypeName' },
+    { title: 'مبلغ درخواستی', dataIndex: 'requestedAmount', render: money },
+    { title: 'مبلغ تأییدشده', dataIndex: 'approvedAmount', render: money },
+    { title: 'اقساط', dataIndex: 'installmentCount' },
+    { title: 'قسط ماهانه', dataIndex: 'monthlyPaymentAmount', render: money },
+    {
+      title: 'وضعیت',
+      dataIndex: 'status',
+      render: (s: string) => <Tag color={statusTag[s]?.color}>{statusTag[s]?.label ?? s}</Tag>,
+    },
+    {
+      title: 'تاریخ',
+      dataIndex: 'createdAt',
+      render: (d: string) => new Date(d).toLocaleDateString('fa-IR'),
+    },
+    {
+      title: 'عملیات',
+      render: (_, item) =>
+        item.status === 'Pending' ? (
+          <Space>
+            <Popconfirm
+              title="تأیید این وام؟"
+              description="با تأیید، اقساط ساخته می‌شوند."
+              onConfirm={() => approve(item)}
+              okText="بله"
+              cancelText="خیر"
+            >
+              <Button type="primary" size="small" loading={busyId === item.id}>
+                تأیید
+              </Button>
+            </Popconfirm>
+            <Button danger size="small" onClick={() => reject(item)}>
+              رد
+            </Button>
+          </Space>
+        ) : item.status === 'Rejected' ? (
+          <span style={{ color: '#999' }}>رد شده</span>
+        ) : (
+          <Button size="small" onClick={() => showInstallments(item)}>
+            اقساط
+          </Button>
+        ),
+    },
+  ]
+
+  const pendingCount = items.filter((i) => i.status === 'Pending').length
+
+  return (
+    <>
+      <Card
+        title={`درخواست‌های وام${pendingCount > 0 ? ` — ${pendingCount} مورد در انتظار` : ''}`}
+        extra={<Button onClick={load}>بروزرسانی</Button>}
+      >
+        <Table
+          rowKey="id"
+          loading={loading}
+          columns={columns}
+          dataSource={items}
+          pagination={{ pageSize: 8 }}
+        />
+      </Card>
+
+      <Modal
+        open={!!detail}
+        onCancel={() => setDetail(null)}
+        footer={null}
+        width={720}
+        title={detail ? `اقساط ${detail.loan.loanTypeName} — ${detail.loan.employeeName}` : ''}
+      >
+        {detail && (
+          <>
+            <Alert
+              type="info"
+              style={{ marginBottom: 16 }}
+              message={`کل بازپرداخت: ${money(detail.loan.totalPayableAmount)} (اصل ${money(detail.loan.approvedAmount)} + کارمزد ${detail.loan.annualFeePercent}٪ سالانه)`}
+            />
+            <Table
+              rowKey="id"
+              size="small"
+              dataSource={detail.installments}
+              pagination={{ pageSize: 12 }}
+              columns={[
+                { title: 'شماره', dataIndex: 'installmentNumber', width: 80 },
+                { title: 'مبلغ', dataIndex: 'amount', render: money },
+                {
+                  title: 'سررسید',
+                  dataIndex: 'dueDate',
+                  render: (d: string) => new Date(d).toLocaleDateString('fa-IR'),
+                },
+                {
+                  title: 'وضعیت',
+                  dataIndex: 'isPaid',
+                  render: (p: boolean) =>
+                    p ? <Tag color="green">پرداخت شده</Tag> : <Tag color="gold">پرداخت نشده</Tag>,
+                },
+              ]}
+            />
+          </>
+        )}
+      </Modal>
+    </>
   )
 }
 
@@ -215,6 +412,12 @@ function AddEmployeeSection() {
   const [form] = Form.useForm()
   const [submitting, setSubmitting] = useState(false)
   const [created, setCreated] = useState<{ username: string; temporaryPassword: string } | null>(null)
+  const [positions, setPositions] = useState<JobPosition[]>([])
+  const role = Form.useWatch('role', form)
+
+  useEffect(() => {
+    getJobPositions(true).then(setPositions).catch(() => {})
+  }, [])
 
   async function onFinish(values: {
     firstName: string
@@ -223,6 +426,7 @@ function AddEmployeeSection() {
     username: string
     hireDate: { toISOString: () => string }
     role: string
+    jobPositionId?: number
   }) {
     setSubmitting(true)
     try {
@@ -233,6 +437,7 @@ function AddEmployeeSection() {
         username: values.username,
         hireDate: values.hireDate.toISOString(),
         role: values.role,
+        jobPositionId: values.jobPositionId,
       })
       setCreated({ username: res.username, temporaryPassword: res.temporaryPassword })
       message.success('کاربر ایجاد شد.')
@@ -293,6 +498,25 @@ function AddEmployeeSection() {
                 ]}
               />
             </Form.Item>
+
+            {/* سمت شغلی فقط برای کارمند لازم است: حقوق و سقف وام از روی آن حساب می‌شود. */}
+            {role !== 'Admin' && (
+              <Form.Item
+                label="سمت شغلی"
+                name="jobPositionId"
+                rules={[{ required: true, message: 'انتخاب سمت شغلی برای کارمند الزامی است' }]}
+                extra="حقوق و در نتیجه سقف وام کارمند از روی این سمت محاسبه می‌شود."
+              >
+                <Select
+                  placeholder="انتخاب کنید"
+                  options={positions.map((p) => ({
+                    value: p.id,
+                    label: `${p.title} — ${p.baseSalary.toLocaleString('fa-IR')} تومان`,
+                  }))}
+                />
+              </Form.Item>
+            )}
+
             <Button type="primary" htmlType="submit" block loading={submitting}>
               ایجاد کاربر
             </Button>
@@ -331,6 +555,10 @@ interface EmployeeRow {
   personnelNumber: string
   role: string
   isActive: boolean
+  jobPositionTitle?: string | null
+  effectiveMonthlySalary: number
+  maxMonthlyInstallment: number
+  employmentStatus: string
 }
 
 function PeopleSection({ role, title }: { role: 'Admin' | 'Employee'; title: string }) {
@@ -347,12 +575,27 @@ function PeopleSection({ role, title }: { role: 'Admin' | 'Employee'; title: str
   // فقط افراد با نقش موردنظر همین بخش نمایش داده می‌شوند.
   const filtered = rows.filter((r) => r.role === role)
 
+  const money = (v: number) => (v > 0 ? `${v.toLocaleString('fa-IR')} تومان` : '—')
+
   const columns: ColumnsType<EmployeeRow> = [
     { title: 'نام', render: (_, r) => `${r.firstName} ${r.lastName}` },
     { title: 'نام کاربری', dataIndex: 'username' },
     { title: 'شماره پرسنلی', dataIndex: 'personnelNumber' },
+    ...(role === 'Employee'
+      ? ([
+          { title: 'سمت', dataIndex: 'jobPositionTitle', render: (v?: string) => v || '—' },
+          { title: 'حقوق', dataIndex: 'effectiveMonthlySalary', render: money },
+          { title: 'سقف قسط', dataIndex: 'maxMonthlyInstallment', render: money },
+          {
+            title: 'اشتغال',
+            dataIndex: 'employmentStatus',
+            render: (s: string) =>
+              s === 'Terminated' ? <Tag color="red">پایان همکاری</Tag> : <Tag color="green">مشغول</Tag>,
+          },
+        ] as ColumnsType<EmployeeRow>)
+      : []),
     {
-      title: 'وضعیت',
+      title: 'حساب کاربری',
       dataIndex: 'isActive',
       render: (v: boolean) => (v ? <Tag color="green">فعال</Tag> : <Tag>غیرفعال</Tag>),
     },

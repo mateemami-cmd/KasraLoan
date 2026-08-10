@@ -4,6 +4,9 @@ import type {
   LoanPermissionRequestItem,
   NotificationItem,
   MyLoanItem,
+  AdminLoanItem,
+  LoanInstallment,
+  LoanOutstanding,
   UpdateProfilePayload,
 } from './types'
 
@@ -29,6 +32,51 @@ export async function deleteProfilePicture() {
 export async function getMyLoans(): Promise<MyLoanItem[]> {
   const res = await api.get<MyLoanItem[]>('/loan/my-loans')
   return res.data
+}
+
+// ---------- Loan requests ----------
+export async function createLoanRequest(payload: {
+  loanTypeId: number
+  requestedAmount: number
+  installmentCount: number
+}) {
+  const res = await api.post('/loan/request', { request: payload })
+  return res.data as { loanRequestId: string; message: string }
+}
+
+/** لیست همه‌ی وام‌ها برای ادمین. */
+export async function getAllLoans(status?: string): Promise<AdminLoanItem[]> {
+  const res = await api.get<{ items: AdminLoanItem[] }>('/loan/all', {
+    params: { page: 1, pageSize: 100, status },
+  })
+  return res.data.items
+}
+
+export async function approveLoan(id: string) {
+  const res = await api.post(`/loan/approve/${id}`)
+  return res.data as { message: string }
+}
+
+export async function rejectLoan(id: string, rejectReason?: string) {
+  const res = await api.post(`/loan/reject/${id}`, { rejectReason })
+  return res.data as { message: string }
+}
+
+// ---------- Installments ----------
+export async function getLoanInstallments(loanId: string): Promise<LoanInstallment[]> {
+  const res = await api.get<{ data: LoanInstallment[] }>(`/loan/${loanId}/installments`)
+  return res.data.data ?? []
+}
+
+export async function getLoanOutstanding(loanId: string): Promise<LoanOutstanding> {
+  const res = await api.get<LoanOutstanding>(`/loan/${loanId}/outstanding`)
+  return res.data
+}
+
+/** پرداخت قسط. فقط صاحب وام مجاز است، نه ادمین. */
+export async function payInstallment(installmentId: string) {
+  const res = await api.post(`/loan/installments/${installmentId}/pay`)
+  return res.data as { message: string }
 }
 
 // ---------- Loan types ----------
@@ -99,6 +147,26 @@ export interface CreateEmployeePayload {
   username: string
   hireDate: string
   role?: string
+  /** برای نقش Employee الزامی است؛ حقوق و سقف وام از روی آن حساب می‌شود. */
+  jobPositionId?: number
+  /** حقوق اختصاصی؛ اگر خالی باشد حقوق پایه‌ی سمت استفاده می‌شود. */
+  monthlySalary?: number
+}
+
+// ---------- Job positions ----------
+export interface JobPosition {
+  id: number
+  title: string
+  baseSalary: number
+  isActive: boolean
+  employeeCount: number
+}
+
+export async function getJobPositions(activeOnly = false): Promise<JobPosition[]> {
+  const res = await api.get<{ items: JobPosition[] }>('/jobposition', {
+    params: { activeOnly },
+  })
+  return res.data.items
 }
 
 export async function createEmployee(payload: CreateEmployeePayload) {

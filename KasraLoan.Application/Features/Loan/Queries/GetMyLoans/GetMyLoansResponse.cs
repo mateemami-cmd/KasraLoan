@@ -19,5 +19,12 @@ namespace KasraLoan.Application.Features.Loan.Queries.GetMyLoans
         public int InstallmentCount { get; set; }
 
         public string Status { get; set; } = string.Empty;
+
+        /// <summary>اصل + کارمزد. تا قبل از تأیید صفر است.</summary>
+        public long TotalPayableAmount { get; set; }
+
+        public decimal MonthlyPaymentAmount { get; set; }
+
+        public DateTime CreatedAt { get; set; }
     }
 }

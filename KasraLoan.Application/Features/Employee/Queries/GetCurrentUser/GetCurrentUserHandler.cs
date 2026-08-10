@@ -17,17 +17,20 @@ namespace KasraLoan.Application.Features.Employee.Queries.GetCurrentUser
         private readonly IEmployeeRepository _employeeRepository;
         private readonly IEmployeeScoreRepository _employeeScoreRepository;
         private readonly IEmployeeScoreService _employeeScoreService;
+        private readonly IEmployeeSalaryService _employeeSalaryService;
 
         public GetCurrentUserHandler(
             ICurrentUserService currentUser,
             IEmployeeRepository employeeRepository,
             IEmployeeScoreRepository employeeScoreRepository,
-            IEmployeeScoreService employeeScoreService)
+            IEmployeeScoreService employeeScoreService,
+            IEmployeeSalaryService employeeSalaryService)
         {
             _currentUser = currentUser;
             _employeeRepository = employeeRepository;
             _employeeScoreRepository = employeeScoreRepository;
             _employeeScoreService = employeeScoreService;
+            _employeeSalaryService = employeeSalaryService;
         }
 
         public async Task<GetCurrentUserResponse> Handle(GetCurrentUserQuery request, CancellationToken cancellationToken)
@@ -56,7 +59,11 @@ namespace KasraLoan.Application.Features.Employee.Queries.GetCurrentUser
                 Email = employee.Email,
                 Role = employee.Role.ToString(),
                 Score = effectiveScore,
-                ProfilePictureUrl = employee.ProfilePictureUrl
+                ProfilePictureUrl = employee.ProfilePictureUrl,
+                JobPositionTitle = employee.JobPosition?.Title,
+                EffectiveMonthlySalary = _employeeSalaryService.GetEffectiveMonthlySalary(employee),
+                MaxMonthlyInstallment = _employeeSalaryService.GetMaxMonthlyInstallment(employee),
+                EmploymentStatus = employee.EmploymentStatus.ToString()
             };
         }
     }

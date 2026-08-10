@@ -29,5 +29,19 @@ namespace KasraLoan.Application.Features.Employee.Queries.GetCurrentUser
         public string Role { get; set; } = string.Empty;
 
         public string? ProfilePictureUrl { get; set; }
+
+        public string? JobPositionTitle { get; set; }
+
+        /// <summary>حقوق ماهانه‌ای که در محاسبات استفاده می‌شود.</summary>
+        public long EffectiveMonthlySalary { get; set; }
+
+        /// <summary>
+        /// سقف قسط ماهانه. فرم درخواست وام از روی همین عدد، پیش از ارسال به سرور،
+        /// به کارمند نشان می‌دهد چقدر می‌تواند بگیرد.
+        /// </summary>
+        public decimal MaxMonthlyInstallment { get; set; }
+
+        /// <summary>وضعیت اشتغال؛ کارمند غیرفعال اجازه‌ی درخواست وام جدید ندارد.</summary>
+        public string EmploymentStatus { get; set; } = string.Empty;
     }
 }

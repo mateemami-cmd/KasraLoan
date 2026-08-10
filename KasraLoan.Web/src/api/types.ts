@@ -18,6 +18,11 @@ export interface CurrentUser {
   score: number
   role: 'Admin' | 'Employee'
   profilePictureUrl?: string | null
+  jobPositionTitle?: string | null
+  effectiveMonthlySalary: number
+  /** سقف قسط ماهانه؛ فرم درخواست وام سقف مبلغ را از روی همین حساب می‌کند. */
+  maxMonthlyInstallment: number
+  employmentStatus: 'Active' | 'Terminated'
 }
 
 export interface LoanType {
@@ -56,6 +61,50 @@ export interface MyLoanItem {
   approvedAmount: number
   installmentCount: number
   status: string
+  totalPayableAmount: number
+  monthlyPaymentAmount: number
+  createdAt: string
+}
+
+/** یک وام در جدول ادمین. */
+export interface AdminLoanItem {
+  id: string
+  employeeId: string
+  employeeName: string
+  employeeUsername: string
+  loanTypeId: number
+  loanTypeName: string
+  requestedAmount: number
+  approvedAmount: number
+  installmentCount: number
+  status: string
+  totalPayableAmount: number
+  monthlyPaymentAmount: number
+  annualFeePercent: number
+  createdAt: string
+}
+
+export interface LoanInstallment {
+  id: string
+  installmentNumber: number
+  amount: number
+  dueDate: string
+  isPaid: boolean
+}
+
+/** مانده‌ی وام و وضعیت مطالبه‌ی تسویه‌ی یکجا. */
+export interface LoanOutstanding {
+  loanRequestId: string
+  totalPayableAmount: number
+  paidAmount: number
+  outstandingAmount: number
+  totalInstallments: number
+  paidInstallments: number
+  remainingInstallments: number
+  isSettlementDemanded: boolean
+  settlementDueDate?: string | null
+  settlementDueDatePersian?: string | null
+  settlementReason?: string | null
 }
 
 export interface UpdateProfilePayload {

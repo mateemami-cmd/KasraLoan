@@ -37,14 +37,26 @@ namespace KasraLoan.Application.Features.Loan.Commands.RejectLoan
 
             loan.Status = LoanStatus.Rejected;
 
+            var reason = string.IsNullOrWhiteSpace(request.RejectReason)
+                ? null
+                : request.RejectReason.Trim();
+
+            loan.RejectReason = reason;
+
             await _loanRequestRepository.SaveChangesAsync();
 
-            await _auditLogService.LogAsync(loan.EmployeeId, loan.Id, "RejectLoan", "Loan rejected by admin.");
+            await _auditLogService.LogAsync(
+                loan.EmployeeId,
+                loan.Id,
+                "RejectLoan",
+                $"Loan rejected by admin.{(reason != null ? $" Reason: {reason}" : string.Empty)}");
 
             await _notificationService.SendAsync(
                 loan.EmployeeId,
                 "رد درخواست وام",
-                "درخواست وام شما توسط کارشناس رد شد.");
+                reason != null
+                    ? $"درخواست وام شما رد شد. دلیل: {reason}"
+                    : "درخواست وام شما توسط کارشناس رد شد.");
 
             return new RejectLoanResponse
             {

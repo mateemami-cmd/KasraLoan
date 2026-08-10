@@ -90,11 +90,12 @@ namespace KasraLoan.API.Controllers
 
         [HttpPost("reject/{id}")]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> RejectLoan(Guid id)
+        public async Task<IActionResult> RejectLoan(Guid id, [FromBody] RejectLoanRequestDto? body = null)
         {
             var result = await _mediator.Send(new RejectLoanCommand
             {
-                LoanRequestId = id
+                LoanRequestId = id,
+                RejectReason = body?.RejectReason
             });
 
             return Ok(result);
