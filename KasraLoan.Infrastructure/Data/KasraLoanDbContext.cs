@@ -123,6 +123,16 @@ namespace KasraLoan.Infrastructure.Data
                 .WithMany(x => x.LoanRequests)
                 .HasForeignKey(x => x.LoanTypeId);
 
+            // جزئیات مخصوص هر نوع وام در یک ستون jsonb؛ در کد کلاس است، در
+            // دیتابیس یک ستون. با اضافه شدن انواع دیگر، فقط زیرشاخه اضافه می‌شود
+            // و مایگریشن جدید لازم نیست.
+            modelBuilder.Entity<LoanRequest>()
+                .OwnsOne(x => x.Details, details =>
+                {
+                    details.ToJson();
+                    details.OwnsOne(d => d.Travel);
+                });
+
             modelBuilder.Entity<LoanDocument>()
                 .HasOne(x => x.LoanRequest)
                 .WithMany(x => x.LoanDocuments)

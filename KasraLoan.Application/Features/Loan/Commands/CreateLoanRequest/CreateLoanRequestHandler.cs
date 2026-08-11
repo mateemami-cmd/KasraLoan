@@ -1,11 +1,15 @@
 ﻿using KasraLoan.Application.Common.Exceptions;
+using KasraLoan.Application.DTOs.Loans;
 using KasraLoan.Application.Interfaces.Repositories;
 using KasraLoan.Application.Interfaces.Services;
 using KasraLoan.Application.LoanRules;
 using KasraLoan.Application.Services.Auth;
+using KasraLoan.Domain.Entities;
+using KasraLoan.Domain.Enums;
 using MediatR;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -22,6 +26,9 @@ namespace KasraLoan.Application.Features.Loan.Commands.CreateLoanRequest
         private readonly ILoanRuleEngine _loanRuleEngine;
         private readonly ICurrentUserService _currentUserService;
         private readonly INotificationService _notificationService;
+        private readonly IFileStorageService _fileStorageService;
+        private readonly ILoanDocumentRepository _loanDocumentRepository;
+
         public CreateLoanRequestHandler(
         ILoanRequestRepository loanRequestRepository,
         ILoanTypeRepository loanTypeRepository,
@@ -30,7 +37,9 @@ namespace KasraLoan.Application.Features.Loan.Commands.CreateLoanRequest
         IEmployeeScoreService employeeScoreService,
         ILoanRuleEngine loanRuleEngine,
         ICurrentUserService currentUserService,
-        INotificationService notificationService)
+        INotificationService notificationService,
+        IFileStorageService fileStorageService,
+        ILoanDocumentRepository loanDocumentRepository)
         {
             _loanRequestRepository = loanRequestRepository;
             _loanTypeRepository = loanTypeRepository;
@@ -40,6 +49,8 @@ namespace KasraLoan.Application.Features.Loan.Commands.CreateLoanRequest
             _loanRuleEngine = loanRuleEngine;
             _currentUserService = currentUserService;
             _notificationService = notificationService;
+            _fileStorageService = fileStorageService;
+            _loanDocumentRepository = loanDocumentRepository;
         }
 
         public async Task<CreateLoanRequestResponse> Handle(CreateLoanRequestCommand request, CancellationToken cancellationToken)
@@ -122,8 +133,16 @@ namespace KasraLoan.Application.Features.Loan.Commands.CreateLoanRequest
                 request.Request.InstallmentCount,
                 ruleResult.MaxInstallments);
 
+            // مدرک قبل از ساخته شدن درخواست بررسی می‌شود: وامی که مدرک لازم دارد
+            // نباید حتی ثبت شود اگر مدرکی همراهش نیست.
+            ValidateAttachments(request.Attachments, ruleResult.RequiresDocument,
+                ruleResult.RequiredDocumentDescription);
+
+            var details = BuildDetails(loanType, request.Request);
+
             var loanRequest = new Domain.Entities.LoanRequest
             {
+                Details = details,
                 Id = Guid.NewGuid(),
                 EmployeeId = employeeId,
                 LoanTypeId = loanType.Id,
@@ -141,6 +160,8 @@ namespace KasraLoan.Application.Features.Loan.Commands.CreateLoanRequest
             await _loanRequestRepository.AddAsync(loanRequest);
             await _loanRequestRepository.SaveChangesAsync();
 
+            await SaveAttachmentsAsync(loanRequest.Id, request.Attachments);
+
             // مجوز استثنایی یک‌بارمصرف است: همین که با موفقیت استفاده شد، مصرف می‌شود.
             if (hasPermissionOverride)
             {
@@ -157,11 +178,113 @@ namespace KasraLoan.Application.Features.Loan.Commands.CreateLoanRequest
             return new CreateLoanRequestResponse
             {
                 LoanRequestId = loanRequest.Id,
-                Message = loanRequest.RequiresDocument
-                    ? $"درخواست وام ثبت شد. برای بررسی، {loanRequest.RequiredDocumentDescription} را بارگذاری کنید."
-                    : "درخواست وام با موفقیت ثبت شد",
+                Message = "درخواست وام با موفقیت ثبت شد",
                 RequiresDocument = loanRequest.RequiresDocument,
                 RequiredDocumentDescription = loanRequest.RequiredDocumentDescription
+            };
+        }
+
+        /// <summary>حداکثر تعداد فایل پیوست برای یک درخواست.</summary>
+        private const int MaxAttachments = 2;
+
+        private const long MaxAttachmentBytes = 5 * 1024 * 1024;
+
+        private static readonly string[] AllowedExtensions = { ".jpg", ".jpeg", ".png", ".pdf" };
+
+        private static void ValidateAttachments(
+            List<LoanAttachment> attachments,
+            bool requiresDocument,
+            string? requiredDescription)
+        {
+            if (requiresDocument && attachments.Count == 0)
+            {
+                throw new BusinessRuleException(
+                    $"برای این وام بارگذاری {requiredDescription ?? "مدرک"} الزامی است؛ " +
+                    "بدون آن امکان ثبت درخواست وجود ندارد.");
+            }
+
+            if (attachments.Count > MaxAttachments)
+                throw new BusinessRuleException($"حداکثر {MaxAttachments} فایل می‌توانید بارگذاری کنید.");
+
+            foreach (var file in attachments)
+            {
+                if (file.Content.Length == 0)
+                    throw new BusinessRuleException("فایل خالی است.");
+
+                if (file.Content.Length > MaxAttachmentBytes)
+                    throw new BusinessRuleException($"حجم «{file.FileName}» بیشتر از ۵ مگابایت است.");
+
+                var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
+
+                if (!AllowedExtensions.Contains(extension))
+                {
+                    throw new BusinessRuleException(
+                        $"فرمت «{file.FileName}» مجاز نیست. فقط JPG، PNG و PDF پذیرفته می‌شود.");
+                }
+            }
+        }
+
+        private async Task SaveAttachmentsAsync(Guid loanRequestId, List<LoanAttachment> attachments)
+        {
+            if (attachments.Count == 0)
+                return;
+
+            foreach (var file in attachments)
+            {
+                var path = await _fileStorageService.SaveFileAsync(
+                    file.Content, file.FileName, file.ContentType);
+
+                await _loanDocumentRepository.AddAsync(new LoanDocument
+                {
+                    LoanRequestId = loanRequestId,
+                    FileName = file.FileName,
+                    FilePath = path,
+                    UploadedAt = DateTime.UtcNow
+                });
+            }
+
+            await _loanDocumentRepository.SaveChangesAsync();
+        }
+
+        /// <summary>
+        /// جزئیات مخصوص نوع وام را می‌سازد و اعتبارسنجی می‌کند.
+        /// انواعی که هنوز فرم اختصاصی ندارند، null برمی‌گردانند.
+        /// </summary>
+        private static LoanDetails? BuildDetails(LoanType loanType, CreateLoanRequestDto dto)
+        {
+            if (loanType.Type != LoanTypeEnum.TravelLoan)
+                return null;
+
+            if (dto.Travel == null)
+                throw new BusinessRuleException("اطلاعات سفر را کامل کنید.");
+
+            var travel = dto.Travel;
+
+            if (string.IsNullOrWhiteSpace(travel.Destination))
+                throw new BusinessRuleException("مقصد سفر را وارد کنید.");
+
+            if (!Enum.TryParse<TravelDestinationType>(
+                    travel.DestinationType, ignoreCase: true, out var destinationType))
+            {
+                throw new BusinessRuleException("نوع مقصد معتبر نیست.");
+            }
+
+            if (travel.EndDate.Date <= travel.StartDate.Date)
+                throw new BusinessRuleException("تاریخ پایان سفر باید بعد از تاریخ شروع باشد.");
+
+            if (travel.StartDate.Date < DateTime.UtcNow.Date)
+                throw new BusinessRuleException("تاریخ شروع سفر نمی‌تواند در گذشته باشد.");
+
+            return new LoanDetails
+            {
+                Travel = new TravelLoanDetails
+                {
+                    DestinationType = destinationType,
+                    Destination = travel.Destination.Trim(),
+                    StartDate = DateTime.SpecifyKind(travel.StartDate.Date, DateTimeKind.Utc),
+                    EndDate = DateTime.SpecifyKind(travel.EndDate.Date, DateTimeKind.Utc),
+                    Notes = string.IsNullOrWhiteSpace(travel.Notes) ? null : travel.Notes.Trim()
+                }
             };
         }
     }

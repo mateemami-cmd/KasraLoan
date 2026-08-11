@@ -112,7 +112,7 @@ public class ApproveLoanDocumentRuleTests
     }
 
     [Fact]
-    public void Travel_Loan_Rule_Requires_No_Document()
+    public void Travel_Loan_Rule_Requires_A_Ticket_Or_Booking()
     {
         var rule = new TravelLoanRule();
 
@@ -120,6 +120,23 @@ public class ApproveLoanDocumentRuleTests
         {
             Employee = new Employee(),
             LoanType = new LoanType { Type = LoanTypeEnum.TravelLoan },
+            RequestedAmount = 10_000_000,
+            EmployeeScore = 6000,
+        });
+
+        result.RequiresDocument.Should().BeTrue();
+        result.RequiredDocumentDescription.Should().Contain("بلیط");
+    }
+
+    [Fact]
+    public void Immediate_Payment_Loan_Requires_No_Document()
+    {
+        var rule = new ImmediatePaymentLoanRule();
+
+        var result = rule.Evaluate(new Application.LoanRules.LoanRuleContext
+        {
+            Employee = new Employee(),
+            LoanType = new LoanType { Type = LoanTypeEnum.ImmediatePaymentLoan },
             RequestedAmount = 10_000_000,
             EmployeeScore = 6000,
         });

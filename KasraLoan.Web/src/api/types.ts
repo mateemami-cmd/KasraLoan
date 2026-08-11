@@ -87,6 +87,33 @@ export interface AdminLoanItem {
   createdAt: string
 }
 
+/** یک گزینه‌ی تعداد قسط با مبلغ ماهانه‌ی محاسبه‌شده در سرور. */
+export interface InstallmentOption {
+  installmentCount: number
+  monthlyPayment: number
+  totalPayable: number
+  totalFee: number
+  /** آیا قسط از سقف حقوق کارمند عبور نمی‌کند. */
+  isAffordable: boolean
+}
+
+/** آنچه فرم درخواست وام برای پر کردن لیست‌هایش لازم دارد. */
+export interface LoanQuote {
+  loanTypeId: number
+  loanTypeName: string
+  isEligible: boolean
+  ineligibilityReason?: string | null
+  minAmount: number
+  maxAmount: number
+  amountStep: number
+  amountOptions: number[]
+  annualFeePercent: number
+  requiresDocument: boolean
+  requiredDocumentDescription?: string | null
+  maxMonthlyInstallment: number
+  installmentOptions: InstallmentOption[]
+}
+
 /** مدرک پیوست‌شده به یک وام. */
 export interface LoanDocumentItem {
   id: string

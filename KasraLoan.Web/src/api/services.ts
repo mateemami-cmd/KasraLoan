@@ -13,6 +13,7 @@ import type {
   GatewaySession,
   PaymentMethod,
   LoanDocumentItem,
+  LoanQuote,
 } from './types'
 
 // ---------- Profile ----------
@@ -40,12 +41,46 @@ export async function getMyLoans(): Promise<MyLoanItem[]> {
 }
 
 // ---------- Loan requests ----------
+/**
+ * سقف، گزینه‌های مبلغ و — اگر مبلغ بدهی — گزینه‌های تعداد اقساط با مبلغ ماهانه.
+ * همه‌ی محاسبات سمت سرور است تا فرم فرمول کارمزد را تکرار نکند.
+ */
+export async function getLoanQuote(loanTypeId: number, amount?: number): Promise<LoanQuote> {
+  const res = await api.get<LoanQuote>('/loan/quote', {
+    params: { loanTypeId, amount },
+  })
+  return res.data
+}
+
+/**
+ * ثبت درخواست وام همراه مدارک، در یک درخواست multipart.
+ * برای وام‌هایی که مدرک لازم دارند، سرور بدون فایل درخواست را نمی‌سازد.
+ */
 export async function createLoanRequest(payload: {
   loanTypeId: number
   requestedAmount: number
   installmentCount: number
+  destinationType?: string
+  destination?: string
+  startDate?: string
+  endDate?: string
+  notes?: string
+  files?: File[]
 }) {
-  const res = await api.post('/loan/request', { request: payload })
+  const form = new FormData()
+  form.append('LoanTypeId', String(payload.loanTypeId))
+  form.append('RequestedAmount', String(payload.requestedAmount))
+  form.append('InstallmentCount', String(payload.installmentCount))
+
+  if (payload.destinationType) form.append('DestinationType', payload.destinationType)
+  if (payload.destination) form.append('Destination', payload.destination)
+  if (payload.startDate) form.append('StartDate', payload.startDate)
+  if (payload.endDate) form.append('EndDate', payload.endDate)
+  if (payload.notes) form.append('Notes', payload.notes)
+
+  for (const file of payload.files ?? []) form.append('Files', file)
+
+  const res = await api.post('/loan/request', form)
   return res.data as {
     loanRequestId: string
     message: string

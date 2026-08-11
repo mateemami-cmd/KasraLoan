@@ -49,6 +49,11 @@ namespace KasraLoan.Domain.Entities
         /// <summary>توضیح مدرک لازم؛ به کارمند و ادمین نمایش داده می‌شود.</summary>
         public string? RequiredDocumentDescription { get; set; }
 
+        /// <summary>
+        /// جزئیات مخصوص نوع وام (مقصد سفر، تاریخ‌ها و ...) در یک ستون jsonb.
+        /// </summary>
+        public LoanDetails? Details { get; set; }
+
         // ───── تسویه‌ی زودهنگام ─────
         // وقتی کل مانده‌ی وام یکجا مطالبه می‌شود و دیگر منتظر اقساط ماهانه نمی‌مانیم.
         // فعلاً تنها محرکش پایان همکاری است (حقوقی نمانده که ازش کسر شود)، ولی

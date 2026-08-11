@@ -7,6 +7,8 @@ using KasraLoan.Application.Features.Loan.Queries.GetAdminDashboard;
 using KasraLoan.Application.Features.Loan.Queries.GetLoanById;
 using KasraLoan.Application.Features.Loan.Queries.GetLoanDocuments;
 using KasraLoan.Application.Features.Loan.Queries.GetLoanOutstanding;
+using KasraLoan.Application.Features.Loan.Queries.GetLoanQuote;
+using KasraLoan.API.Models;
 using KasraLoan.Application.Features.Loan.Queries.GetMyLoans;
 using KasraLoan.Application.Features.Loan.Queries.GetMyLoans.GetAllLoans;
 using KasraLoan.Application.Interfaces.Services;
@@ -32,7 +34,79 @@ namespace KasraLoan.API.Controllers
             _loanInstallmentService = loanInstallmentService;
         }
 
+        /// <summary>
+        /// اطلاعات لازم برای پر کردن فرم درخواست وام: سقف، گزینه‌های مبلغ، و —
+        /// اگر مبلغ داده شود — گزینه‌های تعداد اقساط با مبلغ ماهانه‌ی هرکدام.
+        ///
+        /// همه‌ی محاسبات سمت سرور انجام می‌شود تا فرم فرمول کارمزد و سقف را تکرار نکند.
+        /// </summary>
+        [HttpGet("quote")]
+        public async Task<IActionResult> GetQuote(
+            [FromQuery] int loanTypeId,
+            [FromQuery] long? amount = null)
+        {
+            var result = await _mediator.Send(new GetLoanQuoteQuery
+            {
+                LoanTypeId = loanTypeId,
+                Amount = amount
+            });
+
+            return Ok(result);
+        }
+
+        /// <summary>
+        /// ثبت درخواست وام همراه با مدارک، در یک درخواست multipart.
+        ///
+        /// مدارک عمداً همین‌جا گرفته می‌شوند و نه در اندپوینت جدا: برای وام‌هایی
+        /// که مدرک لازم دارند، درخواستِ بدون مدرک اصلاً نباید ساخته شود.
+        /// </summary>
         [HttpPost("request")]
+        public async Task<IActionResult> CreateLoanRequestWithFiles(
+            [FromForm] CreateLoanRequestForm form)
+        {
+            var command = new CreateLoanRequestCommand
+            {
+                Request = new CreateLoanRequestDto
+                {
+                    LoanTypeId = form.LoanTypeId,
+                    RequestedAmount = form.RequestedAmount,
+                    InstallmentCount = form.InstallmentCount,
+                    Travel = form.HasTravelDetails
+                        ? new TravelDetailsDto
+                        {
+                            DestinationType = form.DestinationType ?? string.Empty,
+                            Destination = form.Destination ?? string.Empty,
+                            StartDate = form.StartDate ?? default,
+                            EndDate = form.EndDate ?? default,
+                            Notes = form.Notes
+                        }
+                        : null
+                }
+            };
+
+            foreach (var file in form.Files ?? new List<IFormFile>())
+            {
+                if (file.Length == 0)
+                    continue;
+
+                using var stream = new MemoryStream();
+                await file.CopyToAsync(stream);
+
+                command.Attachments.Add(new LoanAttachment
+                {
+                    Content = stream.ToArray(),
+                    FileName = file.FileName,
+                    ContentType = file.ContentType
+                });
+            }
+
+            var result = await _mediator.Send(command);
+
+            return Ok(result);
+        }
+
+        /// <summary>نسخه‌ی JSON برای انواع وامی که مدرک و فرم اختصاصی ندارند.</summary>
+        [HttpPost("request-json")]
         public async Task<IActionResult> CreateLoanRequest(CreateLoanRequestCommand command)
         {
             var result = await _mediator.Send(command);

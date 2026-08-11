@@ -34,7 +34,9 @@ namespace KasraLoan.Application.LoanRules.Implementations
                 Message = "OK",
                 MaxAllowedAmount = maxAllowedAmount,
                 MaxInstallments = 10,
-                AnnualFeePercent = 0
+                AnnualFeePercent = 0,
+                RequiresDocument = true,
+                RequiredDocumentDescription = "بلیط، رزرو اقامتگاه یا پیش‌فاکتور آژانس"
             };
         }
     }

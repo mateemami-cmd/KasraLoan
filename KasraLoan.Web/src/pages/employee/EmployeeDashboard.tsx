@@ -21,7 +21,7 @@ import {
   Badge,
   List,
   Drawer,
-  InputNumber,
+
   Descriptions,
   Progress,
   DatePicker,
@@ -50,7 +50,6 @@ import {
   getUnreadCount,
   getMyNotifications,
   markAllNotificationsRead,
-  createLoanRequest,
   getLoanInstallments,
   getLoanOutstanding,
   payInstallment,
@@ -58,8 +57,8 @@ import {
   selectPaymentMethod,
   startGatewayPayment,
   submitCheque,
-  uploadLoanDocument,
 } from '../../api/services'
+import { LoanRequestModal } from './LoanRequestModal'
 import type {
   LoanType,
   LoanPermissionRequestItem,
@@ -71,28 +70,6 @@ import type {
 } from '../../api/types'
 
 const MIN_SCORE = 600
-
-/**
- * کارمزد سالانه‌ی هر نوع وام، برای تخمین قسط در فرم — همان اعدادی که در
- * قوانین بک‌اند هستند. اگر آن‌جا عوض شد، اینجا هم باید عوض شود؛ تا وقتی
- * قوانین از دیتابیس خوانده نشوند راه بهتری نیست.
- */
-const LOAN_FEE_PERCENT: Record<string, number> = {
-  TravelLoan: 0,
-  SpecialCaseLoan: 4,
-  MarriageLoan: 5,
-  ImmediatePaymentLoan: 2,
-}
-
-/**
- * انواع وامی که مدرک لازم دارند — فقط برای اطلاع‌رسانی زودهنگام در فرم.
- * مرجع واقعی قانونِ بک‌اند است؛ پاسخِ ثبت درخواست تعیین می‌کند مرحله‌ی
- * بارگذاری باز شود یا نه.
- */
-const REQUIRES_DOCUMENT: Record<string, string> = {
-  MarriageLoan: 'تصویر سند ازدواج',
-  SpecialCaseLoan: 'مدرک مثبِت مورد خاص',
-}
 
 const statusTag: Record<string, { color: string; label: string }> = {
   Pending: { color: 'gold', label: 'در انتظار بررسی' },
@@ -349,270 +326,9 @@ function LoansSection() {
       <LoanRequestModal
         loanType={selected}
         onClose={() => setSelected(null)}
+        onCreated={() => setSelected(null)}
       />
     </>
-  )
-}
-
-/**
- * فرم درخواست وام.
- *
- * سقف مبلغ همین‌جا و پیش از ارسال تخمین زده می‌شود تا کارمند قبل از خوردن به
- * خطای سرور بداند چه چیزی ممکن است. مرجع نهایی همچنان بک‌اند است — این فقط
- * راهنماست، نه جایگزین قانون.
- */
-function LoanRequestModal({
-  loanType,
-  onClose,
-}: {
-  loanType: LoanType | null
-  onClose: () => void
-}) {
-  const { user } = useAuth()
-  const { message } = App.useApp()
-  const [form] = Form.useForm()
-  const [submitting, setSubmitting] = useState(false)
-  const [amount, setAmount] = useState<number>(0)
-  const [months, setMonths] = useState<number>(12)
-
-  // مرحله‌ی دوم: بعد از ثبت درخواست، اگر نوع وام مدرک بخواهد.
-  // اندپوینت آپلود شناسه‌ی وام می‌خواهد، پس قبل از ثبت نمی‌شود فایل فرستاد.
-  const [created, setCreated] = useState<{
-    loanRequestId: string
-    requiredDocumentDescription?: string | null
-  } | null>(null)
-  const [docFile, setDocFile] = useState<File | null>(null)
-  const [uploading, setUploading] = useState(false)
-
-  useEffect(() => {
-    if (loanType) {
-      form.resetFields()
-      setAmount(0)
-      setMonths(12)
-      setCreated(null)
-      setDocFile(null)
-    }
-  }, [loanType, form])
-
-  if (!loanType) return null
-
-  const cap = user?.maxMonthlyInstallment ?? 0
-
-  // همان فرمول بک‌اند: کارمزد سالانه‌ی ساده روی اصل مبلغ.
-  const feeRate = (LOAN_FEE_PERCENT[loanType.type] ?? 0) / 100
-  const feeMultiplier = 1 + feeRate * (months / 12)
-
-  const maxBySalary = cap > 0 ? Math.floor((cap * months) / feeMultiplier) : 0
-  const estimatedTotal = Math.round(amount * feeMultiplier)
-  const estimatedMonthly = months > 0 ? Math.round(estimatedTotal / months) : 0
-  const overCap = amount > 0 && estimatedMonthly > cap
-
-  async function onFinish(values: { requestedAmount: number; installmentCount: number }) {
-    setSubmitting(true)
-    try {
-      const res = await createLoanRequest({
-        loanTypeId: loanType!.id,
-        requestedAmount: values.requestedAmount,
-        installmentCount: values.installmentCount,
-      })
-
-      if (res.requiresDocument) {
-        // درخواست ثبت شد ولی تا مدرک نیاید تأیید نمی‌شود؛ مودال باز می‌ماند.
-        setCreated({
-          loanRequestId: res.loanRequestId,
-          requiredDocumentDescription: res.requiredDocumentDescription,
-        })
-        message.success(res.message)
-        return
-      }
-
-      message.success('درخواست وام ثبت شد و در انتظار بررسی ادمین است.')
-      onClose()
-    } catch (err: unknown) {
-      const e = err as { response?: { data?: { message?: string } } }
-      message.error(e.response?.data?.message ?? 'خطا در ثبت درخواست وام.')
-    } finally {
-      setSubmitting(false)
-    }
-  }
-
-  async function uploadDocument() {
-    if (!docFile || !created) return
-
-    setUploading(true)
-    try {
-      const res = await uploadLoanDocument(created.loanRequestId, docFile)
-
-      if (!res.isSuccess) {
-        message.error(res.message)
-        return
-      }
-
-      message.success('مدرک بارگذاری شد. درخواست شما در انتظار بررسی ادمین است.')
-      onClose()
-    } catch (err: unknown) {
-      const e = err as { response?: { data?: { message?: string } } }
-      message.error(e.response?.data?.message ?? 'خطا در بارگذاری مدرک.')
-    } finally {
-      setUploading(false)
-    }
-  }
-
-  const money = (v: number) => `${Math.max(0, v).toLocaleString('fa-IR')} تومان`
-
-  // مرحله‌ی دوم: بارگذاری مدرک برای وامی که تازه ثبت شد.
-  if (created) {
-    return (
-      <Modal
-        open
-        onCancel={onClose}
-        footer={null}
-        title="بارگذاری مدرک"
-        destroyOnHidden
-        maskClosable={false}
-      >
-        <Alert
-          type="warning"
-          showIcon
-          style={{ marginBottom: 16 }}
-          message={`برای این وام، ${created.requiredDocumentDescription ?? 'مدرک'} الزامی است.`}
-          description="درخواست شما ثبت شد، اما تا زمانی که مدرک بارگذاری نشود ادمین نمی‌تواند آن را تأیید کند."
-        />
-
-        <Upload
-          beforeUpload={(f) => {
-            setDocFile(f)
-            return false
-          }}
-          maxCount={1}
-          accept=".jpg,.jpeg,.png,.pdf"
-          onRemove={() => setDocFile(null)}
-        >
-          <Button icon={<UploadOutlined />}>انتخاب فایل</Button>
-        </Upload>
-
-        <div style={{ color: 'var(--text-muted)', fontSize: 12, margin: '8px 0 16px' }}>
-          فرمت‌های مجاز: JPG، PNG، PDF — حداکثر ۵ مگابایت
-        </div>
-
-        <Button
-          type="primary"
-          block
-          loading={uploading}
-          disabled={!docFile}
-          onClick={uploadDocument}
-        >
-          بارگذاری و ارسال برای بررسی
-        </Button>
-
-        <Button type="text" block style={{ marginTop: 8 }} onClick={onClose}>
-          بعداً بارگذاری می‌کنم
-        </Button>
-      </Modal>
-    )
-  }
-
-  return (
-    <Modal
-      open
-      onCancel={onClose}
-      footer={null}
-      title={`درخواست ${loanType.name}`}
-      destroyOnHidden
-    >
-      {REQUIRES_DOCUMENT[loanType.type] && (
-        <Alert
-          type="info"
-          showIcon
-          style={{ marginBottom: 16 }}
-          message={`این وام ${REQUIRES_DOCUMENT[loanType.type]} لازم دارد.`}
-          description="بعد از ثبت درخواست، در مرحله‌ی بعد فایل را بارگذاری می‌کنید."
-        />
-      )}
-
-      <Form
-        form={form}
-        layout="vertical"
-        onFinish={onFinish}
-        initialValues={{ installmentCount: 12 }}
-      >
-        <Form.Item
-          label="مبلغ درخواستی (تومان)"
-          name="requestedAmount"
-          rules={[
-            { required: true, message: 'مبلغ را وارد کنید' },
-            {
-              type: 'number',
-              min: 1_000_000,
-              message: 'مبلغ باید حداقل ۱,۰۰۰,۰۰۰ تومان باشد',
-            },
-          ]}
-        >
-          <InputNumber
-            style={{ width: '100%' }}
-            step={1_000_000}
-            controls={false}
-            formatter={(v) => `${v}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-            parser={(v) => Number((v ?? '').replace(/,/g, ''))}
-            onChange={(v) => setAmount(Number(v) || 0)}
-            placeholder="مثلاً 100000000"
-          />
-        </Form.Item>
-
-        <Form.Item
-          label="تعداد اقساط"
-          name="installmentCount"
-          rules={[{ required: true, message: 'تعداد اقساط را انتخاب کنید' }]}
-        >
-          <Select
-            onChange={(v) => setMonths(Number(v))}
-            options={[6, 12, 18, 24, 36].map((m) => ({
-              value: m,
-              label: `${m.toLocaleString('fa-IR')} قسط`,
-            }))}
-          />
-        </Form.Item>
-
-        <Card size="small" style={{ marginBottom: 16, background: 'rgba(0,0,0,0.02)' }}>
-          <Row gutter={[8, 8]}>
-            <Col span={12}>سقف قسط ماهانه شما:</Col>
-            <Col span={12} style={{ textAlign: 'left', fontWeight: 600 }}>{money(cap)}</Col>
-
-            <Col span={12}>بیشترین وام در {months.toLocaleString('fa-IR')} قسط:</Col>
-            <Col span={12} style={{ textAlign: 'left', fontWeight: 600 }}>{money(maxBySalary)}</Col>
-
-            {amount > 0 && (
-              <>
-                <Col span={12}>کل بازپرداخت:</Col>
-                <Col span={12} style={{ textAlign: 'left' }}>{money(estimatedTotal)}</Col>
-
-                <Col span={12}>قسط ماهانه:</Col>
-                <Col
-                  span={12}
-                  style={{ textAlign: 'left', fontWeight: 700, color: overCap ? '#cf1322' : '#389e0d' }}
-                >
-                  {money(estimatedMonthly)}
-                </Col>
-              </>
-            )}
-          </Row>
-        </Card>
-
-        {overCap && (
-          <Alert
-            type="warning"
-            showIcon
-            style={{ marginBottom: 16 }}
-            message="قسط از سقف حقوق شما بیشتر است"
-            description={`مبلغ را کمتر کنید یا تعداد اقساط را بالا ببرید. با ${months.toLocaleString('fa-IR')} قسط، حداکثر ${money(maxBySalary)} می‌توانید بگیرید.`}
-          />
-        )}
-
-        <Button type="primary" htmlType="submit" block loading={submitting}>
-          ثبت درخواست
-        </Button>
-      </Form>
-    </Modal>
   )
 }
 
