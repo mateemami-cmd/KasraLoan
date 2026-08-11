@@ -81,7 +81,18 @@ export interface AdminLoanItem {
   totalPayableAmount: number
   monthlyPaymentAmount: number
   annualFeePercent: number
+  requiresDocument: boolean
+  requiredDocumentDescription?: string | null
+  hasDocument: boolean
   createdAt: string
+}
+
+/** مدرک پیوست‌شده به یک وام. */
+export interface LoanDocumentItem {
+  id: string
+  fileName: string
+  filePath: string
+  uploadedAt: string
 }
 
 export interface LoanInstallment {

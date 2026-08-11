@@ -34,7 +34,9 @@ namespace KasraLoan.Application.LoanRules.Implementations
                 Message = "OK",
                 MaxAllowedAmount = maxAmount,
                 MaxInstallments = 24,
-                AnnualFeePercent = 5
+                AnnualFeePercent = 5,
+                RequiresDocument = true,
+                RequiredDocumentDescription = "تصویر سند ازدواج"
             };
         }
     }

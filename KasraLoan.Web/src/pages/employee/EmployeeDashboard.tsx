@@ -58,6 +58,7 @@ import {
   selectPaymentMethod,
   startGatewayPayment,
   submitCheque,
+  uploadLoanDocument,
 } from '../../api/services'
 import type {
   LoanType,
@@ -81,6 +82,16 @@ const LOAN_FEE_PERCENT: Record<string, number> = {
   SpecialCaseLoan: 4,
   MarriageLoan: 5,
   ImmediatePaymentLoan: 2,
+}
+
+/**
+ * انواع وامی که مدرک لازم دارند — فقط برای اطلاع‌رسانی زودهنگام در فرم.
+ * مرجع واقعی قانونِ بک‌اند است؛ پاسخِ ثبت درخواست تعیین می‌کند مرحله‌ی
+ * بارگذاری باز شود یا نه.
+ */
+const REQUIRES_DOCUMENT: Record<string, string> = {
+  MarriageLoan: 'تصویر سند ازدواج',
+  SpecialCaseLoan: 'مدرک مثبِت مورد خاص',
 }
 
 const statusTag: Record<string, { color: string; label: string }> = {
@@ -364,11 +375,22 @@ function LoanRequestModal({
   const [amount, setAmount] = useState<number>(0)
   const [months, setMonths] = useState<number>(12)
 
+  // مرحله‌ی دوم: بعد از ثبت درخواست، اگر نوع وام مدرک بخواهد.
+  // اندپوینت آپلود شناسه‌ی وام می‌خواهد، پس قبل از ثبت نمی‌شود فایل فرستاد.
+  const [created, setCreated] = useState<{
+    loanRequestId: string
+    requiredDocumentDescription?: string | null
+  } | null>(null)
+  const [docFile, setDocFile] = useState<File | null>(null)
+  const [uploading, setUploading] = useState(false)
+
   useEffect(() => {
     if (loanType) {
       form.resetFields()
       setAmount(0)
       setMonths(12)
+      setCreated(null)
+      setDocFile(null)
     }
   }, [loanType, form])
 
@@ -388,11 +410,22 @@ function LoanRequestModal({
   async function onFinish(values: { requestedAmount: number; installmentCount: number }) {
     setSubmitting(true)
     try {
-      await createLoanRequest({
+      const res = await createLoanRequest({
         loanTypeId: loanType!.id,
         requestedAmount: values.requestedAmount,
         installmentCount: values.installmentCount,
       })
+
+      if (res.requiresDocument) {
+        // درخواست ثبت شد ولی تا مدرک نیاید تأیید نمی‌شود؛ مودال باز می‌ماند.
+        setCreated({
+          loanRequestId: res.loanRequestId,
+          requiredDocumentDescription: res.requiredDocumentDescription,
+        })
+        message.success(res.message)
+        return
+      }
+
       message.success('درخواست وام ثبت شد و در انتظار بررسی ادمین است.')
       onClose()
     } catch (err: unknown) {
@@ -403,7 +436,81 @@ function LoanRequestModal({
     }
   }
 
+  async function uploadDocument() {
+    if (!docFile || !created) return
+
+    setUploading(true)
+    try {
+      const res = await uploadLoanDocument(created.loanRequestId, docFile)
+
+      if (!res.isSuccess) {
+        message.error(res.message)
+        return
+      }
+
+      message.success('مدرک بارگذاری شد. درخواست شما در انتظار بررسی ادمین است.')
+      onClose()
+    } catch (err: unknown) {
+      const e = err as { response?: { data?: { message?: string } } }
+      message.error(e.response?.data?.message ?? 'خطا در بارگذاری مدرک.')
+    } finally {
+      setUploading(false)
+    }
+  }
+
   const money = (v: number) => `${Math.max(0, v).toLocaleString('fa-IR')} تومان`
+
+  // مرحله‌ی دوم: بارگذاری مدرک برای وامی که تازه ثبت شد.
+  if (created) {
+    return (
+      <Modal
+        open
+        onCancel={onClose}
+        footer={null}
+        title="بارگذاری مدرک"
+        destroyOnHidden
+        maskClosable={false}
+      >
+        <Alert
+          type="warning"
+          showIcon
+          style={{ marginBottom: 16 }}
+          message={`برای این وام، ${created.requiredDocumentDescription ?? 'مدرک'} الزامی است.`}
+          description="درخواست شما ثبت شد، اما تا زمانی که مدرک بارگذاری نشود ادمین نمی‌تواند آن را تأیید کند."
+        />
+
+        <Upload
+          beforeUpload={(f) => {
+            setDocFile(f)
+            return false
+          }}
+          maxCount={1}
+          accept=".jpg,.jpeg,.png,.pdf"
+          onRemove={() => setDocFile(null)}
+        >
+          <Button icon={<UploadOutlined />}>انتخاب فایل</Button>
+        </Upload>
+
+        <div style={{ color: 'var(--text-muted)', fontSize: 12, margin: '8px 0 16px' }}>
+          فرمت‌های مجاز: JPG، PNG، PDF — حداکثر ۵ مگابایت
+        </div>
+
+        <Button
+          type="primary"
+          block
+          loading={uploading}
+          disabled={!docFile}
+          onClick={uploadDocument}
+        >
+          بارگذاری و ارسال برای بررسی
+        </Button>
+
+        <Button type="text" block style={{ marginTop: 8 }} onClick={onClose}>
+          بعداً بارگذاری می‌کنم
+        </Button>
+      </Modal>
+    )
+  }
 
   return (
     <Modal
@@ -413,6 +520,16 @@ function LoanRequestModal({
       title={`درخواست ${loanType.name}`}
       destroyOnHidden
     >
+      {REQUIRES_DOCUMENT[loanType.type] && (
+        <Alert
+          type="info"
+          showIcon
+          style={{ marginBottom: 16 }}
+          message={`این وام ${REQUIRES_DOCUMENT[loanType.type]} لازم دارد.`}
+          description="بعد از ثبت درخواست، در مرحله‌ی بعد فایل را بارگذاری می‌کنید."
+        />
+      )}
+
       <Form
         form={form}
         layout="vertical"

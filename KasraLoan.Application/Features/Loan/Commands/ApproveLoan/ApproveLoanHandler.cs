@@ -19,19 +19,22 @@ namespace KasraLoan.Application.Features.Loan.Commands.ApproveLoan
         private readonly ILoanInstallmentService _loanInstallmentService;
         private readonly INotificationService _notificationService;
         private readonly ILoanCalculationService _loanCalculationService;
+        private readonly ILoanDocumentRepository _loanDocumentRepository;
 
         public ApproveLoanHandler(
             ILoanRequestRepository loanRequestRepository,
             IAuditLogService auditLogService,
             ILoanInstallmentService loanInstallmentService,
             INotificationService notificationService,
-            ILoanCalculationService loanCalculationService)
+            ILoanCalculationService loanCalculationService,
+            ILoanDocumentRepository loanDocumentRepository)
         {
             _loanRequestRepository = loanRequestRepository;
             _auditLogService = auditLogService;
             _loanInstallmentService = loanInstallmentService;
             _notificationService = notificationService;
             _loanCalculationService = loanCalculationService;
+            _loanDocumentRepository = loanDocumentRepository;
         }
 
         public async Task<ApproveLoanResponse> Handle(
@@ -46,6 +49,16 @@ namespace KasraLoan.Application.Features.Loan.Commands.ApproveLoan
 
             if (loan.Status != LoanStatus.Pending)
                 throw new BusinessRuleException("این وام قابل تأیید نیست");
+
+            // وامی که مدرک لازم دارد نباید بدون مدرک تأیید شود. تا پیش از این،
+            // ادمین می‌توانست وام ازدواج ۲۰۰ میلیونی را بدون هیچ سندی تأیید کند.
+            if (loan.RequiresDocument
+                && !await _loanDocumentRepository.ExistsAsync(loan.Id))
+            {
+                throw new BusinessRuleException(
+                    $"برای تأیید این وام، ابتدا باید {loan.RequiredDocumentDescription ?? "مدرک لازم"} " +
+                    "توسط کارمند بارگذاری شود.");
+            }
 
             loan.Status = LoanStatus.Approved;
 

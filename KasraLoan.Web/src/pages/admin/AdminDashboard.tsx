@@ -44,6 +44,7 @@ import {
   getPendingCheques,
   confirmCheque,
   rejectCheque,
+  getLoanDocuments,
 } from '../../api/services'
 import type { JobPosition } from '../../api/services'
 import type {
@@ -52,6 +53,7 @@ import type {
   AdminLoanItem,
   LoanInstallment,
   InstallmentPaymentItem,
+  LoanDocumentItem,
 } from '../../api/types'
 
 const statusTag: Record<string, { color: string; label: string }> = {
@@ -112,6 +114,7 @@ function LoanRequestsSection() {
   const [loading, setLoading] = useState(true)
   const [busyId, setBusyId] = useState<string | null>(null)
   const [detail, setDetail] = useState<{ loan: AdminLoanItem; installments: LoanInstallment[] } | null>(null)
+  const [docs, setDocs] = useState<{ loan: AdminLoanItem; items: LoanDocumentItem[] } | null>(null)
 
   async function load() {
     setLoading(true)
@@ -172,6 +175,14 @@ function LoanRequestsSection() {
     setDetail({ loan, installments: installments.sort((a, b) => a.installmentNumber - b.installmentNumber) })
   }
 
+  async function showDocuments(loan: AdminLoanItem) {
+    try {
+      setDocs({ loan, items: await getLoanDocuments(loan.id) })
+    } catch {
+      message.error('خطا در دریافت مدارک.')
+    }
+  }
+
   const money = (v: number) => (v > 0 ? `${v.toLocaleString('fa-IR')} تومان` : '—')
 
   const columns: ColumnsType<AdminLoanItem> = [
@@ -181,6 +192,21 @@ function LoanRequestsSection() {
     { title: 'مبلغ تأییدشده', dataIndex: 'approvedAmount', render: money },
     { title: 'اقساط', dataIndex: 'installmentCount' },
     { title: 'قسط ماهانه', dataIndex: 'monthlyPaymentAmount', render: money },
+    {
+      // بدون این ستون، ادمین وامی را که مدرک می‌خواهد کورکورانه تأیید می‌کرد.
+      title: 'مدرک',
+      render: (_, item) => {
+        if (!item.requiresDocument) return <span style={{ color: '#999' }}>لازم نیست</span>
+
+        return item.hasDocument ? (
+          <Button size="small" onClick={() => showDocuments(item)}>
+            مشاهده
+          </Button>
+        ) : (
+          <Tag color="red">بارگذاری نشده</Tag>
+        )
+      },
+    },
     {
       title: 'وضعیت',
       dataIndex: 'status',
@@ -202,8 +228,20 @@ function LoanRequestsSection() {
               onConfirm={() => approve(item)}
               okText="بله"
               cancelText="خیر"
+              disabled={item.requiresDocument && !item.hasDocument}
             >
-              <Button type="primary" size="small" loading={busyId === item.id}>
+              <Button
+                type="primary"
+                size="small"
+                loading={busyId === item.id}
+                // سرور هم جلویش را می‌گیرد؛ اینجا فقط زودتر و با دلیل روشن.
+                disabled={item.requiresDocument && !item.hasDocument}
+                title={
+                  item.requiresDocument && !item.hasDocument
+                    ? 'تا مدرک بارگذاری نشود قابل تأیید نیست'
+                    : undefined
+                }
+              >
                 تأیید
               </Button>
             </Popconfirm>
@@ -237,6 +275,50 @@ function LoanRequestsSection() {
           pagination={{ pageSize: 8 }}
         />
       </Card>
+
+      <Modal
+        open={!!docs}
+        onCancel={() => setDocs(null)}
+        footer={null}
+        width={720}
+        title={docs ? `مدارک ${docs.loan.loanTypeName} — ${docs.loan.employeeName}` : ''}
+      >
+        {docs && (
+          <>
+            <Alert
+              type="info"
+              style={{ marginBottom: 16 }}
+              message={`مدرک لازم: ${docs.loan.requiredDocumentDescription ?? '—'}`}
+            />
+            {docs.items.length === 0 ? (
+              <Alert type="warning" showIcon message="مدرکی بارگذاری نشده است." />
+            ) : (
+              docs.items.map((d) => (
+                <div key={d.id} style={{ marginBottom: 16 }}>
+                  <div style={{ marginBottom: 8, display: 'flex', justifyContent: 'space-between' }}>
+                    <span style={{ fontWeight: 600 }}>{d.fileName}</span>
+                    <span style={{ color: '#999', fontSize: 12 }}>
+                      {new Date(d.uploadedAt).toLocaleDateString('fa-IR')}
+                    </span>
+                  </div>
+                  {/* PDF در تگ img رندر نمی‌شود، پس لینک باز کردن داده می‌شود. */}
+                  {d.filePath.toLowerCase().endsWith('.pdf') ? (
+                    <Button href={d.filePath} target="_blank" rel="noreferrer">
+                      باز کردن فایل PDF
+                    </Button>
+                  ) : (
+                    <img
+                      src={d.filePath}
+                      alt={d.fileName}
+                      style={{ width: '100%', borderRadius: 8 }}
+                    />
+                  )}
+                </div>
+              ))
+            )}
+          </>
+        )}
+      </Modal>
 
       <Modal
         open={!!detail}

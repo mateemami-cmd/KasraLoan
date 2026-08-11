@@ -46,6 +46,9 @@ namespace KasraLoan.Application.Features.Loan.Queries.GetMyLoans.GetAllLoans
                 TotalPayableAmount = x.TotalPayableAmount,
                 MonthlyPaymentAmount = x.MonthlyPaymentAmount,
                 AnnualFeePercent = x.AnnualFeePercent,
+                RequiresDocument = x.RequiresDocument,
+                RequiredDocumentDescription = x.RequiredDocumentDescription,
+                HasDocument = x.LoanDocuments != null && x.LoanDocuments.Count > 0,
                 CreatedAt = x.CreatedAt
             })
                 .ToList();

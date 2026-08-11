@@ -99,6 +99,10 @@ namespace KasraLoan.Application.Features.Loan.Commands.UploadLoanDocument
 
             return new UploadLoanDocumentResponse
             {
+                // IsSuccess جا افتاده بود و پیش‌فرض bool یعنی false؛ آپلودِ موفق
+                // پاسخِ «موفق بود ولی IsSuccess=false» می‌داد و هر مصرف‌کننده‌ای
+                // که این فیلد را چک می‌کرد، آن را شکست می‌دید.
+                IsSuccess = true,
                 Message = "فایل با موفقیت آپلود شد"
             };
         }

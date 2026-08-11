@@ -34,7 +34,9 @@ namespace KasraLoan.Application.LoanRules.Implementations
                 Message = "OK",
                 MaxAllowedAmount = maxAmount,
                 MaxInstallments = 12,
-                AnnualFeePercent = 4
+                AnnualFeePercent = 4,
+                RequiresDocument = true,
+                RequiredDocumentDescription = "مدرک مثبِت مورد خاص (گزارش پزشکی، فاکتور و ...)"
             };
         }
     }

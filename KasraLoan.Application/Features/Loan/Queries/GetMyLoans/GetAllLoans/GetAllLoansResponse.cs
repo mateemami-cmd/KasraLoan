@@ -32,6 +32,14 @@ namespace KasraLoan.Application.Features.Loan.Queries.GetMyLoans.GetAllLoans
 
         public decimal AnnualFeePercent { get; set; }
 
+        /// <summary>آیا این وام برای تأیید مدرک لازم دارد.</summary>
+        public bool RequiresDocument { get; set; }
+
+        public string? RequiredDocumentDescription { get; set; }
+
+        /// <summary>آیا کارمند مدرک را بارگذاری کرده. ادمین نباید کورکورانه تأیید کند.</summary>
+        public bool HasDocument { get; set; }
+
         public DateTime CreatedAt { get; set; }
     }
 

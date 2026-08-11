@@ -131,6 +131,8 @@ namespace KasraLoan.Infrastructure.Repositories
             var query = _context.LoanRequests
                 .Include(x => x.Employee)
                 .Include(x => x.LoanType)
+                // مدارک برای این‌که ادمین در فهرست ببیند مدرک بارگذاری شده یا نه.
+                .Include(x => x.LoanDocuments)
                 .AsQueryable();
 
             if (status.HasValue)

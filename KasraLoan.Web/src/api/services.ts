@@ -12,6 +12,7 @@ import type {
   InstallmentPaymentItem,
   GatewaySession,
   PaymentMethod,
+  LoanDocumentItem,
 } from './types'
 
 // ---------- Profile ----------
@@ -45,7 +46,29 @@ export async function createLoanRequest(payload: {
   installmentCount: number
 }) {
   const res = await api.post('/loan/request', { request: payload })
-  return res.data as { loanRequestId: string; message: string }
+  return res.data as {
+    loanRequestId: string
+    message: string
+    requiresDocument: boolean
+    requiredDocumentDescription?: string | null
+  }
+}
+
+/**
+ * بارگذاری مدرک وام.
+ * اندپوینت به شناسه‌ی وام نیاز دارد، پس فقط بعد از ثبت درخواست قابل فراخوانی است.
+ */
+export async function uploadLoanDocument(loanId: string, file: File) {
+  const form = new FormData()
+  form.append('file', file)
+
+  const res = await api.post(`/loan/${loanId}/upload-document`, form)
+  return res.data as { isSuccess: boolean; message: string }
+}
+
+export async function getLoanDocuments(loanId: string): Promise<LoanDocumentItem[]> {
+  const res = await api.get<LoanDocumentItem[]>(`/loan/${loanId}/documents`)
+  return res.data
 }
 
 /** لیست همه‌ی وام‌ها برای ادمین. */

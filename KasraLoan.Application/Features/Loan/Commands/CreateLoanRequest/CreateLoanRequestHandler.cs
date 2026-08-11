@@ -132,7 +132,9 @@ namespace KasraLoan.Application.Features.Loan.Commands.CreateLoanRequest
                 InstallmentCount = installmentCount,
                 AnnualFeePercent = ruleResult.AnnualFeePercent,
                 Status = Domain.Enums.LoanStatus.Pending,
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.UtcNow,
+                RequiresDocument = ruleResult.RequiresDocument,
+                RequiredDocumentDescription = ruleResult.RequiredDocumentDescription
             };
 
 
@@ -155,7 +157,11 @@ namespace KasraLoan.Application.Features.Loan.Commands.CreateLoanRequest
             return new CreateLoanRequestResponse
             {
                 LoanRequestId = loanRequest.Id,
-                Message = "درخواست وام با موفقیت ثبت شد"
+                Message = loanRequest.RequiresDocument
+                    ? $"درخواست وام ثبت شد. برای بررسی، {loanRequest.RequiredDocumentDescription} را بارگذاری کنید."
+                    : "درخواست وام با موفقیت ثبت شد",
+                RequiresDocument = loanRequest.RequiresDocument,
+                RequiredDocumentDescription = loanRequest.RequiredDocumentDescription
             };
         }
     }
