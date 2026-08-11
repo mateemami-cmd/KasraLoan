@@ -24,6 +24,7 @@ import {
   TeamOutlined,
   CrownOutlined,
   AuditOutlined,
+  FileImageOutlined,
 } from '@ant-design/icons'
 import type { ColumnsType } from 'antd/es/table'
 import { DashboardLayout } from '../../components/DashboardLayout'
@@ -40,6 +41,9 @@ import {
   rejectLoan,
   getLoanInstallments,
   getJobPositions,
+  getPendingCheques,
+  confirmCheque,
+  rejectCheque,
 } from '../../api/services'
 import type { JobPosition } from '../../api/services'
 import type {
@@ -47,6 +51,7 @@ import type {
   LoanPermissionRequestItem,
   AdminLoanItem,
   LoanInstallment,
+  InstallmentPaymentItem,
 } from '../../api/types'
 
 const statusTag: Record<string, { color: string; label: string }> = {
@@ -63,6 +68,7 @@ export function AdminDashboard() {
 
   const menuItems = [
     { key: 'loanRequests', icon: <AuditOutlined />, label: 'درخواست‌های وام' },
+    { key: 'cheques', icon: <FileImageOutlined />, label: 'چک‌های در انتظار' },
     { key: 'permissions', icon: <FileProtectOutlined />, label: 'درخواست‌های مجوز' },
     { key: 'loans', icon: <BankOutlined />, label: 'مدیریت وام‌ها' },
     { key: 'addEmployee', icon: <UserAddOutlined />, label: 'افزودن کاربر' },
@@ -84,6 +90,7 @@ export function AdminDashboard() {
       onSelect={setSection}
     >
       {section === 'loanRequests' && <LoanRequestsSection />}
+      {section === 'cheques' && <ChequeQueueSection />}
       {section === 'permissions' && <PermissionRequestsSection />}
       {section === 'loans' && <LoanManagementSection />}
       {section === 'addEmployee' && <AddEmployeeSection />}
@@ -267,6 +274,154 @@ function LoanRequestsSection() {
               ]}
             />
           </>
+        )}
+      </Modal>
+    </>
+  )
+}
+
+/**
+ * صف چک‌های منتظر تأیید.
+ *
+ * قدیمی‌ترین اول می‌آید چون نزدیک‌ترین به قطعی شدن لیست حقوق است — چکی که تا
+ * آن موقع تعیین تکلیف نشود، قسطش از حقوق کسر می‌شود.
+ */
+function ChequeQueueSection() {
+  const { message } = App.useApp()
+  const [items, setItems] = useState<InstallmentPaymentItem[]>([])
+  const [loading, setLoading] = useState(true)
+  const [busyId, setBusyId] = useState<string | null>(null)
+  const [preview, setPreview] = useState<string | null>(null)
+
+  async function load() {
+    setLoading(true)
+    try {
+      setItems(await getPendingCheques())
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    load()
+  }, [])
+
+  async function confirm(item: InstallmentPaymentItem) {
+    setBusyId(item.id)
+    try {
+      await confirmCheque(item.id)
+      message.success('چک تأیید شد و قسط تسویه گردید.')
+      await load()
+    } catch (err: unknown) {
+      const e = err as { response?: { data?: { message?: string } } }
+      message.error(e.response?.data?.message ?? 'خطا در تأیید چک.')
+    } finally {
+      setBusyId(null)
+    }
+  }
+
+  function reject(item: InstallmentPaymentItem) {
+    let reason = ''
+    Modal.confirm({
+      title: 'رد چک',
+      content: (
+        <Input.TextArea
+          rows={3}
+          placeholder="دلیل رد (الزامی — به کارمند نمایش داده می‌شود)"
+          onChange={(e) => (reason = e.target.value)}
+        />
+      ),
+      okText: 'رد کن',
+      okButtonProps: { danger: true },
+      cancelText: 'انصراف',
+      onOk: async () => {
+        try {
+          await rejectCheque(item.id, reason)
+          message.success('چک رد شد.')
+          await load()
+        } catch (err: unknown) {
+          const e = err as { response?: { data?: { message?: string } } }
+          message.error(e.response?.data?.message ?? 'خطا در رد چک.')
+        }
+      },
+    })
+  }
+
+  const money = (v: number) => `${v.toLocaleString('fa-IR')} تومان`
+
+  const columns: ColumnsType<InstallmentPaymentItem> = [
+    { title: 'کارمند', dataIndex: 'employeeName', render: (v?: string) => v || '—' },
+    { title: 'نوع وام', dataIndex: 'loanTypeName', render: (v?: string) => v || '—' },
+    { title: 'قسط', dataIndex: 'installmentNumber' },
+    { title: 'مبلغ', dataIndex: 'amount', render: money },
+    { title: 'شماره چک', dataIndex: 'chequeNumber' },
+    { title: 'بانک', dataIndex: 'chequeBankName', render: (v?: string) => v || '—' },
+    { title: 'تاریخ چک', dataIndex: 'chequeDatePersian', render: (v?: string) => v || '—' },
+    {
+      title: 'تصویر',
+      render: (_, item) =>
+        item.chequeImageUrl ? (
+          <Button size="small" onClick={() => setPreview(item.chequeImageUrl!)}>
+            مشاهده
+          </Button>
+        ) : (
+          '—'
+        ),
+    },
+    {
+      title: 'عملیات',
+      render: (_, item) => (
+        <Space>
+          <Popconfirm
+            title="تأیید این چک؟"
+            description="با تأیید، قسط تسویه‌شده ثبت می‌شود."
+            onConfirm={() => confirm(item)}
+            okText="بله"
+            cancelText="خیر"
+          >
+            <Button type="primary" size="small" loading={busyId === item.id}>
+              تأیید
+            </Button>
+          </Popconfirm>
+          <Button danger size="small" onClick={() => reject(item)}>
+            رد
+          </Button>
+        </Space>
+      ),
+    },
+  ]
+
+  return (
+    <>
+      <Card
+        title={`چک‌های در انتظار تأیید${items.length > 0 ? ` — ${items.length} مورد` : ''}`}
+        extra={<Button onClick={load}>بروزرسانی</Button>}
+      >
+        <Alert
+          type="info"
+          showIcon
+          style={{ marginBottom: 16 }}
+          message="چک تا تأیید شما پرداخت‌شده محسوب نمی‌شود"
+          description="هر چکی که تا قطعی شدن لیست حقوق تعیین تکلیف نشود، قسطش از حقوق کارمند کسر خواهد شد. قدیمی‌ترین چک‌ها بالای فهرست‌اند."
+        />
+        <Table
+          rowKey="id"
+          loading={loading}
+          columns={columns}
+          dataSource={items}
+          pagination={{ pageSize: 8 }}
+          locale={{ emptyText: 'چکی در انتظار بررسی نیست' }}
+        />
+      </Card>
+
+      <Modal
+        open={!!preview}
+        onCancel={() => setPreview(null)}
+        footer={null}
+        title="تصویر چک"
+      >
+        {preview && (
+          <img src={preview} alt="cheque" style={{ width: '100%', borderRadius: 8 }} />
         )}
       </Modal>
     </>

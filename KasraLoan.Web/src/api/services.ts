@@ -8,6 +8,10 @@ import type {
   LoanInstallment,
   LoanOutstanding,
   UpdateProfilePayload,
+  CurrentInstallment,
+  InstallmentPaymentItem,
+  GatewaySession,
+  PaymentMethod,
 } from './types'
 
 // ---------- Profile ----------
@@ -77,6 +81,72 @@ export async function getLoanOutstanding(loanId: string): Promise<LoanOutstandin
 export async function payInstallment(installmentId: string) {
   const res = await api.post(`/loan/installments/${installmentId}/pay`)
   return res.data as { message: string }
+}
+
+// ---------- Installment payments ----------
+export async function getCurrentInstallment(): Promise<CurrentInstallment> {
+  const res = await api.get<CurrentInstallment>('/installmentpayment/current')
+  return res.data
+}
+
+export async function selectPaymentMethod(installmentId: string, method: PaymentMethod) {
+  const res = await api.post(`/installmentpayment/${installmentId}/method`, { method })
+  return res.data as InstallmentPaymentItem
+}
+
+export async function submitCheque(
+  installmentId: string,
+  info: { chequeNumber: string; chequeBankName: string; chequeDate: string },
+  file: File,
+) {
+  const form = new FormData()
+  form.append('file', file)
+  form.append('ChequeNumber', info.chequeNumber)
+  form.append('ChequeBankName', info.chequeBankName)
+  form.append('ChequeDate', info.chequeDate)
+
+  const res = await api.post(`/installmentpayment/${installmentId}/cheque`, form)
+  return res.data as InstallmentPaymentItem
+}
+
+export async function startGatewayPayment(installmentId: string): Promise<GatewaySession> {
+  const res = await api.post<GatewaySession>(`/installmentpayment/${installmentId}/gateway`)
+  return res.data
+}
+
+export async function getGatewaySession(authority: string): Promise<GatewaySession> {
+  const res = await api.get<GatewaySession>(`/installmentpayment/gateway/${authority}`)
+  return res.data
+}
+
+/** اطلاعات کارت فقط ارسال می‌شود و هیچ‌جا در فرانت نگه داشته نمی‌شود. */
+export async function payViaGateway(
+  authority: string,
+  card: {
+    cardNumber: string
+    cvv2: string
+    expiryMonth: string
+    expiryYear: string
+    secondPassword: string
+  },
+) {
+  const res = await api.post(`/installmentpayment/gateway/${authority}/pay`, card)
+  return res.data as InstallmentPaymentItem
+}
+
+export async function getPendingCheques(): Promise<InstallmentPaymentItem[]> {
+  const res = await api.get<InstallmentPaymentItem[]>('/installmentpayment/cheques/pending')
+  return res.data
+}
+
+export async function confirmCheque(paymentId: string) {
+  const res = await api.post(`/installmentpayment/cheques/${paymentId}/confirm`)
+  return res.data as InstallmentPaymentItem
+}
+
+export async function rejectCheque(paymentId: string, rejectReason: string) {
+  const res = await api.post(`/installmentpayment/cheques/${paymentId}/reject`, { rejectReason })
+  return res.data as InstallmentPaymentItem
 }
 
 // ---------- Loan types ----------

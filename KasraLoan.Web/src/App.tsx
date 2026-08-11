@@ -2,6 +2,7 @@ import { Routes, Route, Navigate } from 'react-router-dom'
 import { LoginPage } from './pages/LoginPage'
 import { EmployeeDashboard } from './pages/employee/EmployeeDashboard'
 import { AdminDashboard } from './pages/admin/AdminDashboard'
+import { GatewayPage } from './pages/payment/GatewayPage'
 import { ProtectedRoute } from './auth/ProtectedRoute'
 
 export default function App() {
@@ -23,6 +24,16 @@ export default function App() {
         element={
           <ProtectedRoute role="Admin">
             <AdminDashboard />
+          </ProtectedRoute>
+        }
+      />
+
+      {/* صفحه‌ی درگاه بیرون از داشبورد است تا مثل یک درگاه واقعی رفتار کند. */}
+      <Route
+        path="/payment/gateway/:authority"
+        element={
+          <ProtectedRoute role="Employee">
+            <GatewayPage />
           </ProtectedRoute>
         }
       />

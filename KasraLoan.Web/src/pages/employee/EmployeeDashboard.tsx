@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import {
   Row,
   Col,
@@ -23,6 +24,7 @@ import {
   InputNumber,
   Descriptions,
   Progress,
+  DatePicker,
 } from 'antd'
 import {
   BankOutlined,
@@ -52,6 +54,10 @@ import {
   getLoanInstallments,
   getLoanOutstanding,
   payInstallment,
+  getCurrentInstallment,
+  selectPaymentMethod,
+  startGatewayPayment,
+  submitCheque,
 } from '../../api/services'
 import type {
   LoanType,
@@ -60,6 +66,7 @@ import type {
   NotificationItem,
   LoanInstallment,
   LoanOutstanding,
+  CurrentInstallment,
 } from '../../api/types'
 
 const MIN_SCORE = 600
@@ -601,6 +608,7 @@ function InstallmentsSection() {
   const [outstanding, setOutstanding] = useState<LoanOutstanding | null>(null)
   const [loading, setLoading] = useState(true)
   const [payingId, setPayingId] = useState<string | null>(null)
+  const [current, setCurrent] = useState<CurrentInstallment | null>(null)
 
   const payable = loans.filter((l) => l.status === 'Approved' || l.status === 'Active')
 
@@ -615,12 +623,14 @@ function InstallmentsSection() {
   }, [])
 
   async function loadDetails(loanId: string) {
-    const [inst, out] = await Promise.all([
+    const [inst, out, cur] = await Promise.all([
       getLoanInstallments(loanId),
       getLoanOutstanding(loanId),
+      getCurrentInstallment(),
     ])
     setInstallments(inst.sort((a, b) => a.installmentNumber - b.installmentNumber))
     setOutstanding(out)
+    setCurrent(cur)
   }
 
   useEffect(() => {
@@ -662,6 +672,8 @@ function InstallmentsSection() {
       render: (_, row) =>
         row.isPaid ? (
           <span style={{ color: 'var(--text-muted)' }}>—</span>
+        ) : row.id === current?.loanInstallmentId ? (
+          <Tag color="blue">قسط جاری</Tag>
         ) : (
           <Popconfirm
             title="پرداخت قسط"
@@ -670,7 +682,7 @@ function InstallmentsSection() {
             cancelText="انصراف"
             onConfirm={() => pay(row.id)}
           >
-            <Button type="primary" size="small" loading={payingId === row.id}>
+            <Button size="small" loading={payingId === row.id}>
               پرداخت
             </Button>
           </Popconfirm>
@@ -694,6 +706,15 @@ function InstallmentsSection() {
 
   return (
     <Row gutter={[16, 16]}>
+      <Col xs={24}>
+        {current?.hasDueInstallment && (
+          <PaymentMethodPanel
+            current={current}
+            onChanged={() => selectedId && loadDetails(selectedId)}
+          />
+        )}
+      </Col>
+
       <Col xs={24} lg={8}>
         <Card title="وام‌های فعال">
           <Select
@@ -757,6 +778,264 @@ function InstallmentsSection() {
         </Card>
       </Col>
     </Row>
+  )
+}
+
+const METHOD_LABEL: Record<string, string> = {
+  PayrollDeduction: 'کسر از حقوق',
+  OnlineGateway: 'پرداخت آنلاین',
+  Cheque: 'چک',
+}
+
+const PAYMENT_STATUS_LABEL: Record<string, { color: string; label: string }> = {
+  Selected: { color: 'blue', label: 'انتخاب شده' },
+  AwaitingAdminApproval: { color: 'gold', label: 'در انتظار تأیید ادمین' },
+  Confirmed: { color: 'green', label: 'پرداخت شده' },
+  Rejected: { color: 'red', label: 'رد شده' },
+  Failed: { color: 'red', label: 'ناموفق' },
+}
+
+/**
+ * انتخاب روش پرداخت برای قسط جاری.
+ *
+ * وقتی پنجره بسته است، گزینه‌ها غیرفعال می‌شوند و صراحتاً گفته می‌شود که قسط
+ * از حقوق کسر خواهد شد — تا کارمند غافلگیر نشود.
+ */
+function PaymentMethodPanel({
+  current,
+  onChanged,
+}: {
+  current: CurrentInstallment
+  onChanged: () => void
+}) {
+  const { message } = App.useApp()
+  const navigate = useNavigate()
+  const [busy, setBusy] = useState(false)
+  const [chequeOpen, setChequeOpen] = useState(false)
+
+  const installmentId = current.loanInstallmentId!
+  const money = (v: number) => `${v.toLocaleString('fa-IR')} تومان`
+
+  const locked =
+    current.paymentStatus === 'AwaitingAdminApproval' ||
+    current.paymentStatus === 'Confirmed'
+
+  const disabled = !current.isSelectionWindowOpen || locked
+
+  async function choose(method: 'PayrollDeduction' | 'OnlineGateway') {
+    setBusy(true)
+    try {
+      if (method === 'OnlineGateway') {
+        const session = await startGatewayPayment(installmentId)
+        navigate(session.redirectUrl)
+        return
+      }
+
+      await selectPaymentMethod(installmentId, method)
+      message.success('روش پرداخت ثبت شد: کسر از حقوق')
+      onChanged()
+    } catch (err: unknown) {
+      const e = err as { response?: { data?: { message?: string } } }
+      message.error(e.response?.data?.message ?? 'خطا در ثبت روش پرداخت.')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  return (
+    <Card
+      title={`قسط جاری — شماره ${current.installmentNumber.toLocaleString('fa-IR')}`}
+      extra={
+        current.selectedMethod ? (
+          <Tag color={PAYMENT_STATUS_LABEL[current.paymentStatus ?? '']?.color}>
+            {METHOD_LABEL[current.selectedMethod]} —{' '}
+            {PAYMENT_STATUS_LABEL[current.paymentStatus ?? '']?.label ?? current.paymentStatus}
+          </Tag>
+        ) : (
+          <Tag>روشی انتخاب نشده</Tag>
+        )
+      }
+      style={{ marginBottom: 16 }}
+    >
+      <Row gutter={[16, 16]} align="middle">
+        <Col xs={24} md={10}>
+          <Descriptions column={1} size="small">
+            <Descriptions.Item label="مبلغ">
+              <b>{money(current.amount)}</b>
+            </Descriptions.Item>
+            <Descriptions.Item label="سررسید">{current.dueDatePersian}</Descriptions.Item>
+          </Descriptions>
+        </Col>
+
+        <Col xs={24} md={14}>
+          {locked ? (
+            <Alert
+              type={current.paymentStatus === 'Confirmed' ? 'success' : 'info'}
+              showIcon
+              message={
+                current.paymentStatus === 'Confirmed'
+                  ? 'این قسط پرداخت شده است.'
+                  : 'چک شما در انتظار بررسی ادمین است؛ تا تعیین تکلیف نمی‌توانید روش را عوض کنید.'
+              }
+            />
+          ) : !current.isSelectionWindowOpen ? (
+            <Alert
+              type="warning"
+              showIcon
+              message={`انتخاب روش پرداخت ${current.windowDescription} ممکن است.`}
+              description="در صورت عدم انتخاب، این قسط به‌صورت خودکار از حقوق شما کسر می‌شود."
+            />
+          ) : (
+            <Alert
+              type="info"
+              showIcon
+              message="روش پرداخت این قسط را انتخاب کنید"
+              description={`پنجره‌ی انتخاب ${current.windowDescription} باز است. اگر انتخابی نکنید، از حقوق کسر می‌شود.`}
+            />
+          )}
+
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 12 }}>
+            <Button
+              type={current.selectedMethod === 'PayrollDeduction' ? 'primary' : 'default'}
+              disabled={disabled || busy}
+              onClick={() => choose('PayrollDeduction')}
+            >
+              کسر از حقوق
+            </Button>
+            <Button
+              type="primary"
+              disabled={disabled || busy}
+              loading={busy}
+              onClick={() => choose('OnlineGateway')}
+            >
+              پرداخت آنلاین
+            </Button>
+            <Button disabled={disabled || busy} onClick={() => setChequeOpen(true)}>
+              ثبت چک
+            </Button>
+          </div>
+        </Col>
+      </Row>
+
+      <ChequeModal
+        open={chequeOpen}
+        installmentId={installmentId}
+        amount={current.amount}
+        onClose={() => setChequeOpen(false)}
+        onDone={() => {
+          setChequeOpen(false)
+          onChanged()
+        }}
+      />
+    </Card>
+  )
+}
+
+function ChequeModal({
+  open,
+  installmentId,
+  amount,
+  onClose,
+  onDone,
+}: {
+  open: boolean
+  installmentId: string
+  amount: number
+  onClose: () => void
+  onDone: () => void
+}) {
+  const { message } = App.useApp()
+  const [form] = Form.useForm()
+  const [file, setFile] = useState<File | null>(null)
+  const [submitting, setSubmitting] = useState(false)
+
+  async function onFinish(values: {
+    chequeNumber: string
+    chequeBankName: string
+    chequeDate: { toISOString: () => string }
+  }) {
+    if (!file) {
+      message.error('تصویر چک را انتخاب کنید.')
+      return
+    }
+
+    setSubmitting(true)
+    try {
+      await submitCheque(
+        installmentId,
+        {
+          chequeNumber: values.chequeNumber,
+          chequeBankName: values.chequeBankName,
+          chequeDate: values.chequeDate.toISOString(),
+        },
+        file,
+      )
+      message.success('چک ثبت شد و برای بررسی به ادمین ارسال گردید.')
+      form.resetFields()
+      setFile(null)
+      onDone()
+    } catch (err: unknown) {
+      const e = err as { response?: { data?: { message?: string } } }
+      message.error(e.response?.data?.message ?? 'خطا در ثبت چک.')
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  return (
+    <Modal open={open} onCancel={onClose} footer={null} title="ثبت چک" destroyOnHidden>
+      <Alert
+        type="info"
+        showIcon
+        style={{ marginBottom: 16 }}
+        message={`مبلغ چک باید ${amount.toLocaleString('fa-IR')} تومان باشد.`}
+        description="چک تا زمان تأیید ادمین پرداخت‌شده محسوب نمی‌شود. اگر تا قطعی شدن لیست حقوق تأیید نشود، قسط از حقوق کسر می‌شود."
+      />
+
+      <Form form={form} layout="vertical" onFinish={onFinish}>
+        <Form.Item
+          label="شماره چک"
+          name="chequeNumber"
+          rules={[{ required: true, message: 'شماره چک را وارد کنید' }]}
+        >
+          <Input style={{ direction: 'ltr' }} />
+        </Form.Item>
+
+        <Form.Item
+          label="بانک"
+          name="chequeBankName"
+          rules={[{ required: true, message: 'نام بانک را وارد کنید' }]}
+        >
+          <Input placeholder="مثلاً بانک ملت" />
+        </Form.Item>
+
+        <Form.Item
+          label="تاریخ چک"
+          name="chequeDate"
+          rules={[{ required: true, message: 'تاریخ چک را انتخاب کنید' }]}
+        >
+          <DatePicker style={{ width: '100%' }} />
+        </Form.Item>
+
+        <Form.Item label="تصویر چک" required>
+          <Upload
+            beforeUpload={(f) => {
+              setFile(f)
+              return false
+            }}
+            maxCount={1}
+            accept="image/png,image/jpeg,image/webp"
+            onRemove={() => setFile(null)}
+          >
+            <Button icon={<UploadOutlined />}>انتخاب تصویر</Button>
+          </Upload>
+        </Form.Item>
+
+        <Button type="primary" htmlType="submit" block loading={submitting}>
+          ارسال برای بررسی
+        </Button>
+      </Form>
+    </Modal>
   )
 }
 

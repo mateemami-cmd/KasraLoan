@@ -92,6 +92,59 @@ export interface LoanInstallment {
   isPaid: boolean
 }
 
+export type PaymentMethod = 'PayrollDeduction' | 'OnlineGateway' | 'Cheque'
+
+export type PaymentStatus =
+  | 'Selected'
+  | 'AwaitingAdminApproval'
+  | 'Confirmed'
+  | 'Rejected'
+  | 'Failed'
+
+/** قسط بعدی و وضعیت پنجره‌ی انتخاب روش پرداخت. */
+export interface CurrentInstallment {
+  hasDueInstallment: boolean
+  loanInstallmentId?: string | null
+  installmentNumber: number
+  amount: number
+  dueDate?: string | null
+  dueDatePersian?: string | null
+  isSelectionWindowOpen: boolean
+  selectedMethod?: PaymentMethod | null
+  paymentStatus?: PaymentStatus | null
+  windowDescription: string
+}
+
+/** یک تلاش پرداخت. */
+export interface InstallmentPaymentItem {
+  id: string
+  loanInstallmentId: string
+  installmentNumber: number
+  method: PaymentMethod
+  status: PaymentStatus
+  amount: number
+  chequeImageUrl?: string | null
+  chequeNumber?: string | null
+  chequeBankName?: string | null
+  chequeDate?: string | null
+  chequeDatePersian?: string | null
+  gatewayRefId?: string | null
+  rejectReason?: string | null
+  createdAt: string
+  employeeName?: string | null
+  loanTypeName?: string | null
+}
+
+/** نشستِ پرداخت آنلاین. */
+export interface GatewaySession {
+  authority: string
+  amount: number
+  installmentNumber: number
+  gatewayName: string
+  expiresAt: string
+  redirectUrl: string
+}
+
 /** مانده‌ی وام و وضعیت مطالبه‌ی تسویه‌ی یکجا. */
 export interface LoanOutstanding {
   loanRequestId: string
