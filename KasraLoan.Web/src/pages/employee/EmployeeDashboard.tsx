@@ -250,8 +250,11 @@ function LoansSection() {
       .finally(() => setLoading(false))
   }, [])
 
-  const scoreOk = (user?.score ?? 0) >= MIN_SCORE
+  // مرجع، تصمیم سرور است و نه امتیاز خام: کارمندی که مجوز استثنایی گرفته
+  // اجازه دارد، هرچند امتیازش کمتر از حد نصاب است.
+  const canRequest = user?.canRequestLoan ?? false
   const employed = user?.employmentStatus !== 'Terminated'
+  const minScore = user?.minimumScoreRequiredForLoan ?? MIN_SCORE
 
   return (
     <>
@@ -264,16 +267,25 @@ function LoansSection() {
           description="امکان ثبت درخواست وام جدید وجود ندارد، اما همچنان می‌توانید اقساط وام‌های قبلی را ببینید و پرداخت کنید."
         />
       )}
-      {employed && !scoreOk && (
+      {employed && !canRequest && (
         <Alert
           type="warning"
           showIcon
           style={{ marginBottom: 16 }}
-          message={`امتیاز شما ${user?.score ?? 0} است و برای دریافت وام حداقل ${MIN_SCORE} لازم است.`}
+          message={`امتیاز شما ${(user?.score ?? 0).toLocaleString('fa-IR')} است و برای دریافت وام حداقل ${minScore.toLocaleString('fa-IR')} لازم است.`}
           description="می‌توانید از بخش «درخواست مجوز وام» درخواست استثنا ثبت کنید."
         />
       )}
-      {employed && scoreOk && (
+      {employed && canRequest && user?.hasLoanPermission && (
+        <Alert
+          type="success"
+          showIcon
+          style={{ marginBottom: 16 }}
+          message="مجوز استثنایی برای شما فعال است"
+          description={`امتیاز شما ${(user?.score ?? 0).toLocaleString('fa-IR')} است، اما با مجوز ادمین می‌توانید یک درخواست وام ثبت کنید. این مجوز یک‌بارمصرف است.`}
+        />
+      )}
+      {employed && canRequest && (
         <Alert
           type="info"
           showIcon
@@ -309,7 +321,7 @@ function LoansSection() {
                 <Button block disabled>
                   وضعیت اشتغال فعال نیست
                 </Button>
-              ) : scoreOk ? (
+              ) : canRequest ? (
                 <Button type="primary" block onClick={() => setSelected(loan)}>
                   درخواست این وام
                 </Button>

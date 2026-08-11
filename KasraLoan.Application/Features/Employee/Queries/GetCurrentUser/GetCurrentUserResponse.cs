@@ -43,5 +43,21 @@ namespace KasraLoan.Application.Features.Employee.Queries.GetCurrentUser
 
         /// <summary>وضعیت اشتغال؛ کارمند غیرفعال اجازه‌ی درخواست وام جدید ندارد.</summary>
         public string EmploymentStatus { get; set; } = string.Empty;
+
+        /// <summary>حداقل امتیاز لازم برای وام، تا فرانت آن را هاردکد نکند.</summary>
+        public int MinimumScoreRequiredForLoan { get; set; }
+
+        /// <summary>آیا مجوز استثنایی یک‌بارمصرف برای کارمند فعال است.</summary>
+        public bool HasLoanPermission { get; set; }
+
+        /// <summary>
+        /// آیا کارمند در این لحظه می‌تواند درخواست وام بدهد.
+        ///
+        /// فرانت باید همین را ببیند و نه فقط امتیاز خام: کارمندی که امتیازش کم
+        /// است ولی ادمین به او مجوز استثنایی داده، مجاز است. قبلاً داشبورد فقط
+        /// امتیاز را چک می‌کرد و دکمه را غیرفعال می‌گذاشت، یعنی مجوزِ صادرشده
+        /// عملاً از رابط کاربری قابل استفاده نبود.
+        /// </summary>
+        public bool CanRequestLoan { get; set; }
     }
 }

@@ -47,6 +47,8 @@ namespace KasraLoan.Application.Features.Employee.Queries.GetCurrentUser
 
             var effectiveScore = _employeeScoreService.GetEffectiveScore(employee, scoreRecord);
 
+            var hasLoanPermission = scoreRecord?.HasLoanPermissionOverride == true;
+
             return new GetCurrentUserResponse
             {
                 Id = employee.Id,
@@ -63,7 +65,13 @@ namespace KasraLoan.Application.Features.Employee.Queries.GetCurrentUser
                 JobPositionTitle = employee.JobPosition?.Title,
                 EffectiveMonthlySalary = _employeeSalaryService.GetEffectiveMonthlySalary(employee),
                 MaxMonthlyInstallment = _employeeSalaryService.GetMaxMonthlyInstallment(employee),
-                EmploymentStatus = employee.EmploymentStatus.ToString()
+                EmploymentStatus = employee.EmploymentStatus.ToString(),
+                MinimumScoreRequiredForLoan = _employeeScoreService.MinimumScoreRequiredForLoan,
+                HasLoanPermission = hasLoanPermission,
+                CanRequestLoan =
+                    employee.EmploymentStatus == Domain.Enums.EmploymentStatus.Active
+                    && (effectiveScore >= _employeeScoreService.MinimumScoreRequiredForLoan
+                        || hasLoanPermission)
             };
         }
     }

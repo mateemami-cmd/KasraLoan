@@ -23,6 +23,14 @@ export interface CurrentUser {
   /** سقف قسط ماهانه؛ فرم درخواست وام سقف مبلغ را از روی همین حساب می‌کند. */
   maxMonthlyInstallment: number
   employmentStatus: 'Active' | 'Terminated'
+  minimumScoreRequiredForLoan: number
+  /** مجوز استثنایی یک‌بارمصرف که ادمین داده. */
+  hasLoanPermission: boolean
+  /**
+   * آیا کارمند در این لحظه می‌تواند درخواست وام بدهد.
+   * سرور تصمیم می‌گیرد — امتیاز کافی یا مجوز استثنایی، هر کدام کافی است.
+   */
+  canRequestLoan: boolean
 }
 
 export interface LoanType {
