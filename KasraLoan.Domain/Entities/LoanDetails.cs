@@ -12,6 +12,29 @@ namespace KasraLoan.Domain.Entities
     public class LoanDetails
     {
         public TravelLoanDetails? Travel { get; set; }
+
+        public MarriageLoanDetails? Marriage { get; set; }
+    }
+
+    /// <summary>
+    /// اطلاعات تکمیلی وام ازدواج.
+    ///
+    /// تاریخ عقد عمداً اینجا نیست: مشخصه‌ی خودِ کارمند است نه این وام، و در
+    /// <see cref="Employee.MarriageDate"/> نگهداری می‌شود تا دو جای متناقض
+    /// نداشته باشیم.
+    /// </summary>
+    public class MarriageLoanDetails
+    {
+        public string SpouseFirstName { get; set; } = string.Empty;
+
+        public string SpouseLastName { get; set; } = string.Empty;
+
+        /// <summary>کد ملی همسر؛ ۱۰ رقم با رقم کنترل معتبر.</summary>
+        public string SpouseNationalId { get; set; } = string.Empty;
+
+        public string? Notes { get; set; }
+
+        public string SpouseFullName => $"{SpouseFirstName} {SpouseLastName}".Trim();
     }
 
     /// <summary>اطلاعات تکمیلی وام سفر.</summary>

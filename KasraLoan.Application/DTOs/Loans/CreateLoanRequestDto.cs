@@ -18,6 +18,27 @@ namespace KasraLoan.Application.DTOs.Loans
         /// جزئیات مخصوص وام سفر. فقط وقتی نوع وام سفر باشد خوانده می‌شود.
         /// </summary>
         public TravelDetailsDto? Travel { get; set; }
+
+        /// <summary>جزئیات مخصوص وام ازدواج.</summary>
+        public MarriageDetailsDto? Marriage { get; set; }
+    }
+
+    /// <summary>ورودی فرم وام ازدواج.</summary>
+    public class MarriageDetailsDto
+    {
+        /// <summary>
+        /// تاریخ عقد. اگر در پروفایل کارمند خالی باشد، از همین‌جا گرفته و در
+        /// پروفایل ذخیره می‌شود؛ اگر از قبل ثبت شده باشد، همان معتبر است.
+        /// </summary>
+        public DateTime? MarriageDate { get; set; }
+
+        public string SpouseFirstName { get; set; } = string.Empty;
+
+        public string SpouseLastName { get; set; } = string.Empty;
+
+        public string SpouseNationalId { get; set; } = string.Empty;
+
+        public string? Notes { get; set; }
     }
 
     /// <summary>ورودی فرم وام سفر.</summary>

@@ -101,7 +101,8 @@ public class ApproveLoanDocumentRuleTests
 
         var result = rule.Evaluate(new Application.LoanRules.LoanRuleContext
         {
-            Employee = new Employee(),
+            // تاریخ عقد لازم است، وگرنه قانون پیش از رسیدن به بحث مدرک رد می‌کند.
+            Employee = new Employee { MarriageDate = DateTime.UtcNow.AddMonths(-3) },
             LoanType = new LoanType { Type = LoanTypeEnum.MarriageLoan },
             RequestedAmount = 100_000_000,
             EmployeeScore = 6000,
@@ -109,6 +110,42 @@ public class ApproveLoanDocumentRuleTests
 
         result.RequiresDocument.Should().BeTrue();
         result.RequiredDocumentDescription.Should().Contain("سند ازدواج");
+    }
+
+    [Fact]
+    public void Marriage_Loan_Is_Refused_When_No_Marriage_Date_Is_On_Record()
+    {
+        // تا پیش از این، MarriageDate ذخیره می‌شد ولی هیچ‌جا بررسی نمی‌شد؛
+        // یعنی کسی که اصلاً ازدواج نکرده هم می‌توانست وام ازدواج بگیرد.
+        var rule = new MarriageLoanRule();
+
+        var result = rule.Evaluate(new Application.LoanRules.LoanRuleContext
+        {
+            Employee = new Employee { MarriageDate = null },
+            LoanType = new LoanType { Type = LoanTypeEnum.MarriageLoan },
+            RequestedAmount = 100_000_000,
+            EmployeeScore = 6000,
+        });
+
+        result.IsAllowed.Should().BeFalse();
+        result.Message.Should().Contain("تاریخ عقد");
+    }
+
+    [Fact]
+    public void Marriage_Loan_Is_Refused_When_The_Marriage_Date_Is_In_The_Future()
+    {
+        var rule = new MarriageLoanRule();
+
+        var result = rule.Evaluate(new Application.LoanRules.LoanRuleContext
+        {
+            Employee = new Employee { MarriageDate = DateTime.UtcNow.AddMonths(2) },
+            LoanType = new LoanType { Type = LoanTypeEnum.MarriageLoan },
+            RequestedAmount = 100_000_000,
+            EmployeeScore = 6000,
+        });
+
+        result.IsAllowed.Should().BeFalse();
+        result.Message.Should().Contain("آینده");
     }
 
     [Fact]

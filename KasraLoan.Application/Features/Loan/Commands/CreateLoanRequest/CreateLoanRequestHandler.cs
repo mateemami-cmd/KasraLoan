@@ -6,6 +6,7 @@ using KasraLoan.Application.LoanRules;
 using KasraLoan.Application.Services.Auth;
 using KasraLoan.Domain.Entities;
 using KasraLoan.Domain.Enums;
+using KasraLoan.Domain.Validation;
 using MediatR;
 using System;
 using System.Collections.Generic;
@@ -101,6 +102,12 @@ namespace KasraLoan.Application.Features.Loan.Commands.CreateLoanRequest
                 ? Math.Max(effectiveScore, _employeeScoreService.MinimumScoreRequiredForLoan)
                 : effectiveScore;
 
+            // تاریخ عقدِ واردشده در فرم باید پیش از اجرای قانون روی کارمند بنشیند،
+            // چون MarriageLoanRule همان را می‌خواند. اگر بعد از قانون ست می‌شد،
+            // کارمندی که تاریخ عقدش در پروفایل نبود همیشه رد می‌شد — حتی وقتی
+            // همان لحظه در فرم واردش کرده بود.
+            var marriageDateWasAdded = ApplyMarriageDate(employee, loanType, request.Request);
+
             var context = new LoanRuleContext
             {
                 Employee = employee,
@@ -158,6 +165,12 @@ namespace KasraLoan.Application.Features.Loan.Commands.CreateLoanRequest
 
 
             await _loanRequestRepository.AddAsync(loanRequest);
+
+            // تاریخ عقد تازه‌واردشده همراه خودِ درخواست ذخیره می‌شود تا دفعه‌ی بعد
+            // کارمند دوباره از او پرسیده نشود.
+            if (marriageDateWasAdded)
+                await _employeeRepository.UpdateAsync(employee);
+
             await _loanRequestRepository.SaveChangesAsync();
 
             await SaveAttachmentsAsync(loanRequest.Id, request.Attachments);
@@ -250,8 +263,38 @@ namespace KasraLoan.Application.Features.Loan.Commands.CreateLoanRequest
         /// جزئیات مخصوص نوع وام را می‌سازد و اعتبارسنجی می‌کند.
         /// انواعی که هنوز فرم اختصاصی ندارند، null برمی‌گردانند.
         /// </summary>
+        /// <summary>
+        /// اگر تاریخ عقد در پروفایل کارمند خالی است و فرم آن را آورده، روی کارمند
+        /// می‌نشیند. تاریخ عقدِ از قبل ثبت‌شده هرگز از طریق فرم وام بازنویسی
+        /// نمی‌شود — تغییرش کار پروفایل و ادمین است، نه یک درخواست وام.
+        /// </summary>
+        private static bool ApplyMarriageDate(
+            // نام کامل لازم است: namespaceی Features.Employee نام Employee را می‌پوشاند.
+            Domain.Entities.Employee employee,
+            LoanType loanType,
+            CreateLoanRequestDto dto)
+        {
+            if (loanType.Type != LoanTypeEnum.MarriageLoan)
+                return false;
+
+            if (employee.MarriageDate.HasValue)
+                return false;
+
+            var provided = dto.Marriage?.MarriageDate;
+
+            if (provided == null)
+                return false;
+
+            employee.MarriageDate = DateTime.SpecifyKind(provided.Value.Date, DateTimeKind.Utc);
+
+            return true;
+        }
+
         private static LoanDetails? BuildDetails(LoanType loanType, CreateLoanRequestDto dto)
         {
+            if (loanType.Type == LoanTypeEnum.MarriageLoan)
+                return BuildMarriageDetails(dto);
+
             if (loanType.Type != LoanTypeEnum.TravelLoan)
                 return null;
 
@@ -284,6 +327,34 @@ namespace KasraLoan.Application.Features.Loan.Commands.CreateLoanRequest
                     StartDate = DateTime.SpecifyKind(travel.StartDate.Date, DateTimeKind.Utc),
                     EndDate = DateTime.SpecifyKind(travel.EndDate.Date, DateTimeKind.Utc),
                     Notes = string.IsNullOrWhiteSpace(travel.Notes) ? null : travel.Notes.Trim()
+                }
+            };
+        }
+
+        private static LoanDetails BuildMarriageDetails(CreateLoanRequestDto dto)
+        {
+            var marriage = dto.Marriage
+                ?? throw new BusinessRuleException("اطلاعات ازدواج را کامل کنید.");
+
+            if (string.IsNullOrWhiteSpace(marriage.SpouseFirstName)
+                || string.IsNullOrWhiteSpace(marriage.SpouseLastName))
+            {
+                throw new BusinessRuleException("نام و نام خانوادگی همسر را وارد کنید.");
+            }
+
+            var nationalId = NationalId.Normalize(marriage.SpouseNationalId);
+
+            if (!NationalId.IsValid(nationalId))
+                throw new BusinessRuleException("کد ملی همسر معتبر نیست.");
+
+            return new LoanDetails
+            {
+                Marriage = new MarriageLoanDetails
+                {
+                    SpouseFirstName = marriage.SpouseFirstName.Trim(),
+                    SpouseLastName = marriage.SpouseLastName.Trim(),
+                    SpouseNationalId = nationalId,
+                    Notes = string.IsNullOrWhiteSpace(marriage.Notes) ? null : marriage.Notes.Trim()
                 }
             };
         }

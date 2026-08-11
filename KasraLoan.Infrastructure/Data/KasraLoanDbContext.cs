@@ -131,6 +131,7 @@ namespace KasraLoan.Infrastructure.Data
                 {
                     details.ToJson();
                     details.OwnsOne(d => d.Travel);
+                    details.OwnsOne(d => d.Marriage);
                 });
 
             modelBuilder.Entity<LoanDocument>()
