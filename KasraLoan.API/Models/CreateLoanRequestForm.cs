@@ -52,12 +52,21 @@ namespace KasraLoan.API.Models
 
         public string? SpecialCaseDescription { get; set; }
 
+        // ───── مخصوص وام پرداخت فوری ─────
+
+        /// <summary>"Treatment" | "Repair" | "Debt" | "Other"</summary>
+        public string? ImmediatePaymentPurpose { get; set; }
+
         /// <summary>مدارک؛ حداکثر دو فایل، ترکیب عکس و PDF آزاد است.</summary>
         public List<IFormFile>? Files { get; set; }
 
         /// <summary>آیا فرم اطلاعات سفر همراه دارد.</summary>
         public bool HasTravelDetails =>
             !string.IsNullOrWhiteSpace(Destination) || !string.IsNullOrWhiteSpace(DestinationType);
+
+        /// <summary>آیا فرم بابتِ پرداخت فوری همراه دارد.</summary>
+        public bool HasImmediatePaymentDetails =>
+            !string.IsNullOrWhiteSpace(ImmediatePaymentPurpose);
 
         /// <summary>آیا فرم اطلاعات مورد همراه دارد.</summary>
         public bool HasSpecialCaseDetails =>

@@ -97,6 +97,12 @@ namespace KasraLoan.API.Controllers
                             Category = form.SpecialCaseCategory ?? string.Empty,
                             Description = form.SpecialCaseDescription ?? string.Empty
                         }
+                        : null,
+                    ImmediatePayment = form.HasImmediatePaymentDetails
+                        ? new ImmediatePaymentDetailsDto
+                        {
+                            Purpose = form.ImmediatePaymentPurpose ?? string.Empty
+                        }
                         : null
                 }
             };

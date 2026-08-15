@@ -298,6 +298,9 @@ namespace KasraLoan.Application.Features.Loan.Commands.CreateLoanRequest
             if (loanType.Type == LoanTypeEnum.SpecialCaseLoan)
                 return BuildSpecialCaseDetails(dto);
 
+            if (loanType.Type == LoanTypeEnum.ImmediatePaymentLoan)
+                return BuildImmediatePaymentDetails(dto);
+
             if (loanType.Type != LoanTypeEnum.TravelLoan)
                 return null;
 
@@ -353,6 +356,20 @@ namespace KasraLoan.Application.Features.Loan.Commands.CreateLoanRequest
                     Category = category,
                     Description = sc.Description.Trim()
                 }
+            };
+        }
+
+        private static LoanDetails BuildImmediatePaymentDetails(CreateLoanRequestDto dto)
+        {
+            var ip = dto.ImmediatePayment
+                ?? throw new BusinessRuleException("بابتِ درخواست را انتخاب کنید.");
+
+            if (!Enum.TryParse<ImmediatePaymentPurpose>(ip.Purpose, ignoreCase: true, out var purpose))
+                throw new BusinessRuleException("بابتِ درخواست معتبر نیست.");
+
+            return new LoanDetails
+            {
+                ImmediatePayment = new ImmediatePaymentLoanDetails { Purpose = purpose }
             };
         }
 

@@ -53,6 +53,7 @@ export function LoanRequestModal({
   const isTravel = loanType?.type === 'TravelLoan'
   const isMarriage = loanType?.type === 'MarriageLoan'
   const isSpecialCase = loanType?.type === 'SpecialCaseLoan'
+  const isImmediate = loanType?.type === 'ImmediatePaymentLoan'
 
   // اگر تاریخ عقد در پروفایل ثبت شده باشد، فرم فقط نشانش می‌دهد؛ وگرنه می‌پرسد.
   const marriageDateOnFile = Boolean(quote?.marriageDate)
@@ -99,6 +100,7 @@ export function LoanRequestModal({
     spouseNationalId?: string
     specialCaseCategory?: string
     specialCaseDescription?: string
+    immediatePaymentPurpose?: string
     notes?: string
   }) {
     if (quote?.requiresDocument && files.length === 0) {
@@ -125,6 +127,7 @@ export function LoanRequestModal({
         spouseNationalId: isMarriage ? values.spouseNationalId : undefined,
         specialCaseCategory: isSpecialCase ? values.specialCaseCategory : undefined,
         specialCaseDescription: isSpecialCase ? values.specialCaseDescription : undefined,
+        immediatePaymentPurpose: isImmediate ? values.immediatePaymentPurpose : undefined,
         notes: values.notes,
         files,
       })
@@ -301,6 +304,25 @@ export function LoanRequestModal({
                     <Input.TextArea rows={3} placeholder="لطفاً مورد خود را شرح دهید" />
                   </Form.Item>
                 </>
+              )}
+
+              {isImmediate && (
+                <Form.Item
+                  label="بابتِ درخواست"
+                  name="immediatePaymentPurpose"
+                  rules={[{ required: true, message: 'بابتِ درخواست را انتخاب کنید' }]}
+                  style={{ marginTop: 0 }}
+                >
+                  <Select
+                    placeholder="انتخاب کنید"
+                    options={[
+                      { value: 'Treatment', label: 'هزینه‌ی درمان' },
+                      { value: 'Repair', label: 'تعمیر ضروری' },
+                      { value: 'Debt', label: 'تسویه‌ی بدهی' },
+                      { value: 'Other', label: 'سایر' },
+                    ]}
+                  />
+                </Form.Item>
               )}
 
               <Divider titlePlacement="start">مبلغ و اقساط</Divider>

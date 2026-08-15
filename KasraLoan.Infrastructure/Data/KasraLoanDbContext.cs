@@ -133,6 +133,7 @@ namespace KasraLoan.Infrastructure.Data
                     details.OwnsOne(d => d.Travel);
                     details.OwnsOne(d => d.Marriage);
                     details.OwnsOne(d => d.SpecialCase);
+                    details.OwnsOne(d => d.ImmediatePayment);
                 });
 
             modelBuilder.Entity<LoanDocument>()

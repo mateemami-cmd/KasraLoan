@@ -24,6 +24,16 @@ namespace KasraLoan.Application.DTOs.Loans
 
         /// <summary>جزئیات مخصوص وام موردی.</summary>
         public SpecialCaseDetailsDto? SpecialCase { get; set; }
+
+        /// <summary>جزئیات مخصوص وام پرداخت فوری.</summary>
+        public ImmediatePaymentDetailsDto? ImmediatePayment { get; set; }
+    }
+
+    /// <summary>ورودی فرم وام پرداخت فوری.</summary>
+    public class ImmediatePaymentDetailsDto
+    {
+        /// <summary>"Treatment" | "Repair" | "Debt" | "Other"</summary>
+        public string Purpose { get; set; } = string.Empty;
     }
 
     /// <summary>ورودی فرم وام موردی.</summary>

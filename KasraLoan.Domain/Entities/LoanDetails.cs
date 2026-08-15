@@ -16,6 +16,23 @@ namespace KasraLoan.Domain.Entities
         public MarriageLoanDetails? Marriage { get; set; }
 
         public SpecialCaseLoanDetails? SpecialCase { get; set; }
+
+        public ImmediatePaymentLoanDetails? ImmediatePayment { get; set; }
+    }
+
+    /// <summary>اطلاعات تکمیلی وام پرداخت فوری.</summary>
+    public class ImmediatePaymentLoanDetails
+    {
+        /// <summary>بابتِ درخواست: Treatment / Repair / Debt / Other.</summary>
+        public ImmediatePaymentPurpose Purpose { get; set; }
+    }
+
+    public enum ImmediatePaymentPurpose
+    {
+        Treatment = 0,
+        Repair = 1,
+        Debt = 2,
+        Other = 3
     }
 
     /// <summary>اطلاعات تکمیلی وام موردی.</summary>

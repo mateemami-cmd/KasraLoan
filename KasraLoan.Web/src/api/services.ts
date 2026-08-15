@@ -70,6 +70,7 @@ export async function createLoanRequest(payload: {
   spouseNationalId?: string
   specialCaseCategory?: string
   specialCaseDescription?: string
+  immediatePaymentPurpose?: string
   notes?: string
   files?: File[]
 }) {
@@ -90,6 +91,8 @@ export async function createLoanRequest(payload: {
   if (payload.specialCaseCategory) form.append('SpecialCaseCategory', payload.specialCaseCategory)
   if (payload.specialCaseDescription)
     form.append('SpecialCaseDescription', payload.specialCaseDescription)
+  if (payload.immediatePaymentPurpose)
+    form.append('ImmediatePaymentPurpose', payload.immediatePaymentPurpose)
 
   if (payload.notes) form.append('Notes', payload.notes)
 
