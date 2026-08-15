@@ -42,6 +42,15 @@ namespace KasraLoan.Application.DTOs.Loans
         public decimal MaxMonthlyInstallment { get; set; }
 
         /// <summary>
+        /// تاریخ عقد ثبت‌شده در پروفایل کارمند، اگر وجود داشته باشد.
+        /// فرم وام ازدواج بر همین اساس تصمیم می‌گیرد که تاریخ را بپرسد یا فقط
+        /// نمایش بدهد؛ تاریخ ثبت‌شده از طریق فرم وام تغییر نمی‌کند.
+        /// </summary>
+        public DateTime? MarriageDate { get; set; }
+
+        public string? MarriageDatePersian { get; set; }
+
+        /// <summary>
         /// گزینه‌های تعداد اقساط برای مبلغ انتخاب‌شده، هرکدام با قسط ماهانه.
         /// وقتی مبلغی ارسال نشده باشد خالی است.
         /// </summary>

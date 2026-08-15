@@ -64,6 +64,10 @@ export async function createLoanRequest(payload: {
   destination?: string
   startDate?: string
   endDate?: string
+  marriageDate?: string
+  spouseFirstName?: string
+  spouseLastName?: string
+  spouseNationalId?: string
   notes?: string
   files?: File[]
 }) {
@@ -76,6 +80,12 @@ export async function createLoanRequest(payload: {
   if (payload.destination) form.append('Destination', payload.destination)
   if (payload.startDate) form.append('StartDate', payload.startDate)
   if (payload.endDate) form.append('EndDate', payload.endDate)
+
+  if (payload.marriageDate) form.append('MarriageDate', payload.marriageDate)
+  if (payload.spouseFirstName) form.append('SpouseFirstName', payload.spouseFirstName)
+  if (payload.spouseLastName) form.append('SpouseLastName', payload.spouseLastName)
+  if (payload.spouseNationalId) form.append('SpouseNationalId', payload.spouseNationalId)
+
   if (payload.notes) form.append('Notes', payload.notes)
 
   for (const file of payload.files ?? []) form.append('Files', file)

@@ -29,8 +29,8 @@ const MAX_FILES = 2
  * quote می‌آیند و اینجا هیچ فرمولی تکرار نشده. اگر روزی کارمزد یا سقف عوض شود،
  * فرم خودبه‌خود درست می‌ماند.
  *
- * فیلدهای سفر فقط برای وام سفر نمایش داده می‌شوند؛ بقیه‌ی انواع فعلاً همان
- * مبلغ و اقساط را دارند تا فرم اختصاصی‌شان نوشته شود.
+ * هر نوع وام بخش اختصاصی خودش را نشان می‌دهد (سفر، ازدواج)؛ بقیه‌ی انواع
+ * فعلاً فقط مبلغ و اقساط دارند تا فرم اختصاصی‌شان نوشته شود.
  */
 export function LoanRequestModal({
   loanType,
@@ -51,6 +51,10 @@ export function LoanRequestModal({
   const [files, setFiles] = useState<File[]>([])
 
   const isTravel = loanType?.type === 'TravelLoan'
+  const isMarriage = loanType?.type === 'MarriageLoan'
+
+  // اگر تاریخ عقد در پروفایل ثبت شده باشد، فرم فقط نشانش می‌دهد؛ وگرنه می‌پرسد.
+  const marriageDateOnFile = Boolean(quote?.marriageDate)
 
   useEffect(() => {
     if (!loanType) return
@@ -88,6 +92,10 @@ export function LoanRequestModal({
     destinationType?: string
     destination?: string
     travelDates?: [{ toISOString: () => string }, { toISOString: () => string }]
+    marriageDate?: { toISOString: () => string }
+    spouseFirstName?: string
+    spouseLastName?: string
+    spouseNationalId?: string
     notes?: string
   }) {
     if (quote?.requiresDocument && files.length === 0) {
@@ -105,6 +113,13 @@ export function LoanRequestModal({
         destination: isTravel ? values.destination : undefined,
         startDate: isTravel ? values.travelDates?.[0].toISOString() : undefined,
         endDate: isTravel ? values.travelDates?.[1].toISOString() : undefined,
+        // تاریخ عقد فقط وقتی فرستاده می‌شود که در پروفایل نباشد.
+        marriageDate: isMarriage && !marriageDateOnFile
+          ? values.marriageDate?.toISOString()
+          : undefined,
+        spouseFirstName: isMarriage ? values.spouseFirstName : undefined,
+        spouseLastName: isMarriage ? values.spouseLastName : undefined,
+        spouseNationalId: isMarriage ? values.spouseNationalId : undefined,
         notes: values.notes,
         files,
       })
@@ -188,6 +203,65 @@ export function LoanRequestModal({
                       style={{ width: '100%' }}
                       placeholder={['شروع سفر', 'پایان سفر']}
                     />
+                  </Form.Item>
+                </>
+              )}
+
+              {isMarriage && (
+                <>
+                  <Divider titlePlacement="start" style={{ marginTop: 0 }}>
+                    اطلاعات ازدواج
+                  </Divider>
+
+                  {marriageDateOnFile ? (
+                    <Alert
+                      type="info"
+                      showIcon
+                      style={{ marginBottom: 16 }}
+                      message={`تاریخ عقد ثبت‌شده: ${quote?.marriageDatePersian}`}
+                      description="این تاریخ از پروفایل شما خوانده شده و از این فرم قابل تغییر نیست."
+                    />
+                  ) : (
+                    <Form.Item
+                      label="تاریخ عقد"
+                      name="marriageDate"
+                      rules={[{ required: true, message: 'تاریخ عقد را انتخاب کنید' }]}
+                      extra="این تاریخ در پروفایل شما ذخیره می‌شود."
+                    >
+                      <DatePicker style={{ width: '100%' }} placeholder="تاریخ عقد" />
+                    </Form.Item>
+                  )}
+
+                  <Row gutter={12}>
+                    <Col xs={24} sm={12}>
+                      <Form.Item
+                        label="نام همسر"
+                        name="spouseFirstName"
+                        rules={[{ required: true, message: 'نام همسر را وارد کنید' }]}
+                      >
+                        <Input />
+                      </Form.Item>
+                    </Col>
+                    <Col xs={24} sm={12}>
+                      <Form.Item
+                        label="نام خانوادگی همسر"
+                        name="spouseLastName"
+                        rules={[{ required: true, message: 'نام خانوادگی همسر را وارد کنید' }]}
+                      >
+                        <Input />
+                      </Form.Item>
+                    </Col>
+                  </Row>
+
+                  <Form.Item
+                    label="کد ملی همسر"
+                    name="spouseNationalId"
+                    rules={[
+                      { required: true, message: 'کد ملی همسر را وارد کنید' },
+                      { pattern: /^\d{10}$/, message: 'کد ملی باید ۱۰ رقم باشد' },
+                    ]}
+                  >
+                    <Input maxLength={10} style={{ direction: 'ltr', textAlign: 'left' }} placeholder="۱۰ رقم" />
                   </Form.Item>
                 </>
               )}

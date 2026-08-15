@@ -80,6 +80,16 @@ namespace KasraLoan.API.Controllers
                             EndDate = form.EndDate ?? default,
                             Notes = form.Notes
                         }
+                        : null,
+                    Marriage = form.HasMarriageDetails
+                        ? new MarriageDetailsDto
+                        {
+                            MarriageDate = form.MarriageDate,
+                            SpouseFirstName = form.SpouseFirstName ?? string.Empty,
+                            SpouseLastName = form.SpouseLastName ?? string.Empty,
+                            SpouseNationalId = form.SpouseNationalId ?? string.Empty,
+                            Notes = form.Notes
+                        }
                         : null
                 }
             };

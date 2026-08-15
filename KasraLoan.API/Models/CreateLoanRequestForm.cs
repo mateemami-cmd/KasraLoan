@@ -31,11 +31,32 @@ namespace KasraLoan.API.Models
 
         public string? Notes { get; set; }
 
+        // ───── مخصوص وام ازدواج ─────
+
+        /// <summary>
+        /// تاریخ عقد. فقط وقتی لازم است که در پروفایل کارمند ثبت نشده باشد؛
+        /// تاریخ ثبت‌شده از این مسیر بازنویسی نمی‌شود.
+        /// </summary>
+        public DateTime? MarriageDate { get; set; }
+
+        public string? SpouseFirstName { get; set; }
+
+        public string? SpouseLastName { get; set; }
+
+        public string? SpouseNationalId { get; set; }
+
         /// <summary>مدارک؛ حداکثر دو فایل، ترکیب عکس و PDF آزاد است.</summary>
         public List<IFormFile>? Files { get; set; }
 
         /// <summary>آیا فرم اطلاعات سفر همراه دارد.</summary>
         public bool HasTravelDetails =>
             !string.IsNullOrWhiteSpace(Destination) || !string.IsNullOrWhiteSpace(DestinationType);
+
+        /// <summary>آیا فرم اطلاعات ازدواج همراه دارد.</summary>
+        public bool HasMarriageDetails =>
+            !string.IsNullOrWhiteSpace(SpouseFirstName)
+            || !string.IsNullOrWhiteSpace(SpouseLastName)
+            || !string.IsNullOrWhiteSpace(SpouseNationalId)
+            || MarriageDate.HasValue;
     }
 }

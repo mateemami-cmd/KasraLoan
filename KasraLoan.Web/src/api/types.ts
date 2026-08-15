@@ -119,6 +119,9 @@ export interface LoanQuote {
   requiresDocument: boolean
   requiredDocumentDescription?: string | null
   maxMonthlyInstallment: number
+  /** تاریخ عقد ثبت‌شده در پروفایل، اگر باشد. فرم ازدواج بر همین اساس تصمیم می‌گیرد بپرسد یا فقط نشان دهد. */
+  marriageDate?: string | null
+  marriageDatePersian?: string | null
   installmentOptions: InstallmentOption[]
 }
 
