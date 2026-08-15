@@ -45,12 +45,24 @@ namespace KasraLoan.API.Models
 
         public string? SpouseNationalId { get; set; }
 
+        // ───── مخصوص وام موردی ─────
+
+        /// <summary>"Medical" | "Damage" | "Bereavement" | "Other"</summary>
+        public string? SpecialCaseCategory { get; set; }
+
+        public string? SpecialCaseDescription { get; set; }
+
         /// <summary>مدارک؛ حداکثر دو فایل، ترکیب عکس و PDF آزاد است.</summary>
         public List<IFormFile>? Files { get; set; }
 
         /// <summary>آیا فرم اطلاعات سفر همراه دارد.</summary>
         public bool HasTravelDetails =>
             !string.IsNullOrWhiteSpace(Destination) || !string.IsNullOrWhiteSpace(DestinationType);
+
+        /// <summary>آیا فرم اطلاعات مورد همراه دارد.</summary>
+        public bool HasSpecialCaseDetails =>
+            !string.IsNullOrWhiteSpace(SpecialCaseCategory)
+            || !string.IsNullOrWhiteSpace(SpecialCaseDescription);
 
         /// <summary>آیا فرم اطلاعات ازدواج همراه دارد.</summary>
         public bool HasMarriageDetails =>

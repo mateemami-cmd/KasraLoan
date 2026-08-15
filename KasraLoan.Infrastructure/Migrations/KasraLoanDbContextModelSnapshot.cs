@@ -54,7 +54,7 @@ namespace KasraLoan.Infrastructure.Migrations
 
                     b.HasIndex("LoanRequestId");
 
-                    b.ToTable("AuditLogs");
+                    b.ToTable("AuditLogs", (string)null);
                 });
 
             modelBuilder.Entity("KasraLoan.Domain.Entities.Employee", b =>
@@ -129,7 +129,7 @@ namespace KasraLoan.Infrastructure.Migrations
                     b.HasIndex("Username")
                         .IsUnique();
 
-                    b.ToTable("Employees");
+                    b.ToTable("Employees", (string)null);
                 });
 
             modelBuilder.Entity("KasraLoan.Domain.Entities.EmployeeScore", b =>
@@ -162,7 +162,7 @@ namespace KasraLoan.Infrastructure.Migrations
 
                     b.HasIndex("EmployeeId");
 
-                    b.ToTable("EmployeeScores");
+                    b.ToTable("EmployeeScores", (string)null);
                 });
 
             modelBuilder.Entity("KasraLoan.Domain.Entities.EmploymentStatusChange", b =>
@@ -195,7 +195,7 @@ namespace KasraLoan.Infrastructure.Migrations
 
                     b.HasIndex("EmployeeId", "ChangedAt");
 
-                    b.ToTable("EmploymentStatusChanges");
+                    b.ToTable("EmploymentStatusChanges", (string)null);
                 });
 
             modelBuilder.Entity("KasraLoan.Domain.Entities.InstallmentPayment", b =>
@@ -269,7 +269,7 @@ namespace KasraLoan.Infrastructure.Migrations
 
                     b.HasIndex("LoanInstallmentId", "CreatedAt");
 
-                    b.ToTable("InstallmentPayments");
+                    b.ToTable("InstallmentPayments", (string)null);
                 });
 
             modelBuilder.Entity("KasraLoan.Domain.Entities.JobPosition", b =>
@@ -298,7 +298,7 @@ namespace KasraLoan.Infrastructure.Migrations
                     b.HasIndex("Title")
                         .IsUnique();
 
-                    b.ToTable("JobPositions");
+                    b.ToTable("JobPositions", (string)null);
                 });
 
             modelBuilder.Entity("KasraLoan.Domain.Entities.LoanDocument", b =>
@@ -325,7 +325,7 @@ namespace KasraLoan.Infrastructure.Migrations
 
                     b.HasIndex("LoanRequestId");
 
-                    b.ToTable("LoanDocuments");
+                    b.ToTable("LoanDocuments", (string)null);
                 });
 
             modelBuilder.Entity("KasraLoan.Domain.Entities.LoanInstallment", b =>
@@ -362,7 +362,7 @@ namespace KasraLoan.Infrastructure.Migrations
 
                     b.HasIndex("LoanRequestId");
 
-                    b.ToTable("LoanInstallments");
+                    b.ToTable("LoanInstallments", (string)null);
                 });
 
             modelBuilder.Entity("KasraLoan.Domain.Entities.LoanPermissionRequest", b =>
@@ -401,7 +401,7 @@ namespace KasraLoan.Infrastructure.Migrations
 
                     b.HasIndex("LoanTypeId");
 
-                    b.ToTable("LoanPermissionRequests");
+                    b.ToTable("LoanPermissionRequests", (string)null);
                 });
 
             modelBuilder.Entity("KasraLoan.Domain.Entities.LoanRequest", b =>
@@ -470,7 +470,7 @@ namespace KasraLoan.Infrastructure.Migrations
 
                     b.HasIndex("LoanTypeId");
 
-                    b.ToTable("LoanRequests");
+                    b.ToTable("LoanRequests", (string)null);
                 });
 
             modelBuilder.Entity("KasraLoan.Domain.Entities.LoanRule", b =>
@@ -503,7 +503,7 @@ namespace KasraLoan.Infrastructure.Migrations
 
                     b.HasIndex("LoanTypeId");
 
-                    b.ToTable("LoanRules");
+                    b.ToTable("LoanRules", (string)null);
                 });
 
             modelBuilder.Entity("KasraLoan.Domain.Entities.LoanType", b =>
@@ -526,7 +526,7 @@ namespace KasraLoan.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("LoanTypes");
+                    b.ToTable("LoanTypes", (string)null);
                 });
 
             modelBuilder.Entity("KasraLoan.Domain.Entities.Notification", b =>
@@ -560,7 +560,7 @@ namespace KasraLoan.Infrastructure.Migrations
 
                     b.HasIndex("EmployeeId");
 
-                    b.ToTable("Notifications");
+                    b.ToTable("Notifications", (string)null);
                 });
 
             modelBuilder.Entity("KasraLoan.Domain.Entities.RefreshToken", b =>
@@ -598,7 +598,7 @@ namespace KasraLoan.Infrastructure.Migrations
 
                     b.HasIndex("EmployeeId");
 
-                    b.ToTable("RefreshTokens");
+                    b.ToTable("RefreshTokens", (string)null);
                 });
 
             modelBuilder.Entity("KasraLoan.Domain.Entities.AuditLog", b =>
@@ -724,21 +724,21 @@ namespace KasraLoan.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.OwnsOne("KasraLoan.Domain.Entities.LoanDetails", "Details", b1 =>
+                    b.OwnsOne("KasraLoan.Domain.Entities.LoanRequest.Details#KasraLoan.Domain.Entities.LoanDetails", "Details", b1 =>
                         {
                             b1.Property<Guid>("LoanRequestId")
                                 .HasColumnType("uuid");
 
                             b1.HasKey("LoanRequestId");
 
-                            b1.ToTable("LoanRequests");
+                            b1.ToTable("LoanRequests", (string)null);
 
                             b1.ToJson("Details");
 
                             b1.WithOwner()
                                 .HasForeignKey("LoanRequestId");
 
-                            b1.OwnsOne("KasraLoan.Domain.Entities.TravelLoanDetails", "Travel", b2 =>
+                            b1.OwnsOne("KasraLoan.Domain.Entities.LoanRequest.Details#KasraLoan.Domain.Entities.LoanDetails.Travel#KasraLoan.Domain.Entities.TravelLoanDetails", "Travel", b2 =>
                                 {
                                     b2.Property<Guid>("LoanDetailsLoanRequestId")
                                         .HasColumnType("uuid");
@@ -761,7 +761,7 @@ namespace KasraLoan.Infrastructure.Migrations
 
                                     b2.HasKey("LoanDetailsLoanRequestId");
 
-                                    b2.ToTable("LoanRequests");
+                                    b2.ToTable("LoanRequests", (string)null);
 
                                     b2.WithOwner()
                                         .HasForeignKey("LoanDetailsLoanRequestId");

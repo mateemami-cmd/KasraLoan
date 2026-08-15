@@ -52,6 +52,7 @@ export function LoanRequestModal({
 
   const isTravel = loanType?.type === 'TravelLoan'
   const isMarriage = loanType?.type === 'MarriageLoan'
+  const isSpecialCase = loanType?.type === 'SpecialCaseLoan'
 
   // اگر تاریخ عقد در پروفایل ثبت شده باشد، فرم فقط نشانش می‌دهد؛ وگرنه می‌پرسد.
   const marriageDateOnFile = Boolean(quote?.marriageDate)
@@ -96,6 +97,8 @@ export function LoanRequestModal({
     spouseFirstName?: string
     spouseLastName?: string
     spouseNationalId?: string
+    specialCaseCategory?: string
+    specialCaseDescription?: string
     notes?: string
   }) {
     if (quote?.requiresDocument && files.length === 0) {
@@ -120,6 +123,8 @@ export function LoanRequestModal({
         spouseFirstName: isMarriage ? values.spouseFirstName : undefined,
         spouseLastName: isMarriage ? values.spouseLastName : undefined,
         spouseNationalId: isMarriage ? values.spouseNationalId : undefined,
+        specialCaseCategory: isSpecialCase ? values.specialCaseCategory : undefined,
+        specialCaseDescription: isSpecialCase ? values.specialCaseDescription : undefined,
         notes: values.notes,
         files,
       })
@@ -262,6 +267,38 @@ export function LoanRequestModal({
                     ]}
                   >
                     <Input maxLength={10} style={{ direction: 'ltr', textAlign: 'left' }} placeholder="۱۰ رقم" />
+                  </Form.Item>
+                </>
+              )}
+
+              {isSpecialCase && (
+                <>
+                  <Divider titlePlacement="start" style={{ marginTop: 0 }}>
+                    اطلاعات مورد
+                  </Divider>
+
+                  <Form.Item
+                    label="دسته‌ی مورد"
+                    name="specialCaseCategory"
+                    rules={[{ required: true, message: 'دسته‌ی مورد را انتخاب کنید' }]}
+                  >
+                    <Select
+                      placeholder="انتخاب کنید"
+                      options={[
+                        { value: 'Medical', label: 'درمانی' },
+                        { value: 'Damage', label: 'خسارت مالی' },
+                        { value: 'Bereavement', label: 'فوت بستگان' },
+                        { value: 'Other', label: 'سایر' },
+                      ]}
+                    />
+                  </Form.Item>
+
+                  <Form.Item
+                    label="شرح مورد"
+                    name="specialCaseDescription"
+                    rules={[{ required: true, message: 'شرح مورد را وارد کنید' }]}
+                  >
+                    <Input.TextArea rows={3} placeholder="لطفاً مورد خود را شرح دهید" />
                   </Form.Item>
                 </>
               )}

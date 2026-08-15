@@ -21,6 +21,18 @@ namespace KasraLoan.Application.DTOs.Loans
 
         /// <summary>جزئیات مخصوص وام ازدواج.</summary>
         public MarriageDetailsDto? Marriage { get; set; }
+
+        /// <summary>جزئیات مخصوص وام موردی.</summary>
+        public SpecialCaseDetailsDto? SpecialCase { get; set; }
+    }
+
+    /// <summary>ورودی فرم وام موردی.</summary>
+    public class SpecialCaseDetailsDto
+    {
+        /// <summary>"Medical" | "Damage" | "Bereavement" | "Other"</summary>
+        public string Category { get; set; } = string.Empty;
+
+        public string Description { get; set; } = string.Empty;
     }
 
     /// <summary>ورودی فرم وام ازدواج.</summary>

@@ -90,6 +90,13 @@ namespace KasraLoan.API.Controllers
                             SpouseNationalId = form.SpouseNationalId ?? string.Empty,
                             Notes = form.Notes
                         }
+                        : null,
+                    SpecialCase = form.HasSpecialCaseDetails
+                        ? new SpecialCaseDetailsDto
+                        {
+                            Category = form.SpecialCaseCategory ?? string.Empty,
+                            Description = form.SpecialCaseDescription ?? string.Empty
+                        }
                         : null
                 }
             };

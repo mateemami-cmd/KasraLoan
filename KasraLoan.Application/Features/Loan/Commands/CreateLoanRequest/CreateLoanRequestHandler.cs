@@ -295,6 +295,9 @@ namespace KasraLoan.Application.Features.Loan.Commands.CreateLoanRequest
             if (loanType.Type == LoanTypeEnum.MarriageLoan)
                 return BuildMarriageDetails(dto);
 
+            if (loanType.Type == LoanTypeEnum.SpecialCaseLoan)
+                return BuildSpecialCaseDetails(dto);
+
             if (loanType.Type != LoanTypeEnum.TravelLoan)
                 return null;
 
@@ -327,6 +330,28 @@ namespace KasraLoan.Application.Features.Loan.Commands.CreateLoanRequest
                     StartDate = DateTime.SpecifyKind(travel.StartDate.Date, DateTimeKind.Utc),
                     EndDate = DateTime.SpecifyKind(travel.EndDate.Date, DateTimeKind.Utc),
                     Notes = string.IsNullOrWhiteSpace(travel.Notes) ? null : travel.Notes.Trim()
+                }
+            };
+        }
+
+        private static LoanDetails BuildSpecialCaseDetails(CreateLoanRequestDto dto)
+        {
+            var sc = dto.SpecialCase
+                ?? throw new BusinessRuleException("اطلاعات مورد را کامل کنید.");
+
+            // «مورد خاص» ذاتاً توضیح می‌خواهد، پس شرح اجباری است.
+            if (string.IsNullOrWhiteSpace(sc.Description))
+                throw new BusinessRuleException("شرح مورد را وارد کنید.");
+
+            if (!Enum.TryParse<SpecialCaseCategory>(sc.Category, ignoreCase: true, out var category))
+                throw new BusinessRuleException("دسته‌ی مورد معتبر نیست.");
+
+            return new LoanDetails
+            {
+                SpecialCase = new SpecialCaseLoanDetails
+                {
+                    Category = category,
+                    Description = sc.Description.Trim()
                 }
             };
         }

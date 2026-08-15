@@ -68,6 +68,8 @@ export async function createLoanRequest(payload: {
   spouseFirstName?: string
   spouseLastName?: string
   spouseNationalId?: string
+  specialCaseCategory?: string
+  specialCaseDescription?: string
   notes?: string
   files?: File[]
 }) {
@@ -85,6 +87,9 @@ export async function createLoanRequest(payload: {
   if (payload.spouseFirstName) form.append('SpouseFirstName', payload.spouseFirstName)
   if (payload.spouseLastName) form.append('SpouseLastName', payload.spouseLastName)
   if (payload.spouseNationalId) form.append('SpouseNationalId', payload.spouseNationalId)
+  if (payload.specialCaseCategory) form.append('SpecialCaseCategory', payload.specialCaseCategory)
+  if (payload.specialCaseDescription)
+    form.append('SpecialCaseDescription', payload.specialCaseDescription)
 
   if (payload.notes) form.append('Notes', payload.notes)
 

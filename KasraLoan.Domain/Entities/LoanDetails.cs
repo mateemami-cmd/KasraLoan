@@ -14,6 +14,26 @@ namespace KasraLoan.Domain.Entities
         public TravelLoanDetails? Travel { get; set; }
 
         public MarriageLoanDetails? Marriage { get; set; }
+
+        public SpecialCaseLoanDetails? SpecialCase { get; set; }
+    }
+
+    /// <summary>اطلاعات تکمیلی وام موردی.</summary>
+    public class SpecialCaseLoanDetails
+    {
+        /// <summary>دسته‌ی مورد: Medical / Damage / Bereavement / Other.</summary>
+        public SpecialCaseCategory Category { get; set; }
+
+        /// <summary>شرح مورد؛ برای وام موردی اجباری است.</summary>
+        public string Description { get; set; } = string.Empty;
+    }
+
+    public enum SpecialCaseCategory
+    {
+        Medical = 0,
+        Damage = 1,
+        Bereavement = 2,
+        Other = 3
     }
 
     /// <summary>
