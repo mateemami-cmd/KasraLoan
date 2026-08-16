@@ -17,6 +17,7 @@ import {
   Popconfirm,
   Segmented,
   Progress,
+  Drawer,
   App,
 } from 'antd'
 import {
@@ -27,9 +28,11 @@ import {
   CrownOutlined,
   AuditOutlined,
   FileImageOutlined,
+  ArrowRightOutlined,
 } from '@ant-design/icons'
 import type { ColumnsType } from 'antd/es/table'
 import { DashboardLayout } from '../../components/DashboardLayout'
+import { ProfilePanel } from '../../components/ProfilePanel'
 import {
   getAllPermissionRequests,
   approvePermissionRequest,
@@ -69,6 +72,7 @@ const statusTag: Record<string, { color: string; label: string }> = {
 
 export function AdminDashboard() {
   const [section, setSection] = useState('loanRequests')
+  const [profileOpen, setProfileOpen] = useState(false)
 
   const menuItems = [
     { key: 'loanRequests', icon: <AuditOutlined />, label: 'درخواست‌های وام' },
@@ -92,6 +96,9 @@ export function AdminDashboard() {
       menuItems={menuItems}
       selectedKey={section}
       onSelect={setSection}
+      hideLogout
+      rail
+      onAvatarClick={() => setProfileOpen(true)}
     >
       {section === 'loanRequests' && <LoanRequestsSection />}
       {section === 'cheques' && <ChequeQueueSection />}
@@ -100,6 +107,34 @@ export function AdminDashboard() {
       {section === 'addEmployee' && <AddEmployeeSection />}
       {section === 'employees' && <PeopleSection role="Employee" title="لیست کارمندان" />}
       {section === 'admins' && <PeopleSection role="Admin" title="لیست ادمین‌ها" />}
+
+      <Drawer
+        placement="right"
+        width={400}
+        open={profileOpen}
+        onClose={() => setProfileOpen(false)}
+        closable={false}
+        title={
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              width: '100%',
+            }}
+          >
+            <span>پروفایل</span>
+            <Button
+              type="text"
+              icon={<ArrowRightOutlined />}
+              onClick={() => setProfileOpen(false)}
+            />
+          </div>
+        }
+        styles={{ body: { display: 'flex', flexDirection: 'column' } }}
+      >
+        <ProfilePanel />
+      </Drawer>
     </DashboardLayout>
   )
 }
