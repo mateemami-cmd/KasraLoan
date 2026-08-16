@@ -1,3 +1,4 @@
+
 .counter {
   font-size: 16px;
   padding: 5px 10px;
@@ -43,7 +44,13 @@
     top: 34px;
     height: 28px;
     transform: perspective(2000px) rotateZ(300deg) rotateX(44deg) rotateY(39deg)
-      scale(1.4);
+      scale(1.4)
+      
+      /* Matin test */
+      display (1.5)
+      /* Matin test */
+
+      ;
   }
 
   .vite {

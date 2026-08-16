@@ -92,6 +92,8 @@ export interface AdminLoanItem {
   requiresDocument: boolean
   requiredDocumentDescription?: string | null
   hasDocument: boolean
+  totalInstallments: number
+  paidInstallments: number
   createdAt: string
 }
 

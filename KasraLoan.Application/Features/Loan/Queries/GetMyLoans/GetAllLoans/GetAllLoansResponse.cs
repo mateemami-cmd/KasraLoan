@@ -40,6 +40,10 @@ namespace KasraLoan.Application.Features.Loan.Queries.GetMyLoans.GetAllLoans
         /// <summary>آیا کارمند مدرک را بارگذاری کرده. ادمین نباید کورکورانه تأیید کند.</summary>
         public bool HasDocument { get; set; }
 
+        public int TotalInstallments { get; set; }
+
+        public int PaidInstallments { get; set; }
+
         public DateTime CreatedAt { get; set; }
     }
 

@@ -49,6 +49,10 @@ namespace KasraLoan.Application.Features.Loan.Queries.GetMyLoans.GetAllLoans
                 RequiresDocument = x.RequiresDocument,
                 RequiredDocumentDescription = x.RequiredDocumentDescription,
                 HasDocument = x.LoanDocuments != null && x.LoanDocuments.Count > 0,
+                TotalInstallments = x.LoanInstallments != null ? x.LoanInstallments.Count : 0,
+                PaidInstallments = x.LoanInstallments != null
+                    ? x.LoanInstallments.Count(i => i.IsPaid)
+                    : 0,
                 CreatedAt = x.CreatedAt
             })
                 .ToList();

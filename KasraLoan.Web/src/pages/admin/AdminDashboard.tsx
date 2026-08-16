@@ -15,6 +15,8 @@ import {
   Modal,
   Alert,
   Popconfirm,
+  Segmented,
+  Progress,
   App,
 } from 'antd'
 import {
@@ -115,6 +117,7 @@ function LoanRequestsSection() {
   const [busyId, setBusyId] = useState<string | null>(null)
   const [detail, setDetail] = useState<{ loan: AdminLoanItem; installments: LoanInstallment[] } | null>(null)
   const [docs, setDocs] = useState<{ loan: AdminLoanItem; items: LoanDocumentItem[] } | null>(null)
+  const [tab, setTab] = useState('pending')
 
   async function load() {
     setLoading(true)
@@ -213,6 +216,25 @@ function LoanRequestsSection() {
       render: (s: string) => <Tag color={statusTag[s]?.color}>{statusTag[s]?.label ?? s}</Tag>,
     },
     {
+      // پیشرفت اقساط فقط برای وام‌هایی که اقساط دارند معنی دارد.
+      title: 'پیشرفت اقساط',
+      render: (_, item) =>
+        item.totalInstallments > 0 ? (
+          <div style={{ minWidth: 120 }}>
+            <Progress
+              percent={Math.round((item.paidInstallments / item.totalInstallments) * 100)}
+              size="small"
+              status={item.paidInstallments >= item.totalInstallments ? 'success' : 'active'}
+              format={() =>
+                `${item.paidInstallments.toLocaleString('fa-IR')}/${item.totalInstallments.toLocaleString('fa-IR')}`
+              }
+            />
+          </div>
+        ) : (
+          <span style={{ color: '#999' }}>—</span>
+        ),
+    },
+    {
       title: 'تاریخ',
       dataIndex: 'createdAt',
       render: (d: string) => new Date(d).toLocaleDateString('fa-IR'),
@@ -259,20 +281,57 @@ function LoanRequestsSection() {
     },
   ]
 
-  const pendingCount = items.filter((i) => i.status === 'Pending').length
+  // فاز هر وام از روی وضعیت + پیشرفت اقساط تعیین می‌شود:
+  //  approved  = تأییدشده ولی هنوز قسطی پرداخت نشده
+  //  active    = در حال بازپرداخت (بعضی اقساط پرداخت شده، نه همه)
+  //  paid      = همه‌ی اقساط پرداخت شده
+  function phaseOf(l: AdminLoanItem): string {
+    if (l.status === 'Pending') return 'pending'
+    if (l.status === 'Rejected') return 'rejected'
+    if (l.status === 'Paid' || (l.totalInstallments > 0 && l.paidInstallments >= l.totalInstallments))
+      return 'paid'
+    if (l.paidInstallments > 0) return 'active'
+    return 'approved'
+  }
+
+  const counts = {
+    pending: items.filter((i) => phaseOf(i) === 'pending').length,
+    approved: items.filter((i) => phaseOf(i) === 'approved').length,
+    active: items.filter((i) => phaseOf(i) === 'active').length,
+    paid: items.filter((i) => phaseOf(i) === 'paid').length,
+    rejected: items.filter((i) => phaseOf(i) === 'rejected').length,
+  }
+
+  const visible = items.filter((i) => phaseOf(i) === tab)
+
+  const tabLabel = (label: string, n: number) =>
+    n > 0 ? `${label} (${n.toLocaleString('fa-IR')})` : label
 
   return (
     <>
       <Card
-        title={`درخواست‌های وام${pendingCount > 0 ? ` — ${pendingCount} مورد در انتظار` : ''}`}
+        title="مدیریت وام‌ها"
         extra={<Button onClick={load}>بروزرسانی</Button>}
       >
+        <Segmented
+          value={tab}
+          onChange={(v) => setTab(v as string)}
+          style={{ marginBottom: 16 }}
+          options={[
+            { value: 'pending', label: tabLabel('در انتظار بررسی', counts.pending) },
+            { value: 'approved', label: tabLabel('تأییدشده', counts.approved) },
+            { value: 'active', label: tabLabel('فعال', counts.active) },
+            { value: 'paid', label: tabLabel('تسویه‌شده', counts.paid) },
+            { value: 'rejected', label: tabLabel('رد شده', counts.rejected) },
+          ]}
+        />
         <Table
           rowKey="id"
           loading={loading}
           columns={columns}
-          dataSource={items}
+          dataSource={visible}
           pagination={{ pageSize: 8 }}
+          locale={{ emptyText: 'وامی در این بخش نیست' }}
         />
       </Card>
 

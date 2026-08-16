@@ -133,6 +133,8 @@ namespace KasraLoan.Infrastructure.Repositories
                 .Include(x => x.LoanType)
                 // مدارک برای این‌که ادمین در فهرست ببیند مدرک بارگذاری شده یا نه.
                 .Include(x => x.LoanDocuments)
+                // اقساط برای تفکیک وام‌های تأییدشده / فعال / تسویه‌شده در پنل ادمین.
+                .Include(x => x.LoanInstallments)
                 .AsQueryable();
 
             if (status.HasValue)
