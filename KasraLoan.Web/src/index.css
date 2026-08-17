@@ -111,7 +111,20 @@ body {
   border-radius: 12px;
 }
 
-/* نوارِ فقط‌آیکون ادمین: سایز آیکون‌ها دقیقاً مثل نوار کارمند (۲۲px) */
+/* نوارِ فقط‌آیکون ادمین: همان جاداری و اندازه‌ی نسخه‌ی قبلی (که متن زیر آیکون
+   داشت) باشد؛ فقط متن حذف شده و به‌جایش تولتیپ کنارِ آیکون می‌آید. */
+.app-sider-collapsed .ant-menu-item,
+.app-sider-collapsed .ant-menu-submenu-title {
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  height: auto !important;
+  padding: 14px 4px !important;
+  margin: 4px 8px !important;
+  width: auto !important;
+  border-radius: 10px;
+}
+
 .app-sider-collapsed .ant-menu-item .ant-menu-item-icon,
 .app-sider-collapsed .ant-menu-submenu-title .ant-menu-item-icon {
   font-size: 22px;
