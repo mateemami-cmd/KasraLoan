@@ -45,18 +45,37 @@ export function ProfilePanel() {
 
   return (
     <>
-      {/* عکس + نام + شماره پرسنلی */}
-      <div style={{ textAlign: 'center', marginBottom: 24 }}>
+      {/* آواتار سمت راست (با حلقه) و نام + شماره پرسنلی کنارش */}
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 16,
+          marginBottom: 24,
+        }}
+      >
         <div
           onClick={() => setPhotoOpen(true)}
-          style={{ cursor: 'pointer', display: 'inline-block' }}
+          style={{
+            cursor: 'pointer',
+            padding: 3,
+            borderRadius: '50%',
+            border: '2px solid var(--border-soft)',
+            display: 'inline-flex',
+            flexShrink: 0,
+          }}
         >
-          <Avatar size={110} src={user.profilePictureUrl || undefined} icon={<UserOutlined />} />
+          <Avatar size={72} src={user.profilePictureUrl || undefined} icon={<UserOutlined />} />
         </div>
-        <div style={{ marginTop: 12, fontWeight: 700, fontSize: 18 }}>
-          {user.firstName} {user.lastName}
+
+        <div style={{ minWidth: 0 }}>
+          <div style={{ fontWeight: 700, fontSize: 18 }}>
+            {user.firstName} {user.lastName}
+          </div>
+          <div style={{ color: 'var(--text-muted)', direction: 'ltr', textAlign: 'right' }}>
+            #{user.personnelNumber}
+          </div>
         </div>
-        <div style={{ color: 'var(--text-muted)', direction: 'ltr' }}>#{user.personnelNumber}</div>
       </div>
 
       <Modal
