@@ -110,3 +110,9 @@ body {
   background: var(--bg-deep);
   border-radius: 12px;
 }
+
+/* نوارِ فقط‌آیکون ادمین: سایز آیکون‌ها همانِ نوار کارمند (۲۲px) باشد */
+.app-sider-collapsed .ant-menu-item .ant-menu-item-icon,
+.app-sider-collapsed .ant-menu-submenu-title .ant-menu-item-icon {
+  font-size: 22px;
+}

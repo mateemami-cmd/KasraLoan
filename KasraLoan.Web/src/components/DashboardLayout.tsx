@@ -49,7 +49,7 @@ export function DashboardLayout({
         collapsedWidth={0}
         // کلاسِ app-sider متن را زیر آیکون می‌چیند؛ برای حالت فقط‌آیکون آن را
         // نمی‌گذاریم تا inlineCollapsed خودِ antd (تولتیپ کنار آیکون) کار کند.
-        className={rail ? 'app-sider' : undefined}
+        className={rail ? 'app-sider' : collapsedRail ? 'app-sider-collapsed' : undefined}
       >
         <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
           <Menu
