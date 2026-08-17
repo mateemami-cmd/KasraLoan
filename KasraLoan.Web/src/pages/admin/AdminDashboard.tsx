@@ -377,6 +377,7 @@ function LoanRequestsSection() {
           dataSource={visible}
           pagination={{ pageSize: 8 }}
           locale={{ emptyText: 'وامی در این بخش نیست' }}
+          scroll={{ x: 'max-content' }}
         />
       </Card>
 
@@ -443,6 +444,7 @@ function LoanRequestsSection() {
               size="small"
               dataSource={detail.installments}
               pagination={{ pageSize: 12 }}
+              scroll={{ x: 'max-content' }}
               columns={[
                 { title: 'شماره', dataIndex: 'installmentNumber', width: 80 },
                 { title: 'مبلغ', dataIndex: 'amount', render: money },
@@ -597,6 +599,7 @@ function ChequeQueueSection() {
           dataSource={items}
           pagination={{ pageSize: 8 }}
           locale={{ emptyText: 'چکی در انتظار بررسی نیست' }}
+          scroll={{ x: 'max-content' }}
         />
       </Card>
 
@@ -696,7 +699,7 @@ function PermissionRequestsSection() {
 
   return (
     <Card title="درخواست‌های مجوز وام">
-      <Table rowKey="id" loading={loading} columns={columns} dataSource={items} pagination={{ pageSize: 8 }} />
+      <Table rowKey="id" loading={loading} columns={columns} dataSource={items} pagination={{ pageSize: 8 }} scroll={{ x: 'max-content' }} />
     </Card>
   )
 }
@@ -743,7 +746,7 @@ function LoanManagementSection() {
 
   return (
     <Card title="مدیریت انواع وام">
-      <Table rowKey="id" loading={loading} columns={columns} dataSource={loans} pagination={false} />
+      <Table rowKey="id" loading={loading} columns={columns} dataSource={loans} pagination={false} scroll={{ x: 'max-content' }} />
     </Card>
   )
 }
@@ -944,7 +947,7 @@ function PeopleSection({ role, title }: { role: 'Admin' | 'Employee'; title: str
 
   return (
     <Card title={`${title} (${filtered.length})`}>
-      <Table rowKey="id" loading={loading} columns={columns} dataSource={filtered} pagination={{ pageSize: 10 }} />
+      <Table rowKey="id" loading={loading} columns={columns} dataSource={filtered} pagination={{ pageSize: 10 }} scroll={{ x: 'max-content' }} />
     </Card>
   )
 }
