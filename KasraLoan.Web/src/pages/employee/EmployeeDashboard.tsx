@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   Row,
@@ -93,28 +93,37 @@ export function EmployeeDashboard() {
     return () => clearInterval(timer)
   }, [])
 
-  // متن زیر آیکون می‌ماند؛ آیکون و متن هر دو داخل Tooltip‌اند تا hover روی هر
-  // جای آیتم (نه فقط روی متن) تولتیپ عنوان را کنارش نشان دهد.
+  // کل قابِ آیتم (آیکون + متن) داخل یک Tooltip است تا با hover فقط یک تولتیپ
+  // برای کل آیتم بیاید، نه یکی برای آیکون و یکی برای متن.
+  const railItem = (title: string, icon: ReactNode) => (
+    <Tooltip title={title} placement="left">
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          gap: 4,
+        }}
+      >
+        {icon}
+        <span style={{ fontSize: 12 }}>{title}</span>
+      </div>
+    </Tooltip>
+  )
+
   const menuItems = [
     {
       key: 'loans',
-      icon: (
-        <Tooltip title="وام" placement="left">
-          <BankOutlined style={{ fontSize: 22 }} />
-        </Tooltip>
-      ),
-      label: <Tooltip title="وام" placement="left">وام</Tooltip>,
+      label: railItem('وام', <BankOutlined style={{ fontSize: 22 }} />),
     },
     {
       key: 'notifications',
-      icon: (
+      label: railItem(
+        'اعلان',
         <Badge count={unread} size="small" offset={[-2, 2]}>
-          <Tooltip title="اعلان" placement="left">
-            <BellOutlined style={{ fontSize: 22 }} />
-          </Tooltip>
-        </Badge>
+          <BellOutlined style={{ fontSize: 22 }} />
+        </Badge>,
       ),
-      label: <Tooltip title="اعلان" placement="left">اعلان</Tooltip>,
     },
   ]
 
