@@ -24,6 +24,7 @@ import {
   Descriptions,
   Progress,
   DatePicker,
+  Tooltip,
 } from 'antd'
 import {
   BankOutlined,
@@ -92,8 +93,13 @@ export function EmployeeDashboard() {
     return () => clearInterval(timer)
   }, [])
 
+  // متن زیر آیکون می‌ماند، ولی با hover هم تولتیپ همان عنوان کنارِ آیتم می‌آید.
   const menuItems = [
-    { key: 'loans', icon: <BankOutlined />, label: 'وام' },
+    {
+      key: 'loans',
+      icon: <BankOutlined />,
+      label: <Tooltip title="وام" placement="left">وام</Tooltip>,
+    },
     {
       key: 'notifications',
       icon: (
@@ -101,7 +107,7 @@ export function EmployeeDashboard() {
           <BellOutlined style={{ fontSize: 22 }} />
         </Badge>
       ),
-      label: 'اعلان',
+      label: <Tooltip title="اعلان" placement="left">اعلان</Tooltip>,
     },
   ]
 
