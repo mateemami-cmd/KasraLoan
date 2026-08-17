@@ -111,8 +111,8 @@ body {
   border-radius: 12px;
 }
 
-/* نوارِ فقط‌آیکون ادمین: آیکون‌ها بزرگ‌تر باشند چون متنی زیرشان نیست */
+/* نوارِ فقط‌آیکون ادمین: سایز آیکون‌ها دقیقاً مثل نوار کارمند (۲۲px) */
 .app-sider-collapsed .ant-menu-item .ant-menu-item-icon,
 .app-sider-collapsed .ant-menu-submenu-title .ant-menu-item-icon {
-  font-size: 28px;
+  font-size: 22px;
 }
