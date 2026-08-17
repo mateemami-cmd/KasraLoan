@@ -93,19 +93,26 @@ export function EmployeeDashboard() {
     return () => clearInterval(timer)
   }, [])
 
-  // متن زیر آیکون می‌ماند، ولی با hover هم تولتیپ همان عنوان کنارِ آیتم می‌آید.
+  // متن زیر آیکون می‌ماند؛ آیکون و متن هر دو داخل Tooltip‌اند تا hover روی هر
+  // جای آیتم (نه فقط روی متن) تولتیپ عنوان را کنارش نشان دهد.
   const menuItems = [
     {
       key: 'loans',
-      icon: <BankOutlined />,
+      icon: (
+        <Tooltip title="وام" placement="left">
+          <BankOutlined />
+        </Tooltip>
+      ),
       label: <Tooltip title="وام" placement="left">وام</Tooltip>,
     },
     {
       key: 'notifications',
       icon: (
-        <Badge count={unread} size="small" offset={[-2, 2]}>
-          <BellOutlined style={{ fontSize: 22 }} />
-        </Badge>
+        <Tooltip title="اعلان" placement="left">
+          <Badge count={unread} size="small" offset={[-2, 2]}>
+            <BellOutlined style={{ fontSize: 22 }} />
+          </Badge>
+        </Tooltip>
       ),
       label: <Tooltip title="اعلان" placement="left">اعلان</Tooltip>,
     },
