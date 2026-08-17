@@ -108,11 +108,11 @@ export function EmployeeDashboard() {
     {
       key: 'notifications',
       icon: (
-        <Tooltip title="اعلان" placement="left">
-          <Badge count={unread} size="small" offset={[-2, 2]}>
+        <Badge count={unread} size="small" offset={[-2, 2]}>
+          <Tooltip title="اعلان" placement="left">
             <BellOutlined style={{ fontSize: 22 }} />
-          </Badge>
-        </Tooltip>
+          </Tooltip>
+        </Badge>
       ),
       label: <Tooltip title="اعلان" placement="left">اعلان</Tooltip>,
     },
