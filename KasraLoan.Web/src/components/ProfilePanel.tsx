@@ -162,10 +162,6 @@ export function ProfilePanel() {
           email: user.email ?? '',
         }}
       >
-        <Form.Item label="نام کاربری">
-          <Input value={user.username} disabled />
-        </Form.Item>
-
         <Row gutter={12}>
           <Col xs={24} sm={12}>
             <Form.Item
