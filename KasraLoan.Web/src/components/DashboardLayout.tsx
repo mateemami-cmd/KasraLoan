@@ -15,6 +15,11 @@ interface Props {
   hideLogout?: boolean
   /** نوار کناری باریک (سبک نکسوس): آیکون بالا، متن پایین. */
   rail?: boolean
+  /**
+   * نوار باریکِ فقط‌آیکون: متن زیر آیکون نمایش داده نمی‌شود و فقط با hover
+   * به‌صورت تولتیپ کنارِ آیکون می‌آید. برای داشبورد ادمین.
+   */
+  collapsedRail?: boolean
   /** اگر داده شود، عکس کاربر پایینِ نوارِ باریک نمایش داده می‌شود و با کلیک این تابع صدا زده می‌شود. */
   onAvatarClick?: () => void
 }
@@ -27,26 +32,33 @@ export function DashboardLayout({
   defaultOpenKeys,
   hideLogout,
   rail,
+  collapsedRail,
   onAvatarClick,
 }: Props) {
   const { user, logout } = useAuth()
+
+  // نوارِ فقط‌آیکون هم یک نوعِ rail است؛ عرض و آواتار مشترک‌اند.
+  const isRail = rail || collapsedRail
 
   return (
     <Layout style={{ minHeight: '100vh' }}>
       <Sider
         theme="dark"
-        width={rail ? 84 : 456}
+        width={isRail ? 84 : 456}
         breakpoint="lg"
         collapsedWidth={0}
+        // کلاسِ app-sider متن را زیر آیکون می‌چیند؛ برای حالت فقط‌آیکون آن را
+        // نمی‌گذاریم تا inlineCollapsed خودِ antd (تولتیپ کنار آیکون) کار کند.
         className={rail ? 'app-sider' : undefined}
       >
         <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
           <Menu
-            mode={rail ? 'vertical' : 'inline'}
+            mode={collapsedRail ? 'inline' : rail ? 'vertical' : 'inline'}
+            inlineCollapsed={collapsedRail}
             selectedKeys={[selectedKey]}
             defaultOpenKeys={defaultOpenKeys}
             items={
-              rail
+              isRail
                 ? menuItems
                 : [
                     { key: '__dashboard_label', type: 'group', label: 'Dashboard' },
@@ -57,7 +69,7 @@ export function DashboardLayout({
             style={{ flex: 1, borderInlineEnd: 'none' }}
           />
 
-          {rail && onAvatarClick && (
+          {isRail && onAvatarClick && (
             <div
               style={{
                 padding: '16px 0',
@@ -79,7 +91,7 @@ export function DashboardLayout({
           )}
 
           {!hideLogout &&
-            (rail ? (
+            (isRail ? (
               <div
                 style={{
                   padding: '10px 4px',

@@ -97,7 +97,7 @@ export function AdminDashboard() {
       selectedKey={section}
       onSelect={setSection}
       hideLogout
-      rail
+      collapsedRail
       onAvatarClick={() => setProfileOpen(true)}
     >
       {section === 'loanRequests' && <LoanRequestsSection />}

@@ -12,8 +12,12 @@ using System.Threading.Tasks;
 
 namespace KasraLoan.Application.Features.Loan.Commands.ApproveLoan
 {
+
+    //IRequestHandler<TRequest, TResponse>
     public class ApproveLoanHandler : IRequestHandler<ApproveLoanCommand, ApproveLoanResponse>
     {
+
+        //Constructor Injection
         private readonly ILoanRequestRepository _loanRequestRepository;
         private readonly IAuditLogService _auditLogService;
         private readonly ILoanInstallmentService _loanInstallmentService;
@@ -41,8 +45,7 @@ namespace KasraLoan.Application.Features.Loan.Commands.ApproveLoan
             ApproveLoanCommand request,
             CancellationToken cancellationToken)
         {
-            var loan = await _loanRequestRepository
-                .GetByIdAsync(request.LoanRequestId);
+            var loan = await _loanRequestRepository.GetByIdAsync(request.LoanRequestId);
 
             if (loan == null)
                 throw new KeyNotFoundException("وام یافت نشد");
@@ -52,8 +55,7 @@ namespace KasraLoan.Application.Features.Loan.Commands.ApproveLoan
 
             // وامی که مدرک لازم دارد نباید بدون مدرک تأیید شود. تا پیش از این،
             // ادمین می‌توانست وام ازدواج ۲۰۰ میلیونی را بدون هیچ سندی تأیید کند.
-            if (loan.RequiresDocument
-                && !await _loanDocumentRepository.ExistsAsync(loan.Id))
+            if (loan.RequiresDocument && !await _loanDocumentRepository.ExistsAsync(loan.Id))
             {
                 throw new BusinessRuleException(
                     $"برای تأیید این وام، ابتدا باید {loan.RequiredDocumentDescription ?? "مدرک لازم"} " +

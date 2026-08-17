@@ -1,3 +1,5 @@
+
+
 namespace KasraLoan.Application.Common.Logging
 {
     /// <summary>
