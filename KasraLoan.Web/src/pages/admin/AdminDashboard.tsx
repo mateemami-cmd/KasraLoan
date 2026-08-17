@@ -46,6 +46,7 @@ import {
   rejectLoan,
   getLoanInstallments,
   getJobPositions,
+  getUnreadCount,
   getPendingCheques,
   confirmCheque,
   rejectCheque,
@@ -73,6 +74,14 @@ const statusTag: Record<string, { color: string; label: string }> = {
 export function AdminDashboard() {
   const [section, setSection] = useState('loanRequests')
   const [profileOpen, setProfileOpen] = useState(false)
+  const [unread, setUnread] = useState(0)
+
+  // تعداد نوتیف خوانده‌نشده برای نمایش روی عکسِ پروفایل، مثل داشبورد کارمند.
+  useEffect(() => {
+    getUnreadCount().then(setUnread).catch(() => {})
+    const timer = setInterval(() => getUnreadCount().then(setUnread).catch(() => {}), 30000)
+    return () => clearInterval(timer)
+  }, [])
 
   const menuItems = [
     { key: 'loanRequests', icon: <AuditOutlined />, label: 'درخواست‌های وام' },
@@ -99,6 +108,7 @@ export function AdminDashboard() {
       hideLogout
       collapsedRail
       onAvatarClick={() => setProfileOpen(true)}
+      avatarBadgeCount={unread}
     >
       {section === 'loanRequests' && <LoanRequestsSection />}
       {section === 'cheques' && <ChequeQueueSection />}
