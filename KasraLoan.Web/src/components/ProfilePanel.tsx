@@ -1,28 +1,43 @@
-import { useState } from 'react'
-import { Button, Avatar, Upload, Popconfirm, Modal, App } from 'antd'
-import {
-  UserOutlined,
-  DeleteOutlined,
-  LogoutOutlined,
-  UploadOutlined,
-} from '@ant-design/icons'
+import { useEffect, useState } from 'react'
+import { Button, Upload, Image, App } from 'antd'
+import { LogoutOutlined, PlusOutlined } from '@ant-design/icons'
+import type { UploadFile } from 'antd'
 import { useAuth } from '../auth/AuthContext'
 import { uploadProfilePicture, deleteProfilePicture } from '../api/services'
 
 /**
  * پنل پروفایل مشترک بین داشبورد کارمند و ادمین.
  *
- * ویرایش پروفایل (رمز، ایمیل، شماره‌ها، عکس) برای کارمند و ادمین یکسان است و
- * از همان اندپوینت /auth/profile می‌آید.
+ * عکس پروفایل به‌صورت آپلودِ دایره‌ای (picture-circle) است: با hover روی عکس،
+ * گزینه‌ی دیدن و حذف می‌آید و برای گذاشتن عکس جدید همان‌جا آپلود می‌شود — بدون
+ * مودال جدا.
  */
 export function ProfilePanel() {
   const { user, refreshUser, logout } = useAuth()
   const { message } = App.useApp()
-  const [photoOpen, setPhotoOpen] = useState(false)
+  const [previewOpen, setPreviewOpen] = useState(false)
+  const [previewImage, setPreviewImage] = useState('')
+  const [fileList, setFileList] = useState<UploadFile[]>([])
+
+  // فهرست فایل از روی عکس فعلیِ کاربر ساخته می‌شود و با هر تغییر همگام می‌ماند.
+  useEffect(() => {
+    setFileList(
+      user?.profilePictureUrl
+        ? [{ uid: '-1', name: 'profile', status: 'done', url: user.profilePictureUrl }]
+        : [],
+    )
+  }, [user?.profilePictureUrl])
 
   if (!user) return null
 
-  async function handleUpload(file: File) {
+  function handlePreview(file: UploadFile) {
+    setPreviewImage(file.url || '')
+    setPreviewOpen(true)
+  }
+
+  // beforeUpload همیشه false برمی‌گرداند تا آپلودِ خودکار antd انجام نشود؛
+  // خودمان فایل را به سرور می‌فرستیم و کاربر را تازه می‌کنیم.
+  async function beforeUpload(file: File) {
     try {
       await uploadProfilePicture(file)
       await refreshUser()
@@ -31,9 +46,10 @@ export function ProfilePanel() {
       const e = err as { response?: { data?: { message?: string } } }
       message.error(e.response?.data?.message ?? 'خطا در آپلود عکس.')
     }
+    return false
   }
 
-  async function handleDeletePhoto() {
+  async function handleRemove() {
     try {
       await deleteProfilePicture()
       await refreshUser()
@@ -41,32 +57,31 @@ export function ProfilePanel() {
     } catch {
       message.error('خطا در حذف عکس.')
     }
+    // حذف از فهرست را خودمان با refreshUser انجام می‌دهیم.
+    return false
   }
+
+  const uploadButton = (
+    <button style={{ border: 0, background: 'none', cursor: 'pointer' }} type="button">
+      <PlusOutlined />
+      <div style={{ marginTop: 8 }}>آپلود</div>
+    </button>
+  )
 
   return (
     <>
-      {/* آواتار سمت راست (با حلقه) و نام + شماره پرسنلی کنارش */}
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: 16,
-          marginBottom: 24,
-        }}
-      >
-        <div
-          onClick={() => setPhotoOpen(true)}
-          style={{
-            cursor: 'pointer',
-            padding: 3,
-            borderRadius: '50%',
-            border: '2px solid var(--border-soft)',
-            display: 'inline-flex',
-            flexShrink: 0,
-          }}
+      {/* عکسِ آپلودِ دایره‌ای سمت راست، نام + شماره پرسنلی کنارش */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 24 }}>
+        <Upload
+          listType="picture-circle"
+          fileList={fileList}
+          accept="image/png,image/jpeg,image/webp"
+          onPreview={handlePreview}
+          beforeUpload={beforeUpload}
+          onRemove={handleRemove}
         >
-          <Avatar size={72} src={user.profilePictureUrl || undefined} icon={<UserOutlined />} />
-        </div>
+          {fileList.length >= 1 ? null : uploadButton}
+        </Upload>
 
         <div style={{ minWidth: 0 }}>
           <div style={{ fontWeight: 700, fontSize: 18 }}>
@@ -78,53 +93,17 @@ export function ProfilePanel() {
         </div>
       </div>
 
-      <Modal
-        open={photoOpen}
-        onCancel={() => setPhotoOpen(false)}
-        footer={null}
-        title={
-          <div style={{ display: 'flex', gap: 8 }}>
-            <Upload
-              showUploadList={false}
-              accept="image/png,image/jpeg,image/webp"
-              beforeUpload={(file) => {
-                handleUpload(file)
-                setPhotoOpen(false)
-                return false
-              }}
-            >
-              <Button icon={<UploadOutlined />}>آپلود</Button>
-            </Upload>
-            <Popconfirm
-              title="حذف عکس پروفایل"
-              description="آیا از حذف عکس پروفایل مطمئن هستی؟"
-              okText="بله، حذف کن"
-              cancelText="انصراف"
-              okButtonProps={{ danger: true }}
-              onConfirm={() => {
-                handleDeletePhoto()
-                setPhotoOpen(false)
-              }}
-            >
-              <Button danger icon={<DeleteOutlined />}>
-                حذف
-              </Button>
-            </Popconfirm>
-          </div>
-        }
-      >
-        <div style={{ textAlign: 'center', padding: '12px 0' }}>
-          {user.profilePictureUrl ? (
-            <img
-              src={user.profilePictureUrl}
-              alt="profile"
-              style={{ maxWidth: '100%', maxHeight: 360, borderRadius: 8 }}
-            />
-          ) : (
-            <Avatar size={200} icon={<UserOutlined />} />
-          )}
-        </div>
-      </Modal>
+      {previewImage && (
+        <Image
+          styles={{ root: { display: 'none' } }}
+          preview={{
+            open: previewOpen,
+            onOpenChange: (visible) => setPreviewOpen(visible),
+            afterOpenChange: (visible) => !visible && setPreviewImage(''),
+          }}
+          src={previewImage}
+        />
+      )}
 
       <Button
         type="text"
