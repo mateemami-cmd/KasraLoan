@@ -147,6 +147,7 @@ export function EmployeeDashboard() {
       hideLogout
       rail
       onAvatarClick={() => setProfileOpen(true)}
+      avatarBadgeCount={unread}
     >
       {section === 'welcome' && <WelcomeSection />}
 

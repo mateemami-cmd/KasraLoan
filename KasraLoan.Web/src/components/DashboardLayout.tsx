@@ -1,5 +1,5 @@
 import { type ReactNode } from 'react'
-import { Layout, Menu, Button, Avatar } from 'antd'
+import { Layout, Menu, Button, Avatar, Badge } from 'antd'
 import { LogoutOutlined, UserOutlined } from '@ant-design/icons'
 import type { MenuProps } from 'antd'
 import { useAuth } from '../auth/AuthContext'
@@ -22,6 +22,8 @@ interface Props {
   collapsedRail?: boolean
   /** اگر داده شود، عکس کاربر پایینِ نوارِ باریک نمایش داده می‌شود و با کلیک این تابع صدا زده می‌شود. */
   onAvatarClick?: () => void
+  /** تعداد نوتیف خوانده‌نشده که روی عکسِ پایینِ نوار به‌صورت Badge نشان داده می‌شود. */
+  avatarBadgeCount?: number
 }
 
 export function DashboardLayout({
@@ -34,6 +36,7 @@ export function DashboardLayout({
   rail,
   collapsedRail,
   onAvatarClick,
+  avatarBadgeCount,
 }: Props) {
   const { user, logout } = useAuth()
 
@@ -81,11 +84,13 @@ export function DashboardLayout({
                 title="پروفایل"
                 style={{ cursor: 'pointer', display: 'inline-block' }}
               >
-                <Avatar
-                  size={44}
-                  src={user?.profilePictureUrl || undefined}
-                  icon={<UserOutlined />}
-                />
+                <Badge count={avatarBadgeCount ?? 0} size="small" offset={[-4, 4]}>
+                  <Avatar
+                    size={44}
+                    src={user?.profilePictureUrl || undefined}
+                    icon={<UserOutlined />}
+                  />
+                </Badge>
               </div>
             </div>
           )}
