@@ -100,7 +100,7 @@ export function EmployeeDashboard() {
       key: 'loans',
       icon: (
         <Tooltip title="وام" placement="left">
-          <BankOutlined />
+          <BankOutlined style={{ fontSize: 22 }} />
         </Tooltip>
       ),
       label: <Tooltip title="وام" placement="left">وام</Tooltip>,
