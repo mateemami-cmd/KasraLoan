@@ -24,9 +24,8 @@ import { updateProfile, uploadProfilePicture, deleteProfilePicture } from '../ap
 /**
  * پنل پروفایل مشترک بین داشبورد کارمند و ادمین.
  *
- * ویرایش پروفایل (رمز، ایمیل، شماره‌ها، عکس) برای همه یکسان است و از همان
- * اندپوینت /auth/profile می‌آید؛ تنها تفاوت این است که «امتیاز» فقط برای
- * کارمند معنا دارد و برای ادمین نمایش داده نمی‌شود.
+ * ویرایش پروفایل (رمز، ایمیل، شماره‌ها، عکس) برای کارمند و ادمین یکسان است و
+ * از همان اندپوینت /auth/profile می‌آید.
  */
 export function ProfilePanel() {
   const { user, refreshUser, logout } = useAuth()
@@ -37,7 +36,6 @@ export function ProfilePanel() {
 
   if (!user) return null
 
-  const isAdmin = user.role === 'Admin'
 
   async function handleUpload(file: File) {
     try {
@@ -192,13 +190,6 @@ export function ProfilePanel() {
             </Form.Item>
           </Col>
         </Row>
-
-        {/* امتیاز فقط برای کارمند معنا دارد. */}
-        {!isAdmin && (
-          <Form.Item label="امتیاز" style={{ maxWidth: 300 }}>
-            <Input value={String(user.score)} disabled />
-          </Form.Item>
-        )}
 
         <Form.Item label="شماره تماس (اصلی)" style={{ maxWidth: 300 }}>
           <Input value={user.phoneNumber ?? '—'} disabled />
