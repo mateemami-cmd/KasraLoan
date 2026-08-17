@@ -125,7 +125,7 @@ body {
   border-radius: 10px;
 }
 
-.app-sider-collapsed .ant-menu-item .ant-menu-item-icon,
-.app-sider-collapsed .ant-menu-submenu-title .ant-menu-item-icon {
-  font-size: 22px;
+.app-sider-collapsed .ant-menu-item-icon,
+.app-sider-collapsed .anticon {
+  font-size: 22px !important;
 }
