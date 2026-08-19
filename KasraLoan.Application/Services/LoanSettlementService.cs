@@ -42,8 +42,7 @@ namespace KasraLoan.Application.Services
             Guid employeeId,
             string reason)
         {
-            var openLoans = await _loanRequestRepository
-                .GetOpenLoansWithInstallmentsAsync(employeeId);
+            var openLoans = await _loanRequestRepository.GetOpenLoansWithInstallmentsAsync(employeeId);
 
             // فقط وام‌هایی که واقعاً مانده دارند. وامی که همه‌ی اقساطش پرداخت شده
             // ولی هنوز Closed نشده، نباید مطالبه شود.
