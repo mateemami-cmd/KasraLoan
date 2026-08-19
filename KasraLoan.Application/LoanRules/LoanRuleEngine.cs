@@ -30,16 +30,14 @@ namespace KasraLoan.Application.LoanRules
                 return new LoanRuleResult
                 {
                     IsAllowed = false,
-                    Message =
-                        $"امتیاز شما ({context.EmployeeScore}) کمتر از حداقل امتیاز لازم " +
+                    Message = $"امتیاز شما ({context.EmployeeScore}) کمتر از حداقل امتیاز لازم " +
                         $"({_employeeScoreService.MinimumScoreRequiredForLoan}) برای دریافت وام است."
                 };
             }
 
             foreach (var rule in _rules)
             {
-                if (!rule.CanApply(context))
-                    continue;
+                if (!rule.CanApply(context)) continue;
 
                 var result = rule.Evaluate(context);
 
@@ -60,21 +58,19 @@ namespace KasraLoan.Application.LoanRules
         /// خروجی این گیت است که باعث می‌شود سقف وامِ یک دواپس با یک کارمند پشتیبانی
         /// فرق کند، بدون این‌که هیچ قانون مخصوصِ سمت شغلی وجود داشته باشد.
         /// </summary>
+
         private LoanRuleResult ApplySalaryCap(LoanRuleContext context, LoanRuleResult result)
         {
-            if (!result.IsAllowed)
-                return result;
+            if (!result.IsAllowed) return result;
 
-            var maxMonthlyInstallment =
-                _employeeSalaryService.GetMaxMonthlyInstallment(context.Employee);
+            var maxMonthlyInstallment = _employeeSalaryService.GetMaxMonthlyInstallment(context.Employee);
 
             if (maxMonthlyInstallment <= 0)
             {
                 return new LoanRuleResult
                 {
                     IsAllowed = false,
-                    Message =
-                        "حقوق ماهانه‌ی شما در سیستم ثبت نشده است. " +
+                    Message = "حقوق ماهانه‌ی شما در سیستم ثبت نشده است. " +
                         "برای بررسی درخواست وام، ابتدا باید سمت شغلی یا حقوق شما توسط ادمین ثبت شود.",
                     MaxAllowedAmount = 0,
                     MaxInstallments = result.MaxInstallments,
@@ -93,8 +89,7 @@ namespace KasraLoan.Application.LoanRules
                 result.AnnualFeePercent,
                 effectiveInstallmentCount);
 
-            if (salaryCap < result.MaxAllowedAmount)
-                result.MaxAllowedAmount = salaryCap;
+            if (salaryCap < result.MaxAllowedAmount) result.MaxAllowedAmount = salaryCap;
 
             if (context.RequestedAmount > result.MaxAllowedAmount)
             {
