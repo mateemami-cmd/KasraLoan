@@ -16,6 +16,9 @@ namespace KasraLoan.Application.DTOs.Employee
 
         public string Username { get; set; } = string.Empty;
 
+        /// <summary>رمز عبوری که ادمین هنگام ساخت تعیین می‌کند. کاربر بعداً می‌تواند عوضش کند.</summary>
+        public string Password { get; set; } = string.Empty;
+
         public DateTime HireDate { get; set; }
 
         public DateTime? MarriageDate { get; set; }

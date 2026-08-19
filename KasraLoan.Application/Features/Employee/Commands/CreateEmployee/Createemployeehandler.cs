@@ -18,7 +18,6 @@ namespace KasraLoan.Application.Features.Employee.Commands.CreateEmployee
         private readonly IJobPositionRepository _jobPositionRepository;
         private readonly ILoanTypeRepository _loanTypeRepository;
         private readonly IPasswordHasher _passwordHasher;
-        private readonly IPasswordGenerator _passwordGenerator;
         private readonly IUsernameGenerator _usernameGenerator;
 
         public CreateEmployeeHandler(
@@ -27,7 +26,6 @@ namespace KasraLoan.Application.Features.Employee.Commands.CreateEmployee
             IJobPositionRepository jobPositionRepository,
             ILoanTypeRepository loanTypeRepository,
             IPasswordHasher passwordHasher,
-            IPasswordGenerator passwordGenerator,
             IUsernameGenerator usernameGenerator)
         {
             _employeeRepository = employeeRepository;
@@ -35,7 +33,6 @@ namespace KasraLoan.Application.Features.Employee.Commands.CreateEmployee
             _jobPositionRepository = jobPositionRepository;
             _loanTypeRepository = loanTypeRepository;
             _passwordHasher = passwordHasher;
-            _passwordGenerator = passwordGenerator;
             _usernameGenerator = usernameGenerator;
         }
 
@@ -106,8 +103,6 @@ namespace KasraLoan.Application.Features.Employee.Commands.CreateEmployee
                 personnelNumber = username;
             }
 
-            var temporaryPassword = _passwordGenerator.Generate();
-
             var employee = new Domain.Entities.Employee
             {
                 Id = Guid.NewGuid(),
@@ -115,7 +110,8 @@ namespace KasraLoan.Application.Features.Employee.Commands.CreateEmployee
                 LastName = dto.LastName,
                 PersonnelNumber = personnelNumber,
                 Username = username,
-                PasswordHash = _passwordHasher.Hash(temporaryPassword),
+                // رمز را ادمین تعیین می‌کند؛ فقط هشِ آن ذخیره می‌شود.
+                PasswordHash = _passwordHasher.Hash(dto.Password),
                 HireDate = dto.HireDate,
                 MarriageDate = dto.MarriageDate,
                 IsActive = true,
@@ -143,8 +139,7 @@ namespace KasraLoan.Application.Features.Employee.Commands.CreateEmployee
             {
                 Id = employee.Id,
                 Username = employee.Username,
-                TemporaryPassword = temporaryPassword,
-                Message = "کارمند با موفقیت ایجاد شد. این رمز موقت را فقط یک‌بار می‌بینید؛ آن را از طریق کانال امن به کارمند اطلاع دهید و به او بگویید در اولین ورود رمزش را تغییر دهد."
+                Message = "کاربر با موفقیت ایجاد شد. با نام کاربری و همان رمزی که تعیین کردید می‌تواند وارد شود."
             };
         }
     }

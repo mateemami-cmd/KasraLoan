@@ -289,6 +289,8 @@ export async function markAllNotificationsRead() {
 export interface CreateEmployeePayload {
   firstName: string
   lastName: string
+  /** رمزی که ادمین برای کاربر تعیین می‌کند. */
+  password: string
   /** فقط برای ادمین لازم است؛ برای کارمند خودکار (برابر نام کاربری) ساخته می‌شود. */
   personnelNumber?: string
   /** فقط برای ادمین لازم است؛ نام کاربری کارمند سمت سرور خودکار ساخته می‌شود. */
@@ -337,7 +339,6 @@ export async function createEmployee(payload: CreateEmployeePayload) {
   return res.data as {
     id: string
     username: string
-    temporaryPassword: string
     message: string
   }
 }

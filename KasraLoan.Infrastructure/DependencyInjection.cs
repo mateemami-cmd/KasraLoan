@@ -88,8 +88,6 @@ namespace KasraLoan.Infrastructure
 
             services.AddScoped<INotificationService, NotificationService>();
 
-            services.AddScoped<IPasswordGenerator, PasswordGenerator>();
-
             services.AddScoped<IUsernameGenerator, UsernameGenerator>();
 
             services.AddScoped<ILoanPermissionRequestRepository, LoanPermissionRequestRepository>();

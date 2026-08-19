@@ -789,7 +789,7 @@ function AddEmployeeSection() {
   const { message } = App.useApp()
   const [form] = Form.useForm()
   const [submitting, setSubmitting] = useState(false)
-  const [created, setCreated] = useState<{ username: string; temporaryPassword: string } | null>(null)
+  const [created, setCreated] = useState<{ username: string } | null>(null)
   const [positions, setPositions] = useState<JobPosition[]>([])
   const [loanTypes, setLoanTypes] = useState<LoanType[]>([])
   const [autoId, setAutoId] = useState<string | null>(null)
@@ -823,6 +823,7 @@ function AddEmployeeSection() {
   async function onFinish(values: {
     firstName: string
     lastName: string
+    password: string
     personnelNumber?: string
     username?: string
     hireDate: { toISOString: () => string }
@@ -838,6 +839,7 @@ function AddEmployeeSection() {
       const res = await createEmployee({
         firstName: values.firstName,
         lastName: values.lastName,
+        password: values.password,
         // شماره پرسنلی و نام کاربری فقط برای ادمین دستی‌اند؛ برای کارمند سرور خودش
         // یک عددِ ۹ رقمیِ یکسان برای هر دو می‌سازد.
         personnelNumber: isAdmin ? values.personnelNumber : undefined,
@@ -848,7 +850,7 @@ function AddEmployeeSection() {
         isSeniorAdmin: isAdmin ? isSeniorAdmin : undefined,
         managedLoanTypeId: isAdmin && !isSeniorAdmin ? values.managedLoanTypeId : undefined,
       })
-      setCreated({ username: res.username, temporaryPassword: res.temporaryPassword })
+      setCreated({ username: res.username })
       message.success('کاربر ایجاد شد.')
       form.resetFields()
     } catch (err: unknown) {
@@ -867,8 +869,8 @@ function AddEmployeeSection() {
             type="info"
             showIcon
             style={{ marginBottom: 16 }}
-            message="نام کاربری و رمز عبور را وارد نکنید"
-            description="برای کارمند، نام کاربری خودکار از روی سال استخدام و سمت شغلی ساخته می‌شود (مثلاً ۱۴۰۴۰۱۰۰۱). رمز موقت هم به‌صورت خودکار ساخته و بعد از ایجاد همین‌جا نمایش داده می‌شود؛ کاربر می‌تواند بعد از اولین ورود رمزش را عوض کند."
+            message="نام کاربری کارمند خودکار است؛ رمز را خودتان تعیین کنید"
+            description="برای کارمند، نام کاربری خودکار از روی سال استخدام و سمت شغلی ساخته می‌شود (مثلاً ۱۴۰۴۰۱۰۰۱). رمز عبور را همین‌جا خودتان تعیین می‌کنید و به کاربر می‌دهید؛ او می‌تواند بعداً از پروفایلش عوضش کند."
           />
           <Form form={form} layout="vertical" onFinish={onFinish} initialValues={{ role: 'Employee' }}>
             <Row gutter={12}>
@@ -883,6 +885,17 @@ function AddEmployeeSection() {
                 </Form.Item>
               </Col>
             </Row>
+            <Form.Item
+              label="رمز عبور"
+              name="password"
+              rules={[
+                { required: true, message: 'رمز عبور را وارد کنید' },
+                { min: 6, message: 'رمز عبور باید حداقل ۶ کاراکتر باشد' },
+              ]}
+              extra="این رمز را به کاربر بدهید؛ او می‌تواند بعداً از پروفایلش عوضش کند."
+            >
+              <Input.Password autoComplete="new-password" />
+            </Form.Item>
             {/* شماره پرسنلی و نام کاربری فقط برای ادمین دستی‌اند؛ کارمند هر دو را
                 خودکار و یکسان می‌گیرد (پیش‌نمایش زیر سمت شغلی نشان داده می‌شود). */}
             {role === 'Admin' && (
@@ -1004,11 +1017,8 @@ function AddEmployeeSection() {
             description={
               <div>
                 <div>نام کاربری: <b>{created.username}</b></div>
-                <div>
-                  رمز موقت: <b style={{ fontFamily: 'monospace' }}>{created.temporaryPassword}</b>
-                </div>
-                <div style={{ marginTop: 8, color: '#c41d7f' }}>
-                  این رمز فقط یک‌بار نمایش داده می‌شود؛ آن را به کاربر اطلاع دهید.
+                <div style={{ marginTop: 8 }}>
+                  کاربر با همین نام کاربری و رمزی که تعیین کردید می‌تواند وارد شود.
                 </div>
               </div>
             }

@@ -20,6 +20,11 @@ namespace KasraLoan.Application.Features.Employee.Commands.CreateEmployee
                 .NotEmpty().WithMessage("نام‌خانوادگی الزامی است.")
                 .MaximumLength(100);
 
+            // رمز را ادمین هنگام ساخت تعیین می‌کند (دیگر رمز خودکار نداریم).
+            RuleFor(x => x.Request.Password)
+                .NotEmpty().WithMessage("رمز عبور الزامی است.")
+                .MinimumLength(6).WithMessage("رمز عبور باید حداقل ۶ کاراکتر باشد.");
+
             // نام کاربری و شماره‌ی پرسنلی کارمند خودکار (و یکسان) ساخته می‌شوند؛
             // فقط برای ادمین دستی و الزامی‌اند.
             When(x => IsAdmin(x.Request.Role), () =>
