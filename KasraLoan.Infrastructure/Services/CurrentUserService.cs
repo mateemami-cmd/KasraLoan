@@ -34,6 +34,15 @@ namespace KasraLoan.Infrastructure.Services
 
         public string? Role => User?.FindFirst(ClaimTypes.Role)?.Value;
 
+        public bool IsSeniorAdmin =>
+            string.Equals(User?.FindFirst("IsSeniorAdmin")?.Value, "true", StringComparison.OrdinalIgnoreCase);
+
+        public int? ManagedLoanTypeId =>
+            int.TryParse(User?.FindFirst("ManagedLoanTypeId")?.Value, out var id) ? id : null;
+
+        public bool CanManageLoanType(int loanTypeId) =>
+            IsSeniorAdmin || ManagedLoanTypeId == loanTypeId;
+
         public bool IsAuthenticated => User?.Identity?.IsAuthenticated ?? false;
     }
 }

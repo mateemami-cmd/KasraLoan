@@ -1,6 +1,7 @@
 using FluentAssertions;
 using KasraLoan.Application.Features.LoanTypes.Commands.SetLoanTypeActiveStatus;
 using KasraLoan.Application.Interfaces.Repositories;
+using KasraLoan.Application.Services.Auth;
 using KasraLoan.Domain.Entities;
 using KasraLoan.Domain.Enums;
 using Moq;
@@ -11,12 +12,20 @@ namespace KasraLoan.Tests.LoanTypes;
 public class SetLoanTypeActiveStatusHandlerTests
 {
     private readonly Mock<ILoanTypeRepository> _loanTypeRepository;
+    private readonly Mock<ICurrentUserService> _currentUserService;
     private readonly SetLoanTypeActiveStatusHandler _handler;
 
     public SetLoanTypeActiveStatusHandlerTests()
     {
         _loanTypeRepository = new Mock<ILoanTypeRepository>();
-        _handler = new SetLoanTypeActiveStatusHandler(_loanTypeRepository.Object);
+        _currentUserService = new Mock<ICurrentUserService>();
+
+        // ادمین ارشد فرض می‌شود؛ به همه‌ی انواع وام دسترسی دارد.
+        _currentUserService.Setup(x => x.CanManageLoanType(It.IsAny<int>())).Returns(true);
+
+        _handler = new SetLoanTypeActiveStatusHandler(
+            _loanTypeRepository.Object,
+            _currentUserService.Object);
     }
 
     [Fact]

@@ -22,9 +22,10 @@ namespace KasraLoan.Application.Interfaces.Repositories
         /// </summary>
         Task<bool> HasPendingRequestAsync(Guid employeeId);
 
-        Task<List<LoanPermissionRequest>> GetPagedAsync(int page, int pageSize, LoanPermissionRequestStatus? status);
+        // loanTypeId اختیاری: برای «ادمین وام» فقط درخواست‌های مجوزِ همان نوع وام برگردد.
+        Task<List<LoanPermissionRequest>> GetPagedAsync(int page, int pageSize, LoanPermissionRequestStatus? status, int? loanTypeId = null);
 
-        Task<int> GetPagedCountAsync(LoanPermissionRequestStatus? status);
+        Task<int> GetPagedCountAsync(LoanPermissionRequestStatus? status, int? loanTypeId = null);
 
         Task SaveChangesAsync();
     }

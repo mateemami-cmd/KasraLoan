@@ -26,6 +26,7 @@ namespace KasraLoan.Infrastructure.Repositories
             // جدولی چند‌رکوردی ارزشش را دارد که این دام وجود نداشته باشد.
             return await _context.Employees
                 .Include(x => x.JobPosition)
+                .Include(x => x.ManagedLoanType)
                 .FirstOrDefaultAsync(x => x.Id == id);
         }
 
@@ -60,6 +61,7 @@ namespace KasraLoan.Infrastructure.Repositories
         {
             return await _context.Employees
                 .Include(x => x.JobPosition)
+                .Include(x => x.ManagedLoanType)
                 .ToListAsync();
         }
 

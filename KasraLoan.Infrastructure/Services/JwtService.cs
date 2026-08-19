@@ -25,7 +25,9 @@ namespace KasraLoan.Infrastructure.Services
             Guid employeeId,
             string firstName,
             string personnelNumber,
-            string role)
+            string role,
+            bool isSeniorAdmin = false,
+            int? managedLoanTypeId = null)
         {
             var jwt = _configuration.GetSection("JwtSettings");
 
@@ -34,8 +36,14 @@ namespace KasraLoan.Infrastructure.Services
             new Claim(ClaimTypes.NameIdentifier, employeeId.ToString()),
             new Claim(ClaimTypes.Name, firstName),
             new Claim("PersonnelNumber", personnelNumber),
-            new Claim(ClaimTypes.Role, role)
+            new Claim(ClaimTypes.Role, role),
+            // سطح ادمین و وامِ تحت مدیریت در توکن می‌آید تا مجوزدهی سریع باشد؛
+            // بعد از تغییر نقش/انتساب، کاربر باید دوباره وارد شود تا توکن تازه شود.
+            new Claim("IsSeniorAdmin", isSeniorAdmin ? "true" : "false")
         };
+
+            if (managedLoanTypeId.HasValue)
+                claims.Add(new Claim("ManagedLoanTypeId", managedLoanTypeId.Value.ToString()));
 
             var key = new SymmetricSecurityKey(
                 Encoding.UTF8.GetBytes(jwt["Key"]!));

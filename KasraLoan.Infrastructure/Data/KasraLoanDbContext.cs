@@ -48,6 +48,11 @@ namespace KasraLoan.Infrastructure.Data
                 entity.HasIndex(x => x.Title)
                     .IsUnique();
 
+                entity.Property(x => x.Code)
+                    .HasMaxLength(2)
+                    .IsRequired()
+                    .HasDefaultValue("");
+
                 entity.Property(x => x.IsActive)
                     .HasDefaultValue(true);
             });
@@ -56,6 +61,14 @@ namespace KasraLoan.Infrastructure.Data
                 .HasOne(x => x.JobPosition)
                 .WithMany(x => x.Employees)
                 .HasForeignKey(x => x.JobPositionId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // «ادمین وام» به یک نوع وام وصل است. Restrict چون نوع وام پاک نمی‌شود
+            // و نباید با داشتن ادمین دچار حذف آبشاری شود.
+            modelBuilder.Entity<Employee>()
+                .HasOne(x => x.ManagedLoanType)
+                .WithMany()
+                .HasForeignKey(x => x.ManagedLoanTypeId)
                 .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<InstallmentPayment>(entity =>

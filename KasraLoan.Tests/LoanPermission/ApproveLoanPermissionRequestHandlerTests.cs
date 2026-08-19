@@ -3,6 +3,7 @@ using KasraLoan.Application.Common.Exceptions;
 using KasraLoan.Application.Features.LoanPermission.Commands.ApproveLoanPermissionRequest;
 using KasraLoan.Application.Interfaces.Repositories;
 using KasraLoan.Application.Interfaces.Services;
+using KasraLoan.Application.Services.Auth;
 using KasraLoan.Domain.Entities;
 using KasraLoan.Domain.Enums;
 using Moq;
@@ -15,6 +16,7 @@ public class ApproveLoanPermissionRequestHandlerTests
     private readonly Mock<ILoanPermissionRequestRepository> _permissionRepository;
     private readonly Mock<IEmployeeScoreRepository> _employeeScoreRepository;
     private readonly Mock<INotificationService> _notificationService;
+    private readonly Mock<ICurrentUserService> _currentUserService;
 
     private readonly ApproveLoanPermissionRequestHandler _handler;
 
@@ -23,11 +25,16 @@ public class ApproveLoanPermissionRequestHandlerTests
         _permissionRepository = new Mock<ILoanPermissionRequestRepository>();
         _employeeScoreRepository = new Mock<IEmployeeScoreRepository>();
         _notificationService = new Mock<INotificationService>();
+        _currentUserService = new Mock<ICurrentUserService>();
+
+        // ادمین ارشد فرض می‌شود؛ به همه‌ی انواع وام دسترسی دارد.
+        _currentUserService.Setup(x => x.CanManageLoanType(It.IsAny<int>())).Returns(true);
 
         _handler = new ApproveLoanPermissionRequestHandler(
             _permissionRepository.Object,
             _employeeScoreRepository.Object,
-            _notificationService.Object);
+            _notificationService.Object,
+            _currentUserService.Object);
     }
 
     [Fact]

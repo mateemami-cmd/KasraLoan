@@ -1,6 +1,7 @@
 using KasraLoan.Application.Common.Exceptions;
 using KasraLoan.Application.Interfaces.Repositories;
 using KasraLoan.Application.Interfaces.Services;
+using KasraLoan.Application.Services.Auth;
 using KasraLoan.Domain.Enums;
 using MediatR;
 using System;
@@ -16,13 +17,16 @@ namespace KasraLoan.Application.Features.LoanPermission.Commands.RejectLoanPermi
     {
         private readonly ILoanPermissionRequestRepository _permissionRequestRepository;
         private readonly INotificationService _notificationService;
+        private readonly ICurrentUserService _currentUserService;
 
         public RejectLoanPermissionRequestHandler(
             ILoanPermissionRequestRepository permissionRequestRepository,
-            INotificationService notificationService)
+            INotificationService notificationService,
+            ICurrentUserService currentUserService)
         {
             _permissionRequestRepository = permissionRequestRepository;
             _notificationService = notificationService;
+            _currentUserService = currentUserService;
         }
 
         public async Task<RejectLoanPermissionRequestResponse> Handle(
@@ -33,6 +37,10 @@ namespace KasraLoan.Application.Features.LoanPermission.Commands.RejectLoanPermi
 
             if (permissionRequest == null)
                 throw new KeyNotFoundException("Loan permission request not found");
+
+            // ادمین وام فقط می‌تواند درخواست‌های مجوزِ نوع وام خودش را رد کند.
+            if (!_currentUserService.CanManageLoanType(permissionRequest.LoanTypeId))
+                throw new BusinessRuleException("شما به این نوع وام دسترسی ندارید.");
 
             if (permissionRequest.Status != LoanPermissionRequestStatus.Pending)
                 throw new BusinessRuleException("این درخواست قبلاً بررسی شده است.");

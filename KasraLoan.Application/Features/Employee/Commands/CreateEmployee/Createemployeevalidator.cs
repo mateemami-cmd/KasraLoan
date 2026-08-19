@@ -20,16 +20,21 @@ namespace KasraLoan.Application.Features.Employee.Commands.CreateEmployee
                 .NotEmpty().WithMessage("نام‌خانوادگی الزامی است.")
                 .MaximumLength(100);
 
-            RuleFor(x => x.Request.PersonnelNumber)
-                .NotEmpty().WithMessage("شماره پرسنلی الزامی است.")
-                .Matches("^[0-9]+$").WithMessage("شماره پرسنلی فقط می‌تواند شامل عدد باشد.")
-                .MaximumLength(50);
+            // نام کاربری و شماره‌ی پرسنلی کارمند خودکار (و یکسان) ساخته می‌شوند؛
+            // فقط برای ادمین دستی و الزامی‌اند.
+            When(x => IsAdmin(x.Request.Role), () =>
+            {
+                RuleFor(x => x.Request.PersonnelNumber)
+                    .NotEmpty().WithMessage("شماره پرسنلی الزامی است.")
+                    .Matches("^[0-9]+$").WithMessage("شماره پرسنلی فقط می‌تواند شامل عدد باشد.")
+                    .MaximumLength(50);
 
-            RuleFor(x => x.Request.Username)
-                .NotEmpty().WithMessage("نام کاربری الزامی است.")
-                .MinimumLength(4).WithMessage("نام کاربری باید حداقل ۴ کاراکتر باشد.")
-                .Matches("^[a-zA-Z0-9._-]+$")
-                    .WithMessage("نام کاربری فقط می‌تواند شامل حروف انگلیسی، عدد، نقطه، خط تیره و آندرلاین باشد.");
+                RuleFor(x => x.Request.Username)
+                    .NotEmpty().WithMessage("نام کاربری الزامی است.")
+                    .MinimumLength(4).WithMessage("نام کاربری باید حداقل ۴ کاراکتر باشد.")
+                    .Matches("^[a-zA-Z0-9._-]+$")
+                        .WithMessage("نام کاربری فقط می‌تواند شامل حروف انگلیسی، عدد، نقطه، خط تیره و آندرلاین باشد.");
+            });
 
             RuleFor(x => x.Request.HireDate)
                 .NotEmpty().WithMessage("تاریخ استخدام الزامی است.");

@@ -29,10 +29,12 @@ import {
   AuditOutlined,
   FileImageOutlined,
   ArrowRightOutlined,
+  LockOutlined,
 } from '@ant-design/icons'
 import type { ColumnsType } from 'antd/es/table'
 import { DashboardLayout } from '../../components/DashboardLayout'
 import { ProfilePanel } from '../../components/ProfilePanel'
+import { useAuth } from '../../auth/AuthContext'
 import {
   getAllPermissionRequests,
   approvePermissionRequest,
@@ -40,7 +42,10 @@ import {
   getLoanTypes,
   setLoanTypeStatus,
   createEmployee,
+  getNextIdentifier,
   getAllEmployees,
+  setAccountStatus,
+  setAdminScope,
   getAllLoans,
   approveLoan,
   rejectLoan,
@@ -72,6 +77,10 @@ const statusTag: Record<string, { color: string; label: string }> = {
 }
 
 export function AdminDashboard() {
+  const { user } = useAuth()
+  // ادمین ارشد به همه‌چیز دسترسی دارد؛ «ادمین وام» فقط به وامِ خودش.
+  const isSenior = user?.isSeniorAdmin ?? false
+
   const [section, setSection] = useState('loanRequests')
   const [profileOpen, setProfileOpen] = useState(false)
   const [unread, setUnread] = useState(0)
@@ -83,12 +92,19 @@ export function AdminDashboard() {
     return () => clearInterval(timer)
   }, [])
 
-  const menuItems = [
+  // منوی مشترکِ کارِ وام (برای هر دو نوع ادمین). برای ادمین وام، برچسب «تنظیمات»
+  // فقط وامِ خودش را نشان می‌دهد.
+  const loanMenu = [
     { key: 'loanRequests', icon: <AuditOutlined />, label: 'درخواست‌های وام' },
     { key: 'cheques', icon: <FileImageOutlined />, label: 'چک‌های در انتظار' },
     { key: 'permissions', icon: <FileProtectOutlined />, label: 'درخواست‌های مجوز' },
-    { key: 'loans', icon: <BankOutlined />, label: 'مدیریت وام‌ها' },
+    { key: 'loans', icon: <BankOutlined />, label: isSenior ? 'مدیریت وام‌ها' : 'تنظیمات وام' },
+  ]
+
+  // فقط ادمین ارشد کارهای مدیریتیِ کل سیستم را می‌بیند.
+  const seniorOnlyMenu = [
     { key: 'addEmployee', icon: <UserAddOutlined />, label: 'افزودن کاربر' },
+    { key: 'accesses', icon: <LockOutlined />, label: 'دسترسی‌ها' },
     {
       key: 'people',
       icon: <TeamOutlined />,
@@ -100,6 +116,8 @@ export function AdminDashboard() {
     },
   ]
 
+  const menuItems = isSenior ? [...loanMenu, ...seniorOnlyMenu] : loanMenu
+
   return (
     <DashboardLayout
       menuItems={menuItems}
@@ -110,13 +128,24 @@ export function AdminDashboard() {
       onAvatarClick={() => setProfileOpen(true)}
       avatarBadgeCount={unread}
     >
+      {!isSenior && user?.managedLoanTypeName && (
+        <Alert
+          type="info"
+          showIcon
+          style={{ marginBottom: 16 }}
+          message={`ادمین وام «${user.managedLoanTypeName}»`}
+          description="شما فقط به درخواست‌ها، مجوزها، چک‌ها و تنظیماتِ همین وام دسترسی دارید."
+        />
+      )}
+
       {section === 'loanRequests' && <LoanRequestsSection />}
       {section === 'cheques' && <ChequeQueueSection />}
       {section === 'permissions' && <PermissionRequestsSection />}
       {section === 'loans' && <LoanManagementSection />}
-      {section === 'addEmployee' && <AddEmployeeSection />}
-      {section === 'employees' && <PeopleSection role="Employee" title="لیست کارمندان" />}
-      {section === 'admins' && <PeopleSection role="Admin" title="لیست ادمین‌ها" />}
+      {isSenior && section === 'addEmployee' && <AddEmployeeSection />}
+      {isSenior && section === 'accesses' && <AccessesSection />}
+      {isSenior && section === 'employees' && <PeopleSection role="Employee" title="لیست کارمندان" />}
+      {isSenior && section === 'admins' && <PeopleSection role="Admin" title="لیست ادمین‌ها" />}
 
       <Drawer
         placement="right"
@@ -706,13 +735,17 @@ function PermissionRequestsSection() {
 
 function LoanManagementSection() {
   const { message } = App.useApp()
+  const { user } = useAuth()
+  const isSenior = user?.isSeniorAdmin ?? false
   const [loans, setLoans] = useState<LoanType[]>([])
   const [loading, setLoading] = useState(true)
 
   async function load() {
     setLoading(true)
     try {
-      setLoans(await getLoanTypes())
+      const all = await getLoanTypes()
+      // ادمین وام فقط تنظیماتِ وامِ خودش را می‌بیند و می‌تواند عوض کند.
+      setLoans(isSenior ? all : all.filter((l) => l.id === user?.managedLoanTypeId))
     } finally {
       setLoading(false)
     }
@@ -720,7 +753,8 @@ function LoanManagementSection() {
 
   useEffect(() => {
     load()
-  }, [])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isSenior, user?.managedLoanTypeId])
 
   async function toggle(loan: LoanType, isActive: boolean) {
     await setLoanTypeStatus(loan.id, isActive)
@@ -757,31 +791,62 @@ function AddEmployeeSection() {
   const [submitting, setSubmitting] = useState(false)
   const [created, setCreated] = useState<{ username: string; temporaryPassword: string } | null>(null)
   const [positions, setPositions] = useState<JobPosition[]>([])
+  const [loanTypes, setLoanTypes] = useState<LoanType[]>([])
+  const [autoId, setAutoId] = useState<string | null>(null)
+  const [autoIdLoading, setAutoIdLoading] = useState(false)
   const role = Form.useWatch('role', form)
+  const adminType = Form.useWatch('adminType', form)
+  const jobPositionId = Form.useWatch('jobPositionId', form)
+  const hireDate = Form.useWatch<{ toISOString: () => string } | undefined>('hireDate', form)
 
   useEffect(() => {
     getJobPositions(true).then(setPositions).catch(() => {})
+    getLoanTypes().then(setLoanTypes).catch(() => {})
   }, [])
+
+  // پیش‌نمایش کد ۹ رقمی: وقتی سمت و تاریخ استخدام هر دو پر شدند (و نقش کارمند است)
+  // از سرور می‌پرسیم عدد بعدی چه می‌شود و همان‌جا فقط‌خواندنی نشانش می‌دهیم.
+  useEffect(() => {
+    if (role === 'Admin' || !jobPositionId || !hireDate) {
+      setAutoId(null)
+      return
+    }
+    let cancelled = false
+    setAutoIdLoading(true)
+    getNextIdentifier(jobPositionId, hireDate.toISOString())
+      .then((id) => { if (!cancelled) setAutoId(id) })
+      .catch(() => { if (!cancelled) setAutoId(null) })
+      .finally(() => { if (!cancelled) setAutoIdLoading(false) })
+    return () => { cancelled = true }
+  }, [role, jobPositionId, hireDate])
 
   async function onFinish(values: {
     firstName: string
     lastName: string
-    personnelNumber: string
-    username: string
+    personnelNumber?: string
+    username?: string
     hireDate: { toISOString: () => string }
     role: string
     jobPositionId?: number
+    adminType?: string
+    managedLoanTypeId?: number
   }) {
+    const isAdmin = values.role === 'Admin'
+    const isSeniorAdmin = isAdmin && values.adminType !== 'loan'
     setSubmitting(true)
     try {
       const res = await createEmployee({
         firstName: values.firstName,
         lastName: values.lastName,
-        personnelNumber: values.personnelNumber,
-        username: values.username,
+        // شماره پرسنلی و نام کاربری فقط برای ادمین دستی‌اند؛ برای کارمند سرور خودش
+        // یک عددِ ۹ رقمیِ یکسان برای هر دو می‌سازد.
+        personnelNumber: isAdmin ? values.personnelNumber : undefined,
+        username: isAdmin ? values.username : undefined,
         hireDate: values.hireDate.toISOString(),
         role: values.role,
         jobPositionId: values.jobPositionId,
+        isSeniorAdmin: isAdmin ? isSeniorAdmin : undefined,
+        managedLoanTypeId: isAdmin && !isSeniorAdmin ? values.managedLoanTypeId : undefined,
       })
       setCreated({ username: res.username, temporaryPassword: res.temporaryPassword })
       message.success('کاربر ایجاد شد.')
@@ -802,8 +867,8 @@ function AddEmployeeSection() {
             type="info"
             showIcon
             style={{ marginBottom: 16 }}
-            message="رمز عبور لازم نیست وارد کنید"
-            description="سیستم یک رمز موقت امن به‌صورت خودکار می‌سازد و بعد از ایجاد کاربر همین‌جا نمایش می‌دهد. کاربر بعد از اولین ورود می‌تواند رمزش را از بخش «اطلاعات کاربری» تغییر دهد."
+            message="نام کاربری و رمز عبور را وارد نکنید"
+            description="برای کارمند، نام کاربری خودکار از روی سال استخدام و سمت شغلی ساخته می‌شود (مثلاً ۱۴۰۴۰۱۰۰۱). رمز موقت هم به‌صورت خودکار ساخته و بعد از ایجاد همین‌جا نمایش داده می‌شود؛ کاربر می‌تواند بعد از اولین ورود رمزش را عوض کند."
           />
           <Form form={form} layout="vertical" onFinish={onFinish} initialValues={{ role: 'Employee' }}>
             <Row gutter={12}>
@@ -818,19 +883,51 @@ function AddEmployeeSection() {
                 </Form.Item>
               </Col>
             </Row>
-            <Form.Item
-              label="شماره پرسنلی"
-              name="personnelNumber"
-              rules={[
-                { required: true, message: 'شماره پرسنلی الزامی است' },
-                { pattern: /^\d+$/, message: 'شماره پرسنلی فقط باید عدد باشد' },
-              ]}
-            >
-              <Input />
-            </Form.Item>
-            <Form.Item label="نام کاربری" name="username" rules={[{ required: true }]}>
-              <Input />
-            </Form.Item>
+            {/* شماره پرسنلی و نام کاربری فقط برای ادمین دستی‌اند؛ کارمند هر دو را
+                خودکار و یکسان می‌گیرد (پیش‌نمایش زیر سمت شغلی نشان داده می‌شود). */}
+            {role === 'Admin' && (
+              <>
+                <Form.Item
+                  label="شماره پرسنلی"
+                  name="personnelNumber"
+                  rules={[
+                    { required: true, message: 'شماره پرسنلی الزامی است' },
+                    { pattern: /^\d+$/, message: 'شماره پرسنلی فقط باید عدد باشد' },
+                  ]}
+                >
+                  <Input />
+                </Form.Item>
+                <Form.Item label="نام کاربری" name="username" rules={[{ required: true }]}>
+                  <Input />
+                </Form.Item>
+                <Form.Item
+                  label="نوع ادمین"
+                  name="adminType"
+                  initialValue="senior"
+                  rules={[{ required: true }]}
+                >
+                  <Select
+                    options={[
+                      { value: 'senior', label: 'ادمین ارشد (دسترسی کامل)' },
+                      { value: 'loan', label: 'ادمین وام (فقط یک نوع وام)' },
+                    ]}
+                  />
+                </Form.Item>
+                {adminType === 'loan' && (
+                  <Form.Item
+                    label="وامِ تحت مدیریت"
+                    name="managedLoanTypeId"
+                    rules={[{ required: true, message: 'نوع وام را انتخاب کنید' }]}
+                    extra="این ادمین فقط به درخواست‌ها، مجوزها، چک‌ها و تنظیماتِ همین وام دسترسی خواهد داشت."
+                  >
+                    <Select
+                      placeholder="انتخاب کنید"
+                      options={loanTypes.map((l) => ({ value: l.id, label: l.name }))}
+                    />
+                  </Form.Item>
+                )}
+              </>
+            )}
             <Form.Item label="تاریخ استخدام" name="hireDate" rules={[{ required: true }]}>
               <DatePicker style={{ width: '100%' }} />
             </Form.Item>
@@ -845,20 +942,51 @@ function AddEmployeeSection() {
 
             {/* سمت شغلی فقط برای کارمند لازم است: حقوق و سقف وام از روی آن حساب می‌شود. */}
             {role !== 'Admin' && (
-              <Form.Item
-                label="سمت شغلی"
-                name="jobPositionId"
-                rules={[{ required: true, message: 'انتخاب سمت شغلی برای کارمند الزامی است' }]}
-                extra="حقوق و در نتیجه سقف وام کارمند از روی این سمت محاسبه می‌شود."
-              >
-                <Select
-                  placeholder="انتخاب کنید"
-                  options={positions.map((p) => ({
-                    value: p.id,
-                    label: `${p.title} — ${p.baseSalary.toLocaleString('fa-IR')} تومان`,
-                  }))}
-                />
-              </Form.Item>
+              <>
+                <Form.Item
+                  label="سمت شغلی"
+                  name="jobPositionId"
+                  rules={[{ required: true, message: 'انتخاب سمت شغلی برای کارمند الزامی است' }]}
+                  extra="حقوق و در نتیجه سقف وام کارمند از روی این سمت محاسبه می‌شود."
+                >
+                  <Select
+                    placeholder="انتخاب کنید"
+                    options={positions.map((p) => ({
+                      value: p.id,
+                      label: `${p.title} — ${p.baseSalary.toLocaleString('fa-IR')} تومان`,
+                    }))}
+                  />
+                </Form.Item>
+
+                {/* شماره پرسنلی خودکار: با انتخاب تاریخ استخدام و سمت، خودش پر می‌شود.
+                    کاملاً قفل است — نه می‌شود تایپ کرد، نه حتی فوکوس گرفت. */}
+                <Form.Item label="شماره پرسنلی">
+                  <Input
+                    readOnly
+                    tabIndex={-1}
+                    value={autoIdLoading ? 'در حال محاسبه…' : autoId ?? ''}
+                    // placeholder="با انتخاب تاریخ استخدام و سمت شغلی، خودکار پر می‌شود"
+                    prefix={<LockOutlined style={{ color: '#999', cursor: 'not-allowed' }} />}
+                    style={{
+                      direction: 'ltr',
+                      background: 'rgba(0, 0, 0, 0.04)',
+                      cursor: 'not-allowed',
+                    }}
+                    // نشانگرِ «ممنوع» باید روی خودِ input داخلی هم باشد، نه فقط قابِ بیرونی؛
+                    // وگرنه وسط کادر نشانگر تایپ نشان داده می‌شود.
+                    styles={{
+                      input: {
+                        textAlign: 'center',
+                        fontFamily: 'monospace',
+                        letterSpacing: 3,
+                        fontWeight: 600,
+                        cursor: 'not-allowed',
+                      },
+                      prefix: { cursor: 'not-allowed' },
+                    }}
+                  />
+                </Form.Item>
+              </>
             )}
 
             <Button type="primary" htmlType="submit" block loading={submitting}>
@@ -898,6 +1026,9 @@ interface EmployeeRow {
   username: string
   personnelNumber: string
   role: string
+  isSeniorAdmin: boolean
+  managedLoanTypeId?: number | null
+  managedLoanTypeName?: string | null
   isActive: boolean
   jobPositionTitle?: string | null
   effectiveMonthlySalary: number
@@ -906,8 +1037,10 @@ interface EmployeeRow {
 }
 
 function PeopleSection({ role, title }: { role: 'Admin' | 'Employee'; title: string }) {
+  const { message } = App.useApp()
   const [rows, setRows] = useState<EmployeeRow[]>([])
   const [loading, setLoading] = useState(true)
+  const [busyId, setBusyId] = useState<string | null>(null)
 
   useEffect(() => {
     setLoading(true)
@@ -920,6 +1053,24 @@ function PeopleSection({ role, title }: { role: 'Admin' | 'Employee'; title: str
   const filtered = rows.filter((r) => r.role === role)
 
   const money = (v: number) => (v > 0 ? `${v.toLocaleString('fa-IR')} تومان` : '—')
+
+  async function toggleAccount(row: EmployeeRow, isActive: boolean) {
+    setBusyId(row.id)
+    try {
+      await setAccountStatus(row.id, isActive)
+      setRows((prev) => prev.map((x) => (x.id === row.id ? { ...x, isActive } : x)))
+      message.success(
+        isActive
+          ? 'حساب کاربری فعال شد.'
+          : 'حساب کاربری غیرفعال شد؛ کاربر دیگر نمی‌تواند وارد شود یا وام بگیرد.',
+      )
+    } catch (err: unknown) {
+      const e = err as { response?: { data?: { message?: string } } }
+      message.error(e.response?.data?.message ?? 'خطا در تغییر وضعیت حساب.')
+    } finally {
+      setBusyId(null)
+    }
+  }
 
   const columns: ColumnsType<EmployeeRow> = [
     { title: 'نام', render: (_, r) => `${r.firstName} ${r.lastName}` },
@@ -938,16 +1089,149 @@ function PeopleSection({ role, title }: { role: 'Admin' | 'Employee'; title: str
           },
         ] as ColumnsType<EmployeeRow>)
       : []),
+    ...(role === 'Admin'
+      ? ([
+          {
+            title: 'سطح دسترسی',
+            render: (_, r) =>
+              r.isSeniorAdmin ? (
+                <Tag color="gold">ادمین ارشد</Tag>
+              ) : r.managedLoanTypeName ? (
+                <Tag color="blue">وام: {r.managedLoanTypeName}</Tag>
+              ) : (
+                <Tag>تعیین‌نشده</Tag>
+              ),
+          },
+        ] as ColumnsType<EmployeeRow>)
+      : []),
     {
       title: 'حساب کاربری',
       dataIndex: 'isActive',
-      render: (v: boolean) => (v ? <Tag color="green">فعال</Tag> : <Tag>غیرفعال</Tag>),
+      // برای کارمند قابل فعال/غیرفعال کردن است؛ برای ادمین فقط نمایش (طبق تصمیم فعلی
+      // که فعلاً کاری به حساب ادمین‌ها نداریم).
+      render: (v: boolean, r) =>
+        role === 'Employee' ? (
+          <Switch
+            checked={v}
+            loading={busyId === r.id}
+            checkedChildren="فعال"
+            unCheckedChildren="غیرفعال"
+            onChange={(checked) => toggleAccount(r, checked)}
+          />
+        ) : v ? (
+          <Tag color="green">فعال</Tag>
+        ) : (
+          <Tag>غیرفعال</Tag>
+        ),
     },
   ]
 
   return (
     <Card title={`${title} (${filtered.length})`}>
       <Table rowKey="id" loading={loading} columns={columns} dataSource={filtered} pagination={{ pageSize: 10 }} scroll={{ x: 'max-content' }} />
+    </Card>
+  )
+}
+
+/**
+ * «دسترسی‌ها» — فقط ادمین ارشد. مشخص می‌کند هر ادمین ارشد است یا مسئول کدام وام.
+ * هر ردیف یک انتخاب‌گر دارد: «ادمین ارشد» یا یکی از انواع وام.
+ */
+function AccessesSection() {
+  const { message } = App.useApp()
+  const { user } = useAuth()
+  const [admins, setAdmins] = useState<EmployeeRow[]>([])
+  const [loanTypes, setLoanTypes] = useState<LoanType[]>([])
+  const [loading, setLoading] = useState(true)
+  const [busyId, setBusyId] = useState<string | null>(null)
+
+  async function load() {
+    setLoading(true)
+    try {
+      const data = await getAllEmployees()
+      const rows: EmployeeRow[] = Array.isArray(data) ? data : data.items ?? []
+      setAdmins(rows.filter((r) => r.role === 'Admin'))
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    load()
+    getLoanTypes().then(setLoanTypes).catch(() => {})
+  }, [])
+
+  async function assign(row: EmployeeRow, value: string) {
+    setBusyId(row.id)
+    try {
+      const payload =
+        value === 'senior'
+          ? { isSeniorAdmin: true }
+          : { isSeniorAdmin: false, managedLoanTypeId: Number(value) }
+      const res = await setAdminScope(row.id, payload)
+      message.success(res.message)
+      await load()
+    } catch (err: unknown) {
+      const e = err as { response?: { data?: { message?: string } } }
+      message.error(e.response?.data?.message ?? 'خطا در تغییر دسترسی.')
+    } finally {
+      setBusyId(null)
+    }
+  }
+
+  const columns: ColumnsType<EmployeeRow> = [
+    { title: 'نام', render: (_, r) => `${r.firstName} ${r.lastName}` },
+    { title: 'نام کاربری', dataIndex: 'username' },
+    {
+      title: 'سطح فعلی',
+      render: (_, r) =>
+        r.isSeniorAdmin ? (
+          <Tag color="gold">ادمین ارشد</Tag>
+        ) : r.managedLoanTypeName ? (
+          <Tag color="blue">وام: {r.managedLoanTypeName}</Tag>
+        ) : (
+          <Tag>تعیین‌نشده</Tag>
+        ),
+    },
+    {
+      title: 'تغییر دسترسی',
+      render: (_, r) => {
+        const isSelf = r.id === user?.id
+        return (
+          <Select
+            style={{ minWidth: 200 }}
+            disabled={isSelf || busyId === r.id}
+            loading={busyId === r.id}
+            value={r.isSeniorAdmin ? 'senior' : r.managedLoanTypeId != null ? String(r.managedLoanTypeId) : undefined}
+            placeholder="انتخاب کنید"
+            onChange={(v) => assign(r, v)}
+            options={[
+              { value: 'senior', label: 'ادمین ارشد (دسترسی کامل)' },
+              ...loanTypes.map((l) => ({ value: String(l.id), label: `ادمین وام: ${l.name}` })),
+            ]}
+          />
+        )
+      },
+    },
+  ]
+
+  return (
+    <Card title="دسترسی‌ها">
+      <Alert
+        type="info"
+        showIcon
+        style={{ marginBottom: 16 }}
+        message="سطح دسترسی هر ادمین را اینجا تعیین کنید"
+        description="ادمین ارشد به همه‌چیز دسترسی دارد. «ادمین وام» فقط درخواست‌ها، مجوزها، چک‌ها و تنظیماتِ همان وام را می‌بیند. بعد از تغییر، ادمین باید یک‌بار دیگر وارد شود تا دسترسیِ جدید اعمال شود."
+      />
+      <Table
+        rowKey="id"
+        loading={loading}
+        columns={columns}
+        dataSource={admins}
+        pagination={false}
+        scroll={{ x: 'max-content' }}
+      />
     </Card>
   )
 }

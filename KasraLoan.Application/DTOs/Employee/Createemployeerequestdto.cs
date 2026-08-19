@@ -36,5 +36,14 @@ namespace KasraLoan.Application.DTOs.Employee
         /// استفاده می‌شود.
         /// </summary>
         public long? MonthlySalary { get; set; }
+
+        /// <summary>
+        /// فقط وقتی Role=Admin معنی دارد. true یعنی «ادمین ارشد» (دسترسی کامل)،
+        /// false یعنی «ادمین وام» که باید <see cref="ManagedLoanTypeId"/> داشته باشد.
+        /// </summary>
+        public bool IsSeniorAdmin { get; set; }
+
+        /// <summary>برای «ادمین وام»: شناسه‌ی نوع وامی که مدیریت می‌کند.</summary>
+        public int? ManagedLoanTypeId { get; set; }
     }
 }

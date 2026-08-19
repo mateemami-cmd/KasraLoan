@@ -41,7 +41,9 @@ namespace KasraLoan.Application.Features.Authentication.Refresh
                 employee.Id,
                 employee.FirstName,
                 employee.PersonnelNumber ?? "",
-                employee.Role.ToString());
+                employee.Role.ToString(),
+                employee.IsSeniorAdmin,
+                employee.ManagedLoanTypeId);
 
             var newRefreshToken = Guid.NewGuid().ToString("N");
 

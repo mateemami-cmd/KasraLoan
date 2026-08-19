@@ -2,6 +2,7 @@ using KasraLoan.Application.Common.Exceptions;
 using KasraLoan.Application.DTOs.Loans;
 using KasraLoan.Application.Interfaces.Repositories;
 using KasraLoan.Application.Interfaces.Services;
+using KasraLoan.Application.Services.Auth;
 using KasraLoan.Domain.Entities;
 using KasraLoan.Domain.Enums;
 using System;
@@ -24,6 +25,7 @@ namespace KasraLoan.Application.Services
         private readonly IFileStorageService _fileStorage;
         private readonly INotificationService _notificationService;
         private readonly IAuditLogService _auditLogService;
+        private readonly ICurrentUserService _currentUserService;
 
         public InstallmentPaymentService(
             IInstallmentPaymentRepository paymentRepository,
@@ -33,7 +35,8 @@ namespace KasraLoan.Application.Services
             IPaymentGateway gateway,
             IFileStorageService fileStorage,
             INotificationService notificationService,
-            IAuditLogService auditLogService)
+            IAuditLogService auditLogService,
+            ICurrentUserService currentUserService)
         {
             _paymentRepository = paymentRepository;
             _installmentRepository = installmentRepository;
@@ -43,7 +46,10 @@ namespace KasraLoan.Application.Services
             _fileStorage = fileStorage;
             _notificationService = notificationService;
             _auditLogService = auditLogService;
+            _currentUserService = currentUserService;
         }
+
+
 
         // ───────────────── وضعیت قسط جاری ─────────────────
 
@@ -142,6 +148,14 @@ namespace KasraLoan.Application.Services
         public async Task<List<InstallmentPaymentDto>> GetPendingChequesAsync()
         {
             var pending = await _paymentRepository.GetPendingChequesAsync();
+
+            // «ادمین وام» فقط چک‌های اقساطِ نوع وام خودش را می‌بیند.
+            if (!_currentUserService.IsSeniorAdmin)
+            {
+                pending = pending
+                    .Where(p => _currentUserService.CanManageLoanType(p.LoanInstallment.LoanRequest.LoanTypeId))
+                    .ToList();
+            }
 
             return pending.Select(p => ToDto(p, p.LoanInstallment, includeAdminFields: true)).ToList();
         }
@@ -485,6 +499,10 @@ namespace KasraLoan.Application.Services
 
             if (payment.Method != PaymentMethod.Cheque)
                 throw new BusinessRuleException("این پرداخت از نوع چک نیست.");
+
+            // «ادمین وام» فقط چک‌های اقساطِ نوع وام خودش را تأیید/رد می‌کند.
+            if (!_currentUserService.CanManageLoanType(payment.LoanInstallment.LoanRequest.LoanTypeId))
+                throw new BusinessRuleException("شما به این نوع وام دسترسی ندارید.");
 
             if (payment.Status != InstallmentPaymentStatus.AwaitingAdminApproval)
                 throw new BusinessRuleException("این چک قبلاً بررسی شده است.");

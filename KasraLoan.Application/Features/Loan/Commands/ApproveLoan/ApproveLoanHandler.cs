@@ -2,6 +2,7 @@
 using KasraLoan.Application.Common.Exceptions;
 using KasraLoan.Application.Interfaces.Services;
 using KasraLoan.Application.Services;
+using KasraLoan.Application.Services.Auth;
 using KasraLoan.Domain.Enums;
 using MediatR;
 using System;
@@ -24,6 +25,7 @@ namespace KasraLoan.Application.Features.Loan.Commands.ApproveLoan
         private readonly INotificationService _notificationService;
         private readonly ILoanCalculationService _loanCalculationService;
         private readonly ILoanDocumentRepository _loanDocumentRepository;
+        private readonly ICurrentUserService _currentUserService;
 
         public ApproveLoanHandler(
             ILoanRequestRepository loanRequestRepository,
@@ -31,7 +33,8 @@ namespace KasraLoan.Application.Features.Loan.Commands.ApproveLoan
             ILoanInstallmentService loanInstallmentService,
             INotificationService notificationService,
             ILoanCalculationService loanCalculationService,
-            ILoanDocumentRepository loanDocumentRepository)
+            ILoanDocumentRepository loanDocumentRepository,
+            ICurrentUserService currentUserService)
         {
             _loanRequestRepository = loanRequestRepository;
             _auditLogService = auditLogService;
@@ -39,6 +42,7 @@ namespace KasraLoan.Application.Features.Loan.Commands.ApproveLoan
             _notificationService = notificationService;
             _loanCalculationService = loanCalculationService;
             _loanDocumentRepository = loanDocumentRepository;
+            _currentUserService = currentUserService;
         }
 
         public async Task<ApproveLoanResponse> Handle(
@@ -49,6 +53,10 @@ namespace KasraLoan.Application.Features.Loan.Commands.ApproveLoan
 
             if (loan == null)
                 throw new KeyNotFoundException("وام یافت نشد");
+
+            // ادمین وام فقط می‌تواند درخواست‌های وامِ نوعِ خودش را تأیید کند.
+            if (!_currentUserService.CanManageLoanType(loan.LoanTypeId))
+                throw new BusinessRuleException("شما به این نوع وام دسترسی ندارید.");
 
             if (loan.Status != LoanStatus.Pending)
                 throw new BusinessRuleException("این وام قابل تأیید نیست");

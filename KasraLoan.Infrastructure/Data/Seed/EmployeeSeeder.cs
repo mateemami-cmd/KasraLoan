@@ -27,7 +27,8 @@ namespace KasraLoan.Infrastructure.Data.Seed
                 PasswordHash = BCrypt.Net.BCrypt.HashPassword(DefaultAdminPassword, workFactor: 12),
                 HireDate = new DateTime(2020, 1, 1, 0, 0, 0, DateTimeKind.Utc),
                 IsActive = true,
-                Role = UserRole.Admin
+                Role = UserRole.Admin,
+                IsSeniorAdmin = true
             };
 
             await UpsertEmployeeAsync(context, admin);
@@ -51,6 +52,7 @@ namespace KasraLoan.Infrastructure.Data.Seed
             existingEmployee.MarriageDate = employee.MarriageDate;
             existingEmployee.IsActive = employee.IsActive;
             existingEmployee.Role = employee.Role;
+            existingEmployee.IsSeniorAdmin = employee.IsSeniorAdmin;
 
             if (string.IsNullOrEmpty(existingEmployee.Username))
                 existingEmployee.Username = employee.Username;

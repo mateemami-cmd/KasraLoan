@@ -289,14 +289,20 @@ export async function markAllNotificationsRead() {
 export interface CreateEmployeePayload {
   firstName: string
   lastName: string
-  personnelNumber: string
-  username: string
+  /** فقط برای ادمین لازم است؛ برای کارمند خودکار (برابر نام کاربری) ساخته می‌شود. */
+  personnelNumber?: string
+  /** فقط برای ادمین لازم است؛ نام کاربری کارمند سمت سرور خودکار ساخته می‌شود. */
+  username?: string
   hireDate: string
   role?: string
   /** برای نقش Employee الزامی است؛ حقوق و سقف وام از روی آن حساب می‌شود. */
   jobPositionId?: number
   /** حقوق اختصاصی؛ اگر خالی باشد حقوق پایه‌ی سمت استفاده می‌شود. */
   monthlySalary?: number
+  /** برای نقش Admin: ادمین ارشد است یا ادمین وام. */
+  isSeniorAdmin?: boolean
+  /** برای «ادمین وام»: شناسه‌ی وامی که مدیریت می‌کند. */
+  managedLoanTypeId?: number
 }
 
 // ---------- Job positions ----------
@@ -315,6 +321,17 @@ export async function getJobPositions(activeOnly = false): Promise<JobPosition[]
   return res.data.items
 }
 
+/** کد ۹ رقمیِ بعدی (نام کاربری = شماره‌ی پرسنلی) را برای پیش‌نمایش در فرم برمی‌گرداند. */
+export async function getNextIdentifier(
+  jobPositionId: number,
+  hireDate: string,
+): Promise<string> {
+  const res = await api.get<{ identifier: string }>('/employee/next-identifier', {
+    params: { jobPositionId, hireDate },
+  })
+  return res.data.identifier
+}
+
 export async function createEmployee(payload: CreateEmployeePayload) {
   const res = await api.post('/employee', payload)
   return res.data as {
@@ -328,4 +345,25 @@ export async function createEmployee(payload: CreateEmployeePayload) {
 export async function getAllEmployees() {
   const res = await api.get('/employee')
   return res.data
+}
+
+/** فعال/غیرفعال کردن حساب کاربری کارمند (دسترسی ورود و امکان درخواست وام). */
+export async function setAccountStatus(employeeId: string, isActive: boolean) {
+  const res = await api.put(`/employee/${employeeId}/account-status`, { isActive })
+  return res.data as { employeeId: string; isActive: boolean; message: string }
+}
+
+/** تغییر سطح دسترسی یک ادمین: ارشد کردن، یا سپردنِ یک نوع وام به او. */
+export async function setAdminScope(
+  employeeId: string,
+  payload: { isSeniorAdmin: boolean; managedLoanTypeId?: number | null },
+) {
+  const res = await api.put(`/employee/${employeeId}/admin-scope`, payload)
+  return res.data as {
+    employeeId: string
+    isSeniorAdmin: boolean
+    managedLoanTypeId?: number | null
+    managedLoanTypeName?: string | null
+    message: string
+  }
 }

@@ -5,6 +5,7 @@ using KasraLoan.Application.Interfaces.Repositories;
 using KasraLoan.Application.Interfaces.Services;
 using KasraLoan.Application.LoanRules.Implementations;
 using KasraLoan.Application.Services;
+using KasraLoan.Application.Services.Auth;
 using KasraLoan.Domain.Entities;
 using KasraLoan.Domain.Enums;
 using Moq;
@@ -22,18 +23,23 @@ public class ApproveLoanDocumentRuleTests
     private readonly Mock<ILoanInstallmentService> _installments = new();
     private readonly Mock<INotificationService> _notifications = new();
     private readonly Mock<ILoanDocumentRepository> _documents = new();
+    private readonly Mock<ICurrentUserService> _currentUser = new();
 
     private readonly ApproveLoanHandler _sut;
 
     public ApproveLoanDocumentRuleTests()
     {
+        // ادمین ارشد فرض می‌شود؛ به همه‌ی انواع وام دسترسی دارد.
+        _currentUser.Setup(x => x.CanManageLoanType(It.IsAny<int>())).Returns(true);
+
         _sut = new ApproveLoanHandler(
             _loans.Object,
             _audit.Object,
             _installments.Object,
             _notifications.Object,
             new LoanCalculationService(),
-            _documents.Object);
+            _documents.Object,
+            _currentUser.Object);
     }
 
     private LoanRequest GivenPendingLoan(bool requiresDocument)

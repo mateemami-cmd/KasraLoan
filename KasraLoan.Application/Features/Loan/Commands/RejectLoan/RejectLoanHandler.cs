@@ -2,6 +2,7 @@
 using KasraLoan.Application.Common.Exceptions;
 using KasraLoan.Application.Interfaces.Services;
 using KasraLoan.Application.Services;
+using KasraLoan.Application.Services.Auth;
 using KasraLoan.Domain.Enums;
 using MediatR;
 using System;
@@ -17,12 +18,14 @@ namespace KasraLoan.Application.Features.Loan.Commands.RejectLoan
         private readonly ILoanRequestRepository _loanRequestRepository;
         private readonly IAuditLogService _auditLogService;
         private readonly INotificationService _notificationService;
+        private readonly ICurrentUserService _currentUserService;
 
-        public RejectLoanHandler(ILoanRequestRepository loanRequestRepository, IAuditLogService auditLogService, INotificationService notificationService)
+        public RejectLoanHandler(ILoanRequestRepository loanRequestRepository, IAuditLogService auditLogService, INotificationService notificationService, ICurrentUserService currentUserService)
         {
             _loanRequestRepository = loanRequestRepository;
             _auditLogService = auditLogService;
             _notificationService = notificationService;
+            _currentUserService = currentUserService;
         }
 
         public async Task<RejectLoanResponse> Handle(RejectLoanCommand request, CancellationToken cancellationToken)
@@ -31,6 +34,10 @@ namespace KasraLoan.Application.Features.Loan.Commands.RejectLoan
 
             if (loan == null)
                 throw new KeyNotFoundException("وام یافت نشد");
+
+            // ادمین وام فقط می‌تواند درخواست‌های وامِ نوعِ خودش را رد کند.
+            if (!_currentUserService.CanManageLoanType(loan.LoanTypeId))
+                throw new BusinessRuleException("شما به این نوع وام دسترسی ندارید.");
 
             if (loan.Status != LoanStatus.Pending)
                 throw new BusinessRuleException("این وام قابل رد نیست");

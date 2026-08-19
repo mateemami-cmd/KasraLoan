@@ -64,6 +64,11 @@ namespace KasraLoan.Application.Features.Loan.Commands.CreateLoanRequest
             if (employee == null)
                 throw new KeyNotFoundException("Employee not found");
 
+            // حساب کاربریِ غیرفعال حتی اگر توکنش هنوز معتبر باشد نباید وام بگیرد.
+            if (!employee.IsActive)
+                throw new BusinessRuleException(
+                    "حساب کاربری شما غیرفعال است و امکان ثبت درخواست وام وجود ندارد.");
+
             // کارمندی که دیگر مشغول به کار نیست، وام جدید نمی‌گیرد. حسابش باز می‌ماند
             // تا بتواند اقساط وام قبلی‌اش را ببیند و بپردازد، ولی درخواست تازه ممنوع است.
             if (employee.EmploymentStatus != Domain.Enums.EmploymentStatus.Active)

@@ -1,5 +1,6 @@
 using KasraLoan.Application.DTOs.LoanPermission;
 using KasraLoan.Application.Interfaces.Repositories;
+using KasraLoan.Application.Services.Auth;
 using MediatR;
 using System;
 using System.Collections.Generic;
@@ -13,21 +14,29 @@ namespace KasraLoan.Application.Features.LoanPermission.Queries.GetAllLoanPermis
         : IRequestHandler<GetAllLoanPermissionRequestsQuery, GetAllLoanPermissionRequestsResponse>
     {
         private readonly ILoanPermissionRequestRepository _permissionRequestRepository;
+        private readonly ICurrentUserService _currentUserService;
 
         public GetAllLoanPermissionRequestsHandler(
-            ILoanPermissionRequestRepository permissionRequestRepository)
+            ILoanPermissionRequestRepository permissionRequestRepository,
+            ICurrentUserService currentUserService)
         {
             _permissionRequestRepository = permissionRequestRepository;
+            _currentUserService = currentUserService;
         }
 
         public async Task<GetAllLoanPermissionRequestsResponse> Handle(
             GetAllLoanPermissionRequestsQuery request,
             CancellationToken cancellationToken)
         {
-            var requests = await _permissionRequestRepository.GetPagedAsync(
-                request.Page, request.PageSize, request.Status);
+            // ادمین ارشد همه را می‌بیند؛ ادمین وام فقط نوع وام خودش.
+            var scopeLoanTypeId = _currentUserService.IsSeniorAdmin
+                ? (int?)null
+                : _currentUserService.ManagedLoanTypeId;
 
-            var totalCount = await _permissionRequestRepository.GetPagedCountAsync(request.Status);
+            var requests = await _permissionRequestRepository.GetPagedAsync(
+                request.Page, request.PageSize, request.Status, scopeLoanTypeId);
+
+            var totalCount = await _permissionRequestRepository.GetPagedCountAsync(request.Status, scopeLoanTypeId);
 
             var items = requests.Select(x => new LoanPermissionRequestListItemDto
             {

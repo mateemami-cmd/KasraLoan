@@ -45,13 +45,14 @@ namespace KasraLoan.Application.Interfaces.Repositories
 
         Task<decimal> GetTotalApprovedAmountAsync();
 
-        Task<List<LoanRequest>> GetPagedAsync(int page, int pageSize, LoanStatus? status, string? search);
+        // loanTypeId اختیاری: برای «ادمین وام» فقط درخواست‌های همان نوع وام برگردد.
+        Task<List<LoanRequest>> GetPagedAsync(int page, int pageSize, LoanStatus? status, string? search, int? loanTypeId = null);
 
         /// <summary>
         /// تعداد کل رکوردهایی که با همین فیلترهای GetPagedAsync مطابقت دارند
         /// (برای محاسبه‌ی تعداد کل صفحات، مستقل از page/pageSize).
         /// </summary>
-        Task<int> GetPagedCountAsync(LoanStatus? status, string? search);
+        Task<int> GetPagedCountAsync(LoanStatus? status, string? search, int? loanTypeId = null);
 
         Task SaveChangesAsync();
     }

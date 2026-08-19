@@ -1,4 +1,5 @@
 ﻿using KasraLoan.Application.Interfaces.Repositories;
+using KasraLoan.Application.Services.Auth;
 using MediatR;
 using System;
 using System.Collections.Generic;
@@ -12,22 +13,30 @@ namespace KasraLoan.Application.Features.Loan.Queries.GetMyLoans.GetAllLoans
     : IRequestHandler<GetAllLoansQuery, GetAllLoansResponse>
     {
         private readonly ILoanRequestRepository _loanRequestRepository;
+        private readonly ICurrentUserService _currentUserService;
 
         public GetAllLoansHandler(
-            ILoanRequestRepository loanRequestRepository)
+            ILoanRequestRepository loanRequestRepository,
+            ICurrentUserService currentUserService)
         {
             _loanRequestRepository = loanRequestRepository;
+            _currentUserService = currentUserService;
         }
 
         public async Task<GetAllLoansResponse> Handle(
             GetAllLoansQuery request,
             CancellationToken cancellationToken)
         {
+            // ادمین ارشد همه را می‌بیند؛ ادمین وام فقط نوع وام خودش.
+            var scopeLoanTypeId = _currentUserService.IsSeniorAdmin
+                ? (int?)null
+                : _currentUserService.ManagedLoanTypeId;
+
             var loans = await _loanRequestRepository.GetPagedAsync(
-                request.Page, request.PageSize, request.Status, request.Search);
+                request.Page, request.PageSize, request.Status, request.Search, scopeLoanTypeId);
 
             var totalCount = await _loanRequestRepository.GetPagedCountAsync(
-                request.Status, request.Search);
+                request.Status, request.Search, scopeLoanTypeId);
 
             var items = loans.Select(x => new LoanListItemDto
             {

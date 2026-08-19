@@ -44,7 +44,9 @@ namespace KasraLoan.Application.Features.Authentication.Login
                 employee.Id,
                 employee.FirstName,
                 employee.PersonnelNumber ?? "",
-                employee.Role.ToString());
+                employee.Role.ToString(),
+                employee.IsSeniorAdmin,
+                employee.ManagedLoanTypeId);
 
             var refreshToken = _jwtService.GenerateRefreshToken();
 

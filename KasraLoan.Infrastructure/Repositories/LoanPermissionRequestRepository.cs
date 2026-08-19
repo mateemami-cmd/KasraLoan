@@ -50,9 +50,9 @@ namespace KasraLoan.Infrastructure.Repositories
                     x.Status == LoanPermissionRequestStatus.Pending);
         }
 
-        public async Task<List<LoanPermissionRequest>> GetPagedAsync(int page, int pageSize, LoanPermissionRequestStatus? status)
+        public async Task<List<LoanPermissionRequest>> GetPagedAsync(int page, int pageSize, LoanPermissionRequestStatus? status, int? loanTypeId = null)
         {
-            var query = BuildPagedFilterQuery(status);
+            var query = BuildPagedFilterQuery(status, loanTypeId);
 
             return await query
                 .OrderByDescending(x => x.CreatedAt)
@@ -61,17 +61,23 @@ namespace KasraLoan.Infrastructure.Repositories
                 .ToListAsync();
         }
 
-        public async Task<int> GetPagedCountAsync(LoanPermissionRequestStatus? status)
+        public async Task<int> GetPagedCountAsync(LoanPermissionRequestStatus? status, int? loanTypeId = null)
         {
-            return await BuildPagedFilterQuery(status).CountAsync();
+            return await BuildPagedFilterQuery(status, loanTypeId).CountAsync();
         }
 
-        private IQueryable<LoanPermissionRequest> BuildPagedFilterQuery(LoanPermissionRequestStatus? status)
+        private IQueryable<LoanPermissionRequest> BuildPagedFilterQuery(LoanPermissionRequestStatus? status, int? loanTypeId = null)
         {
             var query = _context.LoanPermissionRequests
                 .Include(x => x.Employee)
                 .Include(x => x.LoanType)
                 .AsQueryable();
+
+            // «ادمین وام» فقط درخواست‌های مجوزِ نوع وام خودش را می‌بیند.
+            if (loanTypeId.HasValue)
+            {
+                query = query.Where(x => x.LoanTypeId == loanTypeId.Value);
+            }
 
             if (status.HasValue)
             {

@@ -17,6 +17,11 @@ export interface CurrentUser {
   email?: string | null
   score: number
   role: 'Admin' | 'Employee'
+  /** برای ادمین‌ها: ارشد است یا ادمین وام. فرانت بر این اساس داشبورد را انتخاب می‌کند. */
+  isSeniorAdmin: boolean
+  /** برای «ادمین وام»: شناسه و نام وامی که مدیریت می‌کند. */
+  managedLoanTypeId?: number | null
+  managedLoanTypeName?: string | null
   profilePictureUrl?: string | null
   jobPositionTitle?: string | null
   effectiveMonthlySalary: number

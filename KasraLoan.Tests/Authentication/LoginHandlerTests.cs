@@ -71,7 +71,9 @@ public class LoginHandlerTests
                 employee.Id,
                 employee.FirstName,
                 employee.PersonnelNumber,
-                employee.Role.ToString()))
+                employee.Role.ToString(),
+                It.IsAny<bool>(),
+                It.IsAny<int?>()))
             .Returns("ACCESS_TOKEN");
 
         _jwtService

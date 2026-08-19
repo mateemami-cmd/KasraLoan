@@ -1,13 +1,18 @@
 ﻿using KasraLoan.Application.DTOs.Employee;
 using KasraLoan.Application.Features.Employee.Commands.CreateEmployee;
+using KasraLoan.Application.Features.Employee.Commands.RegenerateUsernames;
+using KasraLoan.Application.Features.Employee.Commands.SetAccountStatus;
+using KasraLoan.Application.Features.Employee.Commands.SetAdminScope;
 using KasraLoan.Application.Features.Employee.Commands.GrantLoanPermission;
 using KasraLoan.Application.Features.Employee.Commands.SetEmployeeScoreOverride;
 using KasraLoan.Application.Features.Employee.Commands.SetEmploymentStatus;
 using KasraLoan.Application.Features.Employee.Commands.UpdateEmployeeByAdmin;
 using KasraLoan.Application.Features.Employee.Queries.GetAllEmployees;
+using KasraLoan.Application.Features.Employee.Queries.GetNextIdentifier;
 using KasraLoan.Application.Features.Employee.Queries.GetEmployeeById;
 using KasraLoan.Application.Features.Employee.Queries.GetEmploymentStatusHistory;
 using KasraLoan.Application.Features.Employee.Queries.GetEmployeeScore;
+using KasraLoan.API.Authorization;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -18,9 +23,12 @@ namespace KasraLoan.API.Controllers
     // نکته‌ی طراحی مهم: در این کنترلر عمداً هیچ اندپوینت DELETE وجود ندارد.
     // این سیستم فقط برای مدیریت وام است، نه مدیریت کامل پرسنل شرکت؛
     // بنابراین ادمین می‌تواند کارمندان را ویرایش یا غیرفعال کند، اما حذف کامل مجاز نیست.
+    //
+    // کلِ مدیریت کارمندان و ادمین‌ها فقط دستِ «ادمین ارشد» است؛ ادمین‌های وام
+    // اینجا هیچ دسترسی‌ای ندارند.
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Policy = LoanPolicies.SeniorAdminOnly)]
     public class EmployeeController : ControllerBase
     {
         private readonly IMediator _mediator;
@@ -45,6 +53,31 @@ namespace KasraLoan.API.Controllers
         public async Task<IActionResult> GetAll()
         {
             var result = await _mediator.Send(new GetAllEmployeesQuery());
+
+            return Ok(result);
+        }
+
+        // نام کاربری همه‌ی کارمندان را بر اساس الگوریتم «سال+کد سمت+ترتیب» بازتولید می‌کند.
+        // قطعی و idempotent است؛ ادمین‌ها دست‌نخورده می‌مانند.
+        [HttpPost("regenerate-usernames")]
+        public async Task<IActionResult> RegenerateUsernames()
+        {
+            var result = await _mediator.Send(new RegenerateUsernamesCommand());
+
+            return Ok(result);
+        }
+
+        // پیش‌نمایشِ کد ۹ رقمیِ بعدی (نام کاربری = شماره‌ی پرسنلی) برای فرم افزودن کاربر.
+        [HttpGet("next-identifier")]
+        public async Task<IActionResult> GetNextIdentifier(
+            [FromQuery] int jobPositionId,
+            [FromQuery] DateTime hireDate)
+        {
+            var result = await _mediator.Send(new GetNextIdentifierQuery
+            {
+                JobPositionId = jobPositionId,
+                HireDate = hireDate
+            });
 
             return Ok(result);
         }
@@ -112,6 +145,37 @@ namespace KasraLoan.API.Controllers
             [FromBody] SetEmploymentStatusRequestDto request)
         {
             var result = await _mediator.Send(new SetEmploymentStatusCommand
+            {
+                EmployeeId = employeeId,
+                Request = request
+            });
+
+            return Ok(result);
+        }
+
+        // فعال/غیرفعال کردن حساب کاربری (دسترسی ورود). جدا از وضعیت اشتغال است:
+        // حساب غیرفعال نمی‌تواند وارد شود و درخواست وام بدهد.
+        [HttpPut("{employeeId}/account-status")]
+        public async Task<IActionResult> SetAccountStatus(
+            Guid employeeId,
+            [FromBody] SetAccountStatusRequestDto request)
+        {
+            var result = await _mediator.Send(new SetAccountStatusCommand
+            {
+                EmployeeId = employeeId,
+                Request = request
+            });
+
+            return Ok(result);
+        }
+
+        // «دسترسی‌ها»: سطح دسترسی یک ادمین را عوض می‌کند (ارشد یا ادمینِ یک نوع وام).
+        [HttpPut("{employeeId}/admin-scope")]
+        public async Task<IActionResult> SetAdminScope(
+            Guid employeeId,
+            [FromBody] SetAdminScopeRequestDto request)
+        {
+            var result = await _mediator.Send(new SetAdminScopeCommand
             {
                 EmployeeId = employeeId,
                 Request = request

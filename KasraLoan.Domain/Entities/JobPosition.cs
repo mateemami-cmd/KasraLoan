@@ -17,6 +17,13 @@ namespace KasraLoan.Domain.Entities
 
         public string Title { get; set; } = string.Empty;
 
+        /// <summary>
+        /// کد دو رقمی سمت (مثلاً "01" برای دواپس). در ساخت خودکار نام کاربری
+        /// به‌عنوان بخش میانی یوزرنیم استفاده می‌شود و مستقل از <see cref="Id"/> است،
+        /// چون ترتیب کدها لزوماً با ترتیب ساخته‌شدن سمت‌ها یکی نیست.
+        /// </summary>
+        public string Code { get; set; } = string.Empty;
+
         /// <summary>حقوق پایه‌ی ماهانه به تومان.</summary>
         public long BaseSalary { get; set; }
 

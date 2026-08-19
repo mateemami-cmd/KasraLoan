@@ -136,6 +136,14 @@ namespace KasraLoan.API
                     options.AddPolicy(
                         LoanPolicies.AdminOrEmployee,
                         policy => policy.RequireRole("Admin", "Employee"));
+
+                    // ادمین ارشد: نقش Admin + claim مخصوص. کارهای مدیریتیِ کل سیستم
+                    // (لیست کارمندان/ادمین‌ها، افزودن کاربر، وضعیت حساب، دسترسی‌ها) فقط اینجاست.
+                    options.AddPolicy(
+                        LoanPolicies.SeniorAdminOnly,
+                        policy => policy
+                            .RequireRole("Admin")
+                            .RequireClaim("IsSeniorAdmin", "true"));
                 });
 
                 builder.Services.AddDbContext<KasraLoanDbContext>(options =>

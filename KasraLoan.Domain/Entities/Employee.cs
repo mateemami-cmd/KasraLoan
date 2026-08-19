@@ -70,6 +70,21 @@ namespace KasraLoan.Domain.Entities
 
         public UserRole Role { get; set; } = UserRole.Employee;
 
+        /// <summary>
+        /// فقط برای ادمین‌ها معنی دارد. <b>ادمین ارشد</b> (true) به همه‌چیز دسترسی
+        /// دارد؛ <b>ادمین وام</b> (false) فقط به وامی که در
+        /// <see cref="ManagedLoanTypeId"/> مشخص شده. برای کارمند بی‌اثر است.
+        /// </summary>
+        public bool IsSeniorAdmin { get; set; }
+
+        /// <summary>
+        /// اگر این کارمند «ادمین وام» باشد، شناسه‌ی نوع وامی که مدیریت می‌کند.
+        /// ادمین ارشد و کارمند عادی null دارند.
+        /// </summary>
+        public int? ManagedLoanTypeId { get; set; }
+
+        public LoanType? ManagedLoanType { get; set; }
+
         public ICollection<RefreshToken> RefreshTokens { get; set; } = new List<RefreshToken>();
     }
 }

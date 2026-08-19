@@ -2,6 +2,7 @@ using KasraLoan.Application.DTOs.JobPositions;
 using KasraLoan.Application.Features.JobPositions.Commands.CreateJobPosition;
 using KasraLoan.Application.Features.JobPositions.Commands.UpdateJobPosition;
 using KasraLoan.Application.Features.JobPositions.Queries.GetAllJobPositions;
+using KasraLoan.API.Authorization;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -39,7 +40,7 @@ namespace KasraLoan.API.Controllers
 
         /// <summary>ساخت سمت شغلی جدید. فقط ادمین.</summary>
         [HttpPost]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Policy = LoanPolicies.SeniorAdminOnly)]
         public async Task<IActionResult> Create([FromBody] SaveJobPositionRequestDto request)
         {
             var result = await _mediator.Send(new CreateJobPositionCommand
@@ -52,7 +53,7 @@ namespace KasraLoan.API.Controllers
 
         /// <summary>ویرایش سمت شغلی (عنوان، حقوق پایه، فعال/غیرفعال). فقط ادمین.</summary>
         [HttpPut("{id:int}")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Policy = LoanPolicies.SeniorAdminOnly)]
         public async Task<IActionResult> Update(int id, [FromBody] SaveJobPositionRequestDto request)
         {
             var result = await _mediator.Send(new UpdateJobPositionCommand

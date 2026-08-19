@@ -4,6 +4,7 @@ using KasraLoan.Application.DTOs.Loans;
 using KasraLoan.Application.Interfaces.Repositories;
 using KasraLoan.Application.Interfaces.Services;
 using KasraLoan.Application.Services;
+using KasraLoan.Application.Services.Auth;
 using KasraLoan.Domain.Entities;
 using KasraLoan.Domain.Enums;
 using Moq;
@@ -24,6 +25,7 @@ public class InstallmentPaymentServiceTests
     private readonly Mock<IFileStorageService> _files = new();
     private readonly Mock<INotificationService> _notifications = new();
     private readonly Mock<IAuditLogService> _audit = new();
+    private readonly Mock<ICurrentUserService> _currentUser = new();
 
     private readonly InstallmentPaymentService _sut;
 
@@ -44,6 +46,10 @@ public class InstallmentPaymentServiceTests
             .Callback<InstallmentPayment>(p => _added.Add(p))
             .Returns(Task.CompletedTask);
 
+        // ادمین ارشد فرض می‌شود؛ به همه‌ی انواع وام دسترسی دارد.
+        _currentUser.Setup(x => x.IsSeniorAdmin).Returns(true);
+        _currentUser.Setup(x => x.CanManageLoanType(It.IsAny<int>())).Returns(true);
+
         _sut = new InstallmentPaymentService(
             _payments.Object,
             _installments.Object,
@@ -52,7 +58,8 @@ public class InstallmentPaymentServiceTests
             new MockPaymentGateway(),
             _files.Object,
             _notifications.Object,
-            _audit.Object);
+            _audit.Object,
+            _currentUser.Object);
     }
 
     private LoanInstallment GivenInstallment(

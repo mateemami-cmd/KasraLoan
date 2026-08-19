@@ -110,9 +110,9 @@ namespace KasraLoan.Infrastructure.Repositories
                 .SumAsync(x => (decimal)x.ApprovedAmount);
         }
 
-        public async Task<List<LoanRequest>> GetPagedAsync(int page, int pageSize, LoanStatus? status, string? search)
+        public async Task<List<LoanRequest>> GetPagedAsync(int page, int pageSize, LoanStatus? status, string? search, int? loanTypeId = null)
         {
-            var query = BuildPagedFilterQuery(status, search);
+            var query = BuildPagedFilterQuery(status, search, loanTypeId);
 
             return await query
                 .OrderByDescending(x => x.CreatedAt)
@@ -121,12 +121,12 @@ namespace KasraLoan.Infrastructure.Repositories
                 .ToListAsync();
         }
 
-        public async Task<int> GetPagedCountAsync(LoanStatus? status, string? search)
+        public async Task<int> GetPagedCountAsync(LoanStatus? status, string? search, int? loanTypeId = null)
         {
-            return await BuildPagedFilterQuery(status, search).CountAsync();
+            return await BuildPagedFilterQuery(status, search, loanTypeId).CountAsync();
         }
 
-        private IQueryable<LoanRequest> BuildPagedFilterQuery(LoanStatus? status, string? search)
+        private IQueryable<LoanRequest> BuildPagedFilterQuery(LoanStatus? status, string? search, int? loanTypeId = null)
         {
             var query = _context.LoanRequests
                 .Include(x => x.Employee)
@@ -136,6 +136,12 @@ namespace KasraLoan.Infrastructure.Repositories
                 // اقساط برای تفکیک وام‌های تأییدشده / فعال / تسویه‌شده در پنل ادمین.
                 .Include(x => x.LoanInstallments)
                 .AsQueryable();
+
+            // «ادمین وام» فقط درخواست‌های نوع وام خودش را می‌بیند.
+            if (loanTypeId.HasValue)
+            {
+                query = query.Where(x => x.LoanTypeId == loanTypeId.Value);
+            }
 
             if (status.HasValue)
             {

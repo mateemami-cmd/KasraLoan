@@ -32,6 +32,14 @@ namespace KasraLoan.Application.DTOs.Employee
 
         public string Role { get; set; } = string.Empty;
 
+        /// <summary>برای ادمین‌ها: ارشد است یا ادمین وام.</summary>
+        public bool IsSeniorAdmin { get; set; }
+
+        /// <summary>برای «ادمین وام»: شناسه و نام وامی که مدیریت می‌کند.</summary>
+        public int? ManagedLoanTypeId { get; set; }
+
+        public string? ManagedLoanTypeName { get; set; }
+
         /// <summary>وضعیت حساب کاربری (اجازه‌ی ورود به سیستم).</summary>
         public bool IsActive { get; set; }
 

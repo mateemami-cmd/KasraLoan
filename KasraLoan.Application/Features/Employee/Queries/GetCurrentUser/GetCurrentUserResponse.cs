@@ -28,6 +28,14 @@ namespace KasraLoan.Application.Features.Employee.Queries.GetCurrentUser
 
         public string Role { get; set; } = string.Empty;
 
+        /// <summary>برای ادمین‌ها: ارشد است یا ادمین وام. فرانت بر این اساس داشبورد را انتخاب می‌کند.</summary>
+        public bool IsSeniorAdmin { get; set; }
+
+        /// <summary>برای «ادمین وام»: شناسه و نام وامی که مدیریت می‌کند.</summary>
+        public int? ManagedLoanTypeId { get; set; }
+
+        public string? ManagedLoanTypeName { get; set; }
+
         public string? ProfilePictureUrl { get; set; }
 
         public string? JobPositionTitle { get; set; }
