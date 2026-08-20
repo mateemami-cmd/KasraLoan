@@ -13,3 +13,7 @@ Logs/
 appsettings.Local.json
 appsettings.*.Local.json
 secrets.json
+
+# Runtime user uploads (profile photos, cheque images). The app creates this
+# folder at startup; its contents are user data, not source.
+KasraLoan.API/wwwroot/uploads/
