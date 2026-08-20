@@ -14,7 +14,7 @@ import { uploadProfilePicture, deleteProfilePicture } from '../api/services'
  */
 export function ProfilePanel() {
   const { user, refreshUser, logout } = useAuth()
-  const { message } = App.useApp()
+  const { message, modal } = App.useApp()
   const [previewOpen, setPreviewOpen] = useState(false)
   const [previewImage, setPreviewImage] = useState('')
   const [fileList, setFileList] = useState<UploadFile[]>([])
@@ -49,16 +49,30 @@ export function ProfilePanel() {
     return false
   }
 
-  async function handleRemove() {
-    try {
-      await deleteProfilePicture()
-      await refreshUser()
-      message.success('عکس پروفایل حذف شد.')
-    } catch {
-      message.error('خطا در حذف عکس.')
-    }
-    // حذف از فهرست را خودمان با refreshUser انجام می‌دهیم.
-    return false
+  // پیش از حذف، تأیید می‌گیریم. اگر کاربر «انصراف» بزند، عکس دست‌نخورده می‌ماند؛
+  // فقط با تأیید حذف می‌شود. در هر حال false برمی‌گردانیم چون خودمان فهرست را با
+  // refreshUser مدیریت می‌کنیم (نه حذفِ خودکارِ antd).
+  function handleRemove() {
+    return new Promise<boolean>((resolve) => {
+      modal.confirm({
+        title: 'حذف عکس پروفایل',
+        content: 'آیا مطمئنید می‌خواهید عکس پروفایل را حذف کنید؟',
+        okText: 'بله، حذف کن',
+        okButtonProps: { danger: true },
+        cancelText: 'انصراف',
+        onOk: async () => {
+          try {
+            await deleteProfilePicture()
+            await refreshUser()
+            message.success('عکس پروفایل حذف شد.')
+          } catch {
+            message.error('خطا در حذف عکس.')
+          }
+          resolve(false)
+        },
+        onCancel: () => resolve(false),
+      })
+    })
   }
 
   const uploadButton = (

@@ -1,15 +1,30 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { Button, Card, Form, Input, Typography, App } from 'antd'
+import { useNavigate, Navigate } from 'react-router-dom'
+import { Button, Card, Form, Input, Typography, App, Spin } from 'antd'
 import { UserOutlined, LockOutlined } from '@ant-design/icons'
 import { useAuth } from '../auth/AuthContext'
 import axios from 'axios'
 
 export function LoginPage() {
-  const { login } = useAuth()
+  const { login, user, loading: authLoading } = useAuth()
   const navigate = useNavigate()
   const { message } = App.useApp()
   const [loading, setLoading] = useState(false)
+
+  // اگر کاربر از قبل واردشده باشد، اجازه نمی‌دهیم صفحه‌ی لاگین را ببیند و فوراً
+  // به داشبوردش برمی‌گردانیم. این جلوی برگشتن با دکمه‌ی Back به صفحه‌ی ورود را
+  // می‌گیرد؛ تنها راه دیدن دوباره‌ی این صفحه، «خروج» است که توکن را پاک می‌کند.
+  if (authLoading) {
+    return (
+      <div style={{ display: 'grid', placeItems: 'center', height: '100vh' }}>
+        <Spin size="large" />
+      </div>
+    )
+  }
+
+  if (user) {
+    return <Navigate to={user.role === 'Admin' ? '/admin' : '/employee'} replace />
+  }
 
   async function onFinish(values: { username: string; password: string }) {
     setLoading(true)
