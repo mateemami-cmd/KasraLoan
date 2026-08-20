@@ -11,7 +11,9 @@ using KasraLoan.Application.Features.Loan.Queries.GetLoanQuote;
 using KasraLoan.API.Models;
 using KasraLoan.Application.Features.Loan.Queries.GetMyLoans;
 using KasraLoan.Application.Features.Loan.Queries.GetMyLoans.GetAllLoans;
+using KasraLoan.Application.Features.Loan.Queries.GetRequestPool;
 using KasraLoan.Application.Interfaces.Services;
+using KasraLoan.API.Authorization;
 using KasraLoan.Domain.Enums;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -226,6 +228,19 @@ namespace KasraLoan.API.Controllers
                 Status = status,
                 Search = search
             });
+
+            return Ok(result);
+        }
+
+        /// <summary>
+        /// «استخرِ درخواست‌ها»: نمای یکپارچه‌ی همه‌ی درخواست‌های کارمندان
+        /// (وام + مجوز وام) در یک جا. فقط ادمین ارشد.
+        /// </summary>
+        [HttpGet("requests/pool")]
+        [Authorize(Policy = LoanPolicies.SeniorAdminOnly)]
+        public async Task<IActionResult> GetRequestPool()
+        {
+            var result = await _mediator.Send(new GetRequestPoolQuery());
 
             return Ok(result);
         }

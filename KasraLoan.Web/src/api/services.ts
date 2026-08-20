@@ -307,6 +307,26 @@ export interface CreateEmployeePayload {
   managedLoanTypeId?: number
 }
 
+// ---------- Request pool (all employee requests, for senior admins) ----------
+export interface RequestPoolItem {
+  id: string
+  category: 'Loan' | 'Permission'
+  categoryLabel: string
+  loanTypeId: number
+  loanTypeName: string
+  employeeName: string
+  employeeUsername: string
+  status: string
+  createdAt: string
+  detail?: string | null
+}
+
+/** استخرِ همه‌ی درخواست‌های کارمندان (وام + مجوز وام) — فقط ادمین ارشد. */
+export async function getRequestPool(): Promise<RequestPoolItem[]> {
+  const res = await api.get<{ items: RequestPoolItem[] }>('/loan/requests/pool')
+  return res.data.items
+}
+
 // ---------- Job positions ----------
 export interface JobPosition {
   id: number

@@ -30,6 +30,7 @@ import {
   FileImageOutlined,
   ArrowRightOutlined,
   LockOutlined,
+  DatabaseOutlined,
 } from '@ant-design/icons'
 import type { ColumnsType } from 'antd/es/table'
 import { DashboardLayout } from '../../components/DashboardLayout'
@@ -46,6 +47,7 @@ import {
   getAllEmployees,
   setAccountStatus,
   setAdminScope,
+  getRequestPool,
   getAllLoans,
   approveLoan,
   rejectLoan,
@@ -57,7 +59,7 @@ import {
   rejectCheque,
   getLoanDocuments,
 } from '../../api/services'
-import type { JobPosition } from '../../api/services'
+import type { JobPosition, RequestPoolItem } from '../../api/services'
 import type {
   LoanType,
   LoanPermissionRequestItem,
@@ -116,7 +118,16 @@ export function AdminDashboard() {
     },
   ]
 
-  const menuItems = isSenior ? [...loanMenu, ...seniorOnlyMenu] : loanMenu
+  // «همه‌ی درخواست‌ها» (استخرِ درخواست‌ها) فقط برای ادمین ارشد و در صدرِ منو.
+  const requestPoolItem = {
+    key: 'requestPool',
+    icon: <DatabaseOutlined />,
+    label: 'همه‌ی درخواست‌ها',
+  }
+
+  const menuItems = isSenior
+    ? [requestPoolItem, ...loanMenu, ...seniorOnlyMenu]
+    : loanMenu
 
   return (
     <DashboardLayout
@@ -138,6 +149,7 @@ export function AdminDashboard() {
         />
       )}
 
+      {isSenior && section === 'requestPool' && <RequestPoolSection />}
       {section === 'loanRequests' && <LoanRequestsSection />}
       {section === 'cheques' && <ChequeQueueSection />}
       {section === 'permissions' && <PermissionRequestsSection />}
@@ -175,6 +187,70 @@ export function AdminDashboard() {
         <ProfilePanel />
       </Drawer>
     </DashboardLayout>
+  )
+}
+
+/**
+ * «همه‌ی درخواست‌ها» — استخرِ یکپارچه‌ی همه‌ی درخواست‌های کارمندان (وام + مجوز وام).
+ * فقط‌خواندنی و مخصوص ادمین ارشد؛ نمای کلیِ همان داده‌ای که ادمین‌های وام
+ * فیلترشده می‌بینند.
+ */
+function RequestPoolSection() {
+  const [items, setItems] = useState<RequestPoolItem[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    getRequestPool()
+      .then(setItems)
+      .catch(() => {})
+      .finally(() => setLoading(false))
+  }, [])
+
+  const columns: ColumnsType<RequestPoolItem> = [
+    {
+      title: 'نوع درخواست',
+      dataIndex: 'categoryLabel',
+      render: (v: string, r) => (
+        <Tag color={r.category === 'Loan' ? 'blue' : 'purple'}>{v}</Tag>
+      ),
+    },
+    { title: 'نوع وام', dataIndex: 'loanTypeName' },
+    {
+      title: 'درخواست‌دهنده',
+      render: (_, r) => `${r.employeeName} (${r.employeeUsername})`,
+    },
+    { title: 'جزئیات', dataIndex: 'detail', ellipsis: true, render: (v?: string) => v || '—' },
+    {
+      title: 'وضعیت',
+      dataIndex: 'status',
+      render: (s: string) => <Tag color={statusTag[s]?.color}>{statusTag[s]?.label ?? s}</Tag>,
+    },
+    {
+      title: 'تاریخ',
+      dataIndex: 'createdAt',
+      render: (d: string) => new Date(d).toLocaleDateString('fa-IR'),
+    },
+  ]
+
+  return (
+    <Card title={`همه‌ی درخواست‌ها (${items.length})`}>
+      <Alert
+        type="info"
+        showIcon
+        style={{ marginBottom: 16 }}
+        message="استخرِ درخواست‌ها"
+        description="همه‌ی درخواست‌هایی که کارمندان ثبت کرده‌اند (وام و مجوز وام) یکجا. این نمای کلی مخصوص ادمین ارشد است؛ هر ادمین وام همین داده را فیلترشده برای وام خودش می‌بیند."
+      />
+      <Table
+        rowKey="id"
+        loading={loading}
+        columns={columns}
+        dataSource={items}
+        pagination={{ pageSize: 15 }}
+        scroll={{ x: 'max-content' }}
+        locale={{ emptyText: 'هنوز درخواستی ثبت نشده' }}
+      />
+    </Card>
   )
 }
 
