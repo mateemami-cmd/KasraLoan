@@ -70,9 +70,22 @@ body {
   margin: 0 !important;
 }
 
+/* AntD به span‌ِ بلافاصله‌بعد‌از‌آیکون یک margin-inline-start می‌دهد (فاصله‌ی
+   آیکون-متن در منوی افقی). در این چیدمانِ عمودی همان مارجین، متن را از وسط
+   منحرف می‌کند؛ اینجا صفرش می‌کنیم تا متن دقیقاً زیر وسطِ آیکون بیفتد. */
+.app-sider .ant-menu .ant-menu-item .anticon + span,
+.app-sider .ant-menu .ant-menu-submenu-title .anticon + span {
+  margin-inline-start: 0 !important;
+}
+
 .app-sider .ant-menu-title-content {
   margin-inline-start: 0 !important;
   font-size: 12px;
+  /* عرض کامل + وسط‌چین تا متن دقیقاً زیر آیکون بیفتد (نه کمی جابه‌جا). */
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  text-align: center;
 }
 
 .app-sider .ant-menu-submenu-arrow {

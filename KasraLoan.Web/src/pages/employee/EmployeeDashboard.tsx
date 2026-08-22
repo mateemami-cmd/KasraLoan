@@ -102,11 +102,14 @@ export function EmployeeDashboard() {
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
+          justifyContent: 'center',
           gap: 4,
         }}
       >
         {icon}
-        <span style={{ fontSize: 12 }}>{title}</span>
+        {/* مارجینِ آیکون-به-متنِ AntD در app-sider (index.css) صفر می‌شود تا متن
+            دقیقاً وسط بیفتد؛ آن قانون !important است و از اینجا override نمی‌شود. */}
+        <span style={{ fontSize: 12, lineHeight: 1 }}>{title}</span>
       </div>
     </Tooltip>
   )
