@@ -1,5 +1,6 @@
 import { api } from './client'
 import type {
+  SessionInfo,
   LoanType,
   LoanPermissionRequestItem,
   NotificationItem,
@@ -366,6 +367,19 @@ export async function createEmployee(payload: CreateEmployeePayload) {
 export async function getAllEmployees() {
   const res = await api.get('/employee')
   return res.data
+}
+
+// ---------- Active sessions ----------
+/** نشست‌های فعالِ کاربرِ جاری. */
+export async function getSessions(): Promise<SessionInfo[]> {
+  const res = await api.get<{ sessions: SessionInfo[] }>('/auth/sessions')
+  return res.data.sessions
+}
+
+/** قطعِ یکی از نشست‌های کاربرِ جاری (خروج از راه دور). */
+export async function revokeSession(sessionId: number) {
+  const res = await api.post(`/auth/sessions/${sessionId}/revoke`)
+  return res.data as { message: string }
 }
 
 /** فعال/غیرفعال کردن حساب کاربری کارمند (دسترسی ورود و امکان درخواست وام). */

@@ -1,9 +1,22 @@
 // تایپ‌های مشترک که با DTOهای بک‌اند مطابق‌اند.
 
+export interface SessionInfo {
+  id: number
+  deviceOs?: string | null
+  deviceBrowser?: string | null
+  ipAddress?: string | null
+  lastSeenAt: string
+  createdAt: string
+  isCurrent: boolean
+}
+
 export interface LoginResponse {
   accessToken: string
   refreshToken: string
   expireAt: string
+  /** اگر true باشد، کاربر به سقفِ نشست‌ها رسیده و باید یکی را قطع کند. */
+  requiresSessionChoice?: boolean
+  sessions?: SessionInfo[]
 }
 
 export interface CurrentUser {
