@@ -221,6 +221,8 @@ export function ProfilePanel() {
         title="تغییر رمز عبور"
         destroyOnHidden
       >
+        {/* خطِ جداکننده بین عنوان و فیلدها، مثل خطِ پروفایل. */}
+        <Divider style={{ marginTop: 0, marginBottom: 16 }} />
         <Form form={passwordForm} layout="vertical" onFinish={submitPassword} requiredMark={false}>
           <Form.Item
             label="رمز عبور فعلی"
