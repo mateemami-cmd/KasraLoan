@@ -11,5 +11,11 @@ namespace KasraLoan.Application.DTOs.Auth
         public string Username { get; set; } = string.Empty;
 
         public string Password { get; set; } = string.Empty;
+
+        /// <summary>
+        /// اگر کاربر به سقفِ نشست‌ها رسیده باشد، شناسه‌ی نشستی که انتخاب کرده تا
+        /// قطع شود و جا برای ورودِ جدید باز شود.
+        /// </summary>
+        public int? TerminateSessionId { get; set; }
     }
 }

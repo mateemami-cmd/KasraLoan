@@ -14,5 +14,11 @@ namespace KasraLoan.Application.Features.Authentication.Login
     public class LoginCommand : IRequest<LoginResponseDto>, ISensitiveRequest
     {
         public LoginRequestDto LoginRequest { get; set; } = null!;
+
+        /// <summary>User-Agent مرورگر؛ کنترلر از هدرِ درخواست پر می‌کند.</summary>
+        public string? UserAgent { get; set; }
+
+        /// <summary>آدرس IP کاربر؛ کنترلر از HttpContext پر می‌کند.</summary>
+        public string? IpAddress { get; set; }
     }
 }

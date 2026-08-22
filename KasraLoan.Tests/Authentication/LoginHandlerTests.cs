@@ -66,6 +66,11 @@ public class LoginHandlerTests
             .Setup(x => x.Verify(command.LoginRequest.Password, employee.PasswordHash))
             .Returns(true);
 
+        // بدون نشستِ فعال، پس زیر سقف است و ورود انجام می‌شود.
+        _refreshTokenRepository
+            .Setup(x => x.GetActiveByEmployeeAsync(employee.Id))
+            .ReturnsAsync(new List<RefreshToken>());
+
         _jwtService
             .Setup(x => x.GenerateToken(
                 employee.Id,
@@ -73,6 +78,7 @@ public class LoginHandlerTests
                 employee.PersonnelNumber,
                 employee.Role.ToString(),
                 It.IsAny<bool>(),
+                It.IsAny<int?>(),
                 It.IsAny<int?>()))
             .Returns("ACCESS_TOKEN");
 

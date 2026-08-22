@@ -3,6 +3,7 @@ using KasraLoan.Application.DTOs.Employee;
 using KasraLoan.Application.Features.Authentication.Login;
 using KasraLoan.Application.Features.Authentication.Logout;
 using KasraLoan.Application.Features.Authentication.Refresh;
+using KasraLoan.Application.Features.Authentication.Sessions;
 using KasraLoan.Application.Features.Employee.Commands.DeleteProfilePicture;
 using KasraLoan.Application.Features.Employee.Commands.UpdateProfile;
 using KasraLoan.Application.Features.Employee.Commands.UploadProfilePicture;
@@ -29,7 +30,9 @@ namespace KasraLoan.API.Controllers
         {
             var result = await _mediator.Send(new LoginCommand
             {
-                LoginRequest = request
+                LoginRequest = request,
+                UserAgent = Request.Headers.UserAgent.ToString(),
+                IpAddress = HttpContext.Connection.RemoteIpAddress?.ToString()
             });
 
             return Ok(result);
@@ -65,6 +68,26 @@ namespace KasraLoan.API.Controllers
         public async Task<IActionResult> Me()
         {
             var result = await _mediator.Send(new GetCurrentUserQuery());
+
+            return Ok(result);
+        }
+
+        // نشست‌های فعالِ کاربرِ جاری (برای صفحه‌ی «نشست‌های فعال»).
+        [Authorize]
+        [HttpGet("sessions")]
+        public async Task<IActionResult> GetSessions()
+        {
+            var result = await _mediator.Send(new GetActiveSessionsQuery());
+
+            return Ok(result);
+        }
+
+        // قطعِ یکی از نشست‌های کاربرِ جاری (از راه دور خروج).
+        [Authorize]
+        [HttpPost("sessions/{sessionId:int}/revoke")]
+        public async Task<IActionResult> RevokeSession(int sessionId)
+        {
+            var result = await _mediator.Send(new RevokeSessionCommand { SessionId = sessionId });
 
             return Ok(result);
         }

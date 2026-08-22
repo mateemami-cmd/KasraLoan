@@ -14,7 +14,8 @@ namespace KasraLoan.Application.Services.Auth
             string personnelNumber,
             string role,
             bool isSeniorAdmin = false,
-            int? managedLoanTypeId = null);
+            int? managedLoanTypeId = null,
+            int? sessionId = null);
 
         string GenerateRefreshToken();
     }

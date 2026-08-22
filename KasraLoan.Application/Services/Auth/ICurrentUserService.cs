@@ -22,6 +22,9 @@ namespace KasraLoan.Application.Services.Auth
         /// <summary>اگر ادمین وام باشد، شناسه‌ی وامی که مدیریت می‌کند؛ وگرنه null.</summary>
         int? ManagedLoanTypeId { get; }
 
+        /// <summary>شناسه‌ی نشستِ جاری (Id رفرش‌توکن) از claim توکن.</summary>
+        int? SessionId { get; }
+
         /// <summary>
         /// آیا کاربر جاری اجازه‌ی مدیریت این نوع وام را دارد؟ ادمین ارشد همیشه بله؛
         /// ادمین وام فقط برای وامی که به او سپرده شده.

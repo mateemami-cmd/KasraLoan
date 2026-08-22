@@ -40,6 +40,9 @@ namespace KasraLoan.Infrastructure.Services
         public int? ManagedLoanTypeId =>
             int.TryParse(User?.FindFirst("ManagedLoanTypeId")?.Value, out var id) ? id : null;
 
+        public int? SessionId =>
+            int.TryParse(User?.FindFirst("sid")?.Value, out var id) ? id : null;
+
         public bool CanManageLoanType(int loanTypeId) =>
             IsSeniorAdmin || ManagedLoanTypeId == loanTypeId;
 

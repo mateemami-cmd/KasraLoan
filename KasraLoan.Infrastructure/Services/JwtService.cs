@@ -27,7 +27,8 @@ namespace KasraLoan.Infrastructure.Services
             string personnelNumber,
             string role,
             bool isSeniorAdmin = false,
-            int? managedLoanTypeId = null)
+            int? managedLoanTypeId = null,
+            int? sessionId = null)
         {
             var jwt = _configuration.GetSection("JwtSettings");
 
@@ -44,6 +45,11 @@ namespace KasraLoan.Infrastructure.Services
 
             if (managedLoanTypeId.HasValue)
                 claims.Add(new Claim("ManagedLoanTypeId", managedLoanTypeId.Value.ToString()));
+
+            // شناسه‌ی نشست (Id رفرش‌توکن) تا در «نشست‌های فعال» بشود نشستِ جاری را
+            // تشخیص داد.
+            if (sessionId.HasValue)
+                claims.Add(new Claim("sid", sessionId.Value.ToString()));
 
             var key = new SymmetricSecurityKey(
                 Encoding.UTF8.GetBytes(jwt["Key"]!));

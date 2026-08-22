@@ -37,35 +37,45 @@ namespace KasraLoan.Application.Features.Authentication.Refresh
 
             var employee = refreshToken.Employee;
 
+            var now = DateTime.UtcNow;
+            var newRefreshToken = Guid.NewGuid().ToString("N");
+
+            // چرخشِ توکن، ولی همان نشستِ منطقی: مشخصاتِ دستگاه از توکن قبلی منتقل
+            // می‌شود و «آخرین دسترسی» به‌روز می‌شود. توکن قبلی باطل می‌گردد.
+            refreshToken.Revoked = true;
+            await _refreshTokenRepository.UpdateAsync(refreshToken);
+
+            var newEntity = new Domain.Entities.RefreshToken
+            {
+                EmployeeId = employee.Id,
+                Token = newRefreshToken,
+                JwtId = Guid.NewGuid().ToString(),
+                CreatedAt = now,
+                ExpiresAt = now.AddDays(30),
+                Revoked = false,
+                DeviceOs = refreshToken.DeviceOs,
+                DeviceBrowser = refreshToken.DeviceBrowser,
+                IpAddress = refreshToken.IpAddress,
+                LastSeenAt = now
+            };
+
+            // ابتدا ذخیره تا Id (شناسه‌ی نشست) مشخص شود، سپس در توکن دسترسی می‌آید.
+            await _refreshTokenRepository.AddAsync(newEntity);
+
             var accessToken = _jwtService.GenerateToken(
                 employee.Id,
                 employee.FirstName,
                 employee.PersonnelNumber ?? "",
                 employee.Role.ToString(),
                 employee.IsSeniorAdmin,
-                employee.ManagedLoanTypeId);
-
-            var newRefreshToken = Guid.NewGuid().ToString("N");
-
-            refreshToken.Revoked = true;
-
-            await _refreshTokenRepository.UpdateAsync(refreshToken);
-
-            await _refreshTokenRepository.AddAsync(new Domain.Entities.RefreshToken
-            {
-                EmployeeId = employee.Id,
-                Token = newRefreshToken,
-                JwtId = Guid.NewGuid().ToString(),
-                CreatedAt = DateTime.UtcNow,
-                ExpiresAt = DateTime.UtcNow.AddDays(30),
-                Revoked = false
-            });
+                employee.ManagedLoanTypeId,
+                newEntity.Id);
 
             return new LoginResponseDto
             {
                 AccessToken = accessToken,
                 RefreshToken = newRefreshToken,
-                ExpireAt = DateTime.UtcNow.AddMinutes(60)
+                ExpireAt = now.AddMinutes(60)
             };
         }
     }

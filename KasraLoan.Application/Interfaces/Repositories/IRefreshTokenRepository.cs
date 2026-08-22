@@ -13,6 +13,11 @@ namespace KasraLoan.Application.Interfaces.Repositories
 
         Task<RefreshToken?> GetByTokenAsync(string token);
 
+        Task<RefreshToken?> GetByIdAsync(int id);
+
+        /// <summary>نشست‌های فعالِ یک کارمند: باطل‌نشده و منقضی‌نشده، جدیدترین اول.</summary>
+        Task<List<RefreshToken>> GetActiveByEmployeeAsync(Guid employeeId);
+
         Task UpdateAsync(RefreshToken token);
     }
 }
