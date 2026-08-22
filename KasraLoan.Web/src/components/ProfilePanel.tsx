@@ -195,12 +195,15 @@ export function ProfilePanel() {
         تغییر رمز عبور
       </Button>
 
+      {/* خطِ جداکننده بین «تغییر رمز عبور» و «نشست‌های فعال». */}
+      <Divider style={{ margin: '8px 0' }} />
+
       <Button
         type="text"
         icon={<LaptopOutlined />}
         onClick={openSessions}
         block
-        style={{ textAlign: 'start', justifyContent: 'flex-start', marginTop: 4 }}
+        style={{ textAlign: 'start', justifyContent: 'flex-start' }}
       >
         نشست‌های فعال
       </Button>
