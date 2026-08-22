@@ -135,8 +135,11 @@ export function ProfilePanel() {
   }
 
   const uploadButton = (
-    <button style={{ border: 0, background: 'none', cursor: 'pointer' }} type="button">
-      <PlusOutlined />
+    <button
+      style={{ border: 0, background: 'none', cursor: 'pointer', color: '#fff' }}
+      type="button"
+    >
+      <PlusOutlined style={{ fontSize: 18 }} />
       <div style={{ marginTop: 8 }}>آپلود</div>
     </button>
   )
