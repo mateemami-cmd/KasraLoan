@@ -369,6 +369,12 @@ export async function getAllEmployees() {
   return res.data
 }
 
+/** تغییر رمز عبورِ کاربرِ جاری؛ رمز فعلی سمت سرور تأیید می‌شود. */
+export async function changePassword(currentPassword: string, newPassword: string) {
+  const res = await api.post('/auth/change-password', { currentPassword, newPassword })
+  return res.data as { message: string }
+}
+
 // ---------- Active sessions ----------
 /** نشست‌های فعالِ کاربرِ جاری. */
 export async function getSessions(): Promise<SessionInfo[]> {

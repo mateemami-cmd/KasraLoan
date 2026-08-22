@@ -118,7 +118,8 @@ export function LoginPage() {
         open={choice !== null}
         onCancel={() => setChoice(null)}
         footer={null}
-        width={640}
+        width={720}
+        centered
         title="سقفِ دستگاه‌ها پر است"
       >
         <Alert

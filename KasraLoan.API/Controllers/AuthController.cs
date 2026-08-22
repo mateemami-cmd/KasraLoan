@@ -1,5 +1,6 @@
 ﻿using KasraLoan.Application.DTOs.Auth;
 using KasraLoan.Application.DTOs.Employee;
+using KasraLoan.Application.Features.Authentication.ChangePassword;
 using KasraLoan.Application.Features.Authentication.Login;
 using KasraLoan.Application.Features.Authentication.Logout;
 using KasraLoan.Application.Features.Authentication.Refresh;
@@ -11,6 +12,8 @@ using KasraLoan.Application.Features.Employee.Queries.GetCurrentUser;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Linq;
+using System.Net;
 
 namespace KasraLoan.API.Controllers
 {
@@ -32,10 +35,37 @@ namespace KasraLoan.API.Controllers
             {
                 LoginRequest = request,
                 UserAgent = Request.Headers.UserAgent.ToString(),
-                IpAddress = HttpContext.Connection.RemoteIpAddress?.ToString()
+                IpAddress = GetClientIp()
             });
 
             return Ok(result);
+        }
+
+        /// <summary>
+        /// آدرس IP واقعیِ کاربر. اگر از پشتِ پروکسی/دِو‌سرور آمده، از هدر
+        /// X-Forwarded-For خوانده می‌شود؛ لوپ‌بکِ IPv6 (::1) به 127.0.0.1 و
+        /// آدرس‌های IPv4-mapped به IPv4 ساده تبدیل می‌شوند تا خوانا باشند.
+        /// </summary>
+        private string? GetClientIp()
+        {
+            var forwarded = Request.Headers["X-Forwarded-For"].FirstOrDefault();
+            if (!string.IsNullOrWhiteSpace(forwarded))
+            {
+                var first = forwarded.Split(',')[0].Trim();
+                if (IPAddress.TryParse(first, out var fip))
+                    return Normalize(fip);
+                return first;
+            }
+
+            var ip = HttpContext.Connection.RemoteIpAddress;
+            return ip == null ? null : Normalize(ip);
+        }
+
+        private static string Normalize(IPAddress ip)
+        {
+            if (IPAddress.IsLoopback(ip)) return "127.0.0.1";
+            if (ip.IsIPv4MappedToIPv6) return ip.MapToIPv4().ToString();
+            return ip.ToString();
         }
 
         [HttpPost("logout")]
@@ -68,6 +98,16 @@ namespace KasraLoan.API.Controllers
         public async Task<IActionResult> Me()
         {
             var result = await _mediator.Send(new GetCurrentUserQuery());
+
+            return Ok(result);
+        }
+
+        // تغییر رمز عبورِ کاربرِ جاری؛ رمز فعلی تأیید می‌شود.
+        [Authorize]
+        [HttpPost("change-password")]
+        public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequestDto request)
+        {
+            var result = await _mediator.Send(new ChangePasswordCommand { Request = request });
 
             return Ok(result);
         }

@@ -3,14 +3,24 @@ import type { ColumnsType } from 'antd/es/table'
 import type { ReactNode } from 'react'
 import type { SessionInfo } from '../api/types'
 
-// تاریخِ شمسی + ساعت. سشن‌های قبل از این قابلیت تاریخِ نامعتبر دارند → «—».
+// تاریخِ کاملِ شمسی با روزِ هفته + ساعت با ثانیه، مثل «یکشنبه ۲۴ خرداد ۱۴۰۴ ۱۳:۱۲:۲۰».
+// چون ترتیبِ پیش‌فرضِ Intl برای fa-IR (سال-ماه-روز) دلخواه نیست، بخش‌ها را جدا
+// می‌گیریم و به ترتیبِ «روزِ هفته روز ماه سال» می‌چینیم.
+// سشن‌های قبل از این قابلیت تاریخِ نامعتبر دارند → «—».
 function formatDateTime(value: string): string {
   const d = new Date(value)
   if (isNaN(d.getTime()) || d.getFullYear() < 1900) return '—'
-  return `${d.toLocaleDateString('fa-IR')} ${d.toLocaleTimeString('fa-IR', {
+  const fa = (opt: Intl.DateTimeFormatOptions) => d.toLocaleDateString('fa-IR', opt)
+  const weekday = fa({ weekday: 'long' })
+  const day = fa({ day: 'numeric' })
+  const month = fa({ month: 'long' })
+  const year = fa({ year: 'numeric' })
+  const time = d.toLocaleTimeString('fa-IR', {
     hour: '2-digit',
     minute: '2-digit',
-  })}`
+    second: '2-digit',
+  })
+  return `${weekday} ${day} ${month} ${year} ${time}`
 }
 
 /**

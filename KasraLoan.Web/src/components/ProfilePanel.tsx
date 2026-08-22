@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react'
-import { Button, Upload, Image, App, Modal, Tag } from 'antd'
-import { LogoutOutlined, PlusOutlined, LaptopOutlined } from '@ant-design/icons'
+import { Button, Upload, Image, App, Modal, Tag, Divider, Form, Input } from 'antd'
+import { LogoutOutlined, PlusOutlined, LaptopOutlined, KeyOutlined } from '@ant-design/icons'
 import type { UploadFile } from 'antd'
 import { useAuth } from '../auth/AuthContext'
 import {
   uploadProfilePicture,
   deleteProfilePicture,
+  changePassword,
   getSessions,
   revokeSession,
 } from '../api/services'
@@ -29,6 +30,9 @@ export function ProfilePanel() {
   const [sessions, setSessions] = useState<SessionInfo[]>([])
   const [sessionsLoading, setSessionsLoading] = useState(false)
   const [revokingId, setRevokingId] = useState<number | null>(null)
+  const [passwordOpen, setPasswordOpen] = useState(false)
+  const [passwordSubmitting, setPasswordSubmitting] = useState(false)
+  const [passwordForm] = Form.useForm()
 
   // فهرست فایل از روی عکس فعلیِ کاربر ساخته می‌شود و با هر تغییر همگام می‌ماند.
   useEffect(() => {
@@ -111,6 +115,25 @@ export function ProfilePanel() {
     }
   }
 
+  function closePassword() {
+    setPasswordOpen(false)
+    passwordForm.resetFields()
+  }
+
+  async function submitPassword(values: { currentPassword: string; newPassword: string }) {
+    setPasswordSubmitting(true)
+    try {
+      await changePassword(values.currentPassword, values.newPassword)
+      message.success('رمز عبور با موفقیت تغییر کرد.')
+      closePassword()
+    } catch (err: unknown) {
+      const e = err as { response?: { data?: { message?: string } } }
+      message.error(e.response?.data?.message ?? 'خطا در تغییر رمز عبور.')
+    } finally {
+      setPasswordSubmitting(false)
+    }
+  }
+
   const uploadButton = (
     <button style={{ border: 0, background: 'none', cursor: 'pointer' }} type="button">
       <PlusOutlined />
@@ -121,7 +144,7 @@ export function ProfilePanel() {
   return (
     <>
       {/* عکسِ آپلودِ دایره‌ای سمت راست، نام + شماره پرسنلی کنارش */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 24 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 8 }}>
         <Upload
           listType="picture-circle"
           fileList={fileList}
@@ -133,7 +156,8 @@ export function ProfilePanel() {
           {fileList.length >= 1 ? null : uploadButton}
         </Upload>
 
-        <div style={{ minWidth: 0 }}>
+        {/* بلوکِ نام + شماره پرسنلی کمی از عکس فاصله می‌گیرد (به سمت چپ/وسط). */}
+        <div style={{ minWidth: 0, marginInlineStart: 24 }}>
           <div style={{ fontWeight: 700, fontSize: 18 }}>
             {user.firstName} {user.lastName}
           </div>
@@ -155,11 +179,25 @@ export function ProfilePanel() {
         />
       )}
 
+      {/* خطِ جداکننده بین سربرگِ پروفایل (عکس و نام) و گزینه‌های پایین، مثل نمونه. */}
+      <Divider style={{ margin: '12px 0 8px' }} />
+
+      <Button
+        type="text"
+        icon={<KeyOutlined />}
+        onClick={() => setPasswordOpen(true)}
+        block
+        style={{ textAlign: 'start', justifyContent: 'flex-start' }}
+      >
+        تغییر رمز عبور
+      </Button>
+
       <Button
         type="text"
         icon={<LaptopOutlined />}
         onClick={openSessions}
-        style={{ paddingInline: 0, marginTop: 8, display: 'block' }}
+        block
+        style={{ textAlign: 'start', justifyContent: 'flex-start', marginTop: 4 }}
       >
         نشست‌های فعال
       </Button>
@@ -169,16 +207,72 @@ export function ProfilePanel() {
         danger
         icon={<LogoutOutlined />}
         onClick={logout}
-        style={{ paddingInline: 0, marginTop: 4 }}
+        block
+        style={{ textAlign: 'start', justifyContent: 'flex-start', marginTop: 4 }}
       >
         خروج
       </Button>
 
       <Modal
+        open={passwordOpen}
+        onCancel={closePassword}
+        footer={null}
+        centered
+        title="تغییر رمز عبور"
+        destroyOnHidden
+      >
+        <Form form={passwordForm} layout="vertical" onFinish={submitPassword} requiredMark={false}>
+          <Form.Item
+            label="رمز عبور فعلی"
+            name="currentPassword"
+            rules={[{ required: true, message: 'رمز عبور فعلی را وارد کنید' }]}
+          >
+            <Input.Password autoComplete="current-password" />
+          </Form.Item>
+
+          <Form.Item
+            label="رمز عبور جدید"
+            name="newPassword"
+            rules={[
+              { required: true, message: 'رمز عبور جدید را وارد کنید' },
+              { min: 6, message: 'رمز عبور جدید باید حداقل ۶ کاراکتر باشد' },
+            ]}
+          >
+            <Input.Password autoComplete="new-password" />
+          </Form.Item>
+
+          <Form.Item
+            label="تأیید رمز عبور جدید"
+            name="confirmPassword"
+            dependencies={['newPassword']}
+            rules={[
+              { required: true, message: 'رمز عبور جدید را دوباره وارد کنید' },
+              ({ getFieldValue }) => ({
+                validator(_, value) {
+                  if (!value || getFieldValue('newPassword') === value) return Promise.resolve()
+                  return Promise.reject(new Error('دو رمز عبور یکسان نیستند'))
+                },
+              }),
+            ]}
+          >
+            <Input.Password autoComplete="new-password" />
+          </Form.Item>
+
+          <div style={{ display: 'flex', gap: 8 }}>
+            <Button type="primary" htmlType="submit" loading={passwordSubmitting}>
+              تأیید
+            </Button>
+            <Button onClick={closePassword}>بستن</Button>
+          </div>
+        </Form>
+      </Modal>
+
+      <Modal
         open={sessionsOpen}
         onCancel={() => setSessionsOpen(false)}
         footer={null}
-        width={640}
+        width={720}
+        centered
         title="نشست‌های فعال"
       >
         <SessionsTable
