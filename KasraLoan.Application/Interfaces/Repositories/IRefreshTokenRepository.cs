@@ -18,6 +18,12 @@ namespace KasraLoan.Application.Interfaces.Repositories
         /// <summary>نشست‌های فعالِ یک کارمند: باطل‌نشده و منقضی‌نشده، جدیدترین اول.</summary>
         Task<List<RefreshToken>> GetActiveByEmployeeAsync(Guid employeeId);
 
+        /// <summary>
+        /// نشستِ فعالِ همین کارمند روی همین دستگاه (بر اساس DeviceId)، اگر باشد.
+        /// برای یکتاسازی: ورودِ دوباره با همین دستگاه همین نشست را به‌روز می‌کند.
+        /// </summary>
+        Task<RefreshToken?> GetActiveByEmployeeAndDeviceAsync(Guid employeeId, string deviceId);
+
         Task UpdateAsync(RefreshToken token);
     }
 }

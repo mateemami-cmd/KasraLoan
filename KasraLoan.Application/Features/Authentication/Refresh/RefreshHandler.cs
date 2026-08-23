@@ -22,6 +22,9 @@ namespace KasraLoan.Application.Features.Authentication.Refresh
             _jwtService = jwtService;
         }
 
+        // باید با IdleMinutes در LoginHandler یکی باشد: مهلتِ بی‌کاریِ نشست.
+        private const int IdleMinutes = 10;
+
         public async Task<LoginResponseDto> Handle(RefreshCommand request, CancellationToken cancellationToken)
         {
             var refreshToken = await _refreshTokenRepository.GetByTokenAsync(request.Request.RefreshToken);
@@ -32,35 +35,20 @@ namespace KasraLoan.Application.Features.Authentication.Refresh
             if (refreshToken.Revoked)
                 throw new UnauthorizedAccessException("Refresh Token Revoked");
 
+            // اگر بیش از مهلتِ idle بی‌کار مانده، منقضی است: کاربر باید دوباره وارد شود
+            // و این نشست از «نشست‌های فعال» خودبه‌خود حذف می‌شود.
             if (refreshToken.ExpiresAt < DateTime.UtcNow)
                 throw new UnauthorizedAccessException("Refresh Token Expired");
 
             var employee = refreshToken.Employee;
-
             var now = DateTime.UtcNow;
-            var newRefreshToken = Guid.NewGuid().ToString("N");
 
-            // چرخشِ توکن، ولی همان نشستِ منطقی: مشخصاتِ دستگاه از توکن قبلی منتقل
-            // می‌شود و «آخرین دسترسی» به‌روز می‌شود. توکن قبلی باطل می‌گردد.
-            refreshToken.Revoked = true;
+            // همان نشست (همان ردیف و همان DeviceId) را جلو می‌بریم: فقط مهلتِ idle و
+            // «آخرین دسترسی» به‌روز می‌شود. توکنِ رفرش را نمی‌چرخانیم تا چند تبِ هم‌زمان
+            // که یک رفرش‌توکن مشترک دارند با هم تداخل نکنند.
+            refreshToken.ExpiresAt = now.AddMinutes(IdleMinutes);
+            refreshToken.LastSeenAt = now;
             await _refreshTokenRepository.UpdateAsync(refreshToken);
-
-            var newEntity = new Domain.Entities.RefreshToken
-            {
-                EmployeeId = employee.Id,
-                Token = newRefreshToken,
-                JwtId = Guid.NewGuid().ToString(),
-                CreatedAt = now,
-                ExpiresAt = now.AddDays(30),
-                Revoked = false,
-                DeviceOs = refreshToken.DeviceOs,
-                DeviceBrowser = refreshToken.DeviceBrowser,
-                IpAddress = refreshToken.IpAddress,
-                LastSeenAt = now
-            };
-
-            // ابتدا ذخیره تا Id (شناسه‌ی نشست) مشخص شود، سپس در توکن دسترسی می‌آید.
-            await _refreshTokenRepository.AddAsync(newEntity);
 
             var accessToken = _jwtService.GenerateToken(
                 employee.Id,
@@ -69,13 +57,13 @@ namespace KasraLoan.Application.Features.Authentication.Refresh
                 employee.Role.ToString(),
                 employee.IsSeniorAdmin,
                 employee.ManagedLoanTypeId,
-                newEntity.Id);
+                refreshToken.Id);
 
             return new LoginResponseDto
             {
                 AccessToken = accessToken,
-                RefreshToken = newRefreshToken,
-                ExpireAt = now.AddMinutes(60)
+                RefreshToken = refreshToken.Token,
+                ExpireAt = now.AddMinutes(IdleMinutes)
             };
         }
     }

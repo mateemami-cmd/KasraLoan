@@ -115,6 +115,10 @@ namespace KasraLoan.API
                                 ValidateLifetime = true,
                                 ValidateIssuerSigningKey = true,
 
+                                // بدون مهلتِ ارفاقی: توکن دقیقاً سرِ زمانِ انقضا باطل
+                                // می‌شود تا منطقِ بی‌کاریِ ۱۰ دقیقه دقیق کار کند.
+                                ClockSkew = TimeSpan.Zero,
+
                                 ValidIssuer = jwt["Issuer"],
                                 ValidAudience = jwt["Audience"],
                                 IssuerSigningKey =

@@ -25,6 +25,13 @@ namespace KasraLoan.Domain.Entities
         public int? ReplacedByTokenId { get; set; }
 
         // ─── مشخصات نشست/دستگاه، برای صفحه‌ی «نشست‌های فعال» ───
+        /// <summary>
+        /// شناسه‌ی ثابتِ دستگاه/مرورگر (یک GUID که سمت کلاینت ساخته و ذخیره می‌شود).
+        /// کلیدِ یکتاسازیِ نشست‌هاست: ورودِ دوباره با همین دستگاه، به‌جای ساختِ نشستِ
+        /// جدید، همین ردیف را به‌روز می‌کند. پس یک دستگاه = یک نشست.
+        /// </summary>
+        public string? DeviceId { get; set; }
+
         /// <summary>سیستم‌عاملِ دستگاه (مثلاً "Windows"، "iOS").</summary>
         public string? DeviceOs { get; set; }
 

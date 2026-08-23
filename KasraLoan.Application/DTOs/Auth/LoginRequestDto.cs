@@ -13,9 +13,9 @@ namespace KasraLoan.Application.DTOs.Auth
         public string Password { get; set; } = string.Empty;
 
         /// <summary>
-        /// اگر کاربر به سقفِ نشست‌ها رسیده باشد، شناسه‌ی نشستی که انتخاب کرده تا
-        /// قطع شود و جا برای ورودِ جدید باز شود.
+        /// شناسه‌ی ثابتِ دستگاه/مرورگر (GUID ساخته‌شده سمت کلاینت). اگر برای همین
+        /// دستگاه نشستِ فعالی باشد، همان به‌روز می‌شود؛ وگرنه نشستِ جدید ساخته می‌شود.
         /// </summary>
-        public int? TerminateSessionId { get; set; }
+        public string? DeviceId { get; set; }
     }
 }

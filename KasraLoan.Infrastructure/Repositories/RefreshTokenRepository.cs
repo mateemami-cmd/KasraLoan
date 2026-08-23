@@ -49,6 +49,17 @@ namespace KasraLoan.Infrastructure.Repositories
                 .ToListAsync();
         }
 
+        public async Task<RefreshToken?> GetActiveByEmployeeAndDeviceAsync(Guid employeeId, string deviceId)
+        {
+            return await _context.RefreshTokens
+                .Where(x => x.EmployeeId == employeeId
+                    && x.DeviceId == deviceId
+                    && !x.Revoked
+                    && x.ExpiresAt > DateTime.UtcNow)
+                .OrderByDescending(x => x.CreatedAt)
+                .FirstOrDefaultAsync();
+        }
+
         public async Task UpdateAsync(RefreshToken token)
         {
             _context.RefreshTokens.Update(token);

@@ -27,8 +27,9 @@ namespace KasraLoan.Application.Features.Authentication.Login
             _refreshTokenRepository = refreshTokenRepository;
         }
 
-        // هر کاربر حداکثر روی این تعداد دستگاه هم‌زمان می‌تواند وارد باشد.
-        private const int MaxActiveSessions = 3;
+        // مهلتِ بی‌کاری (idle) برحسب دقیقه: تا وقتی داخل این بازه فعالیت باشد نشست
+        // زنده می‌ماند و با هر فعالیت جلو می‌رود؛ اگر این‌قدر بی‌کار بماند منقضی می‌شود.
+        private const int IdleMinutes = 10;
 
         public async Task<LoginResponseDto> Handle(LoginCommand request, CancellationToken cancellationToken)
         {
@@ -45,53 +46,53 @@ namespace KasraLoan.Application.Features.Authentication.Login
                 throw new UnauthorizedAccessException(invalidCredentialsMessage);
 
             var now = DateTime.UtcNow;
-
-            // اگر کاربر نشستی را برای قطع انتخاب کرده (چون به سقف رسیده بود)، همان را
-            // باطل می‌کنیم تا جا باز شود. فقط نشستِ خودِ همین کاربر قابل قطع است.
-            if (request.LoginRequest.TerminateSessionId.HasValue)
-            {
-                var toRevoke = await _refreshTokenRepository.GetByIdAsync(
-                    request.LoginRequest.TerminateSessionId.Value);
-
-                if (toRevoke != null && toRevoke.EmployeeId == employee.Id && !toRevoke.Revoked)
-                {
-                    toRevoke.Revoked = true;
-                    await _refreshTokenRepository.UpdateAsync(toRevoke);
-                }
-            }
-
-            // سقفِ نشست‌های هم‌زمان. اگر پر بود، به‌جای ورود، لیستِ نشست‌های فعال را
-            // برمی‌گردانیم تا کاربر یکی را برای قطع انتخاب کند.
-            var activeSessions = await _refreshTokenRepository.GetActiveByEmployeeAsync(employee.Id);
-
-            if (activeSessions.Count >= MaxActiveSessions)
-            {
-                return new LoginResponseDto
-                {
-                    RequiresSessionChoice = true,
-                    Sessions = activeSessions.Select(ToSessionDto).ToList()
-                };
-            }
-
-            var refreshToken = _jwtService.GenerateRefreshToken();
             var device = DeviceInfoParser.Parse(request.UserAgent);
 
-            var refreshTokenEntity = new RefreshToken
-            {
-                EmployeeId = employee.Id,
-                Token = refreshToken,
-                JwtId = Guid.NewGuid().ToString(),
-                CreatedAt = now,
-                ExpiresAt = now.AddDays(30),
-                Revoked = false,
-                DeviceOs = device.Os,
-                DeviceBrowser = device.Browser,
-                IpAddress = request.IpAddress,
-                LastSeenAt = now
-            };
+            // شناسه‌ی دستگاه از کلاینت می‌آید. اگر نیامد (کلاینتِ قدیمی)، یک شناسه‌ی
+            // یک‌بارمصرف می‌سازیم تا این ورود مثل یک دستگاهِ مستقل رفتار کند.
+            var deviceId = string.IsNullOrWhiteSpace(request.LoginRequest.DeviceId)
+                ? Guid.NewGuid().ToString("N")
+                : request.LoginRequest.DeviceId!.Trim();
 
-            // ابتدا ذخیره می‌شود تا Id (شناسه‌ی نشست) مشخص شود، سپس در توکن می‌آید.
-            await _refreshTokenRepository.AddAsync(refreshTokenEntity);
+            var refreshToken = _jwtService.GenerateRefreshToken();
+
+            // یکتاسازی بر اساس دستگاه: اگر نشستِ فعالی برای همین دستگاه هست، همان را
+            // به‌روز می‌کنیم (نه ردیفِ جدید). پس صد بار ورود با یک دستگاه = یک نشست،
+            // و هیچ سقفی روی تعداد دستگاه‌ها نیست.
+            var session = await _refreshTokenRepository.GetActiveByEmployeeAndDeviceAsync(employee.Id, deviceId);
+
+            if (session != null)
+            {
+                session.Token = refreshToken;
+                session.JwtId = Guid.NewGuid().ToString();
+                session.ExpiresAt = now.AddMinutes(IdleMinutes);
+                session.LastSeenAt = now;
+                session.DeviceOs = device.Os;
+                session.DeviceBrowser = device.Browser;
+                session.IpAddress = request.IpAddress;
+                session.Revoked = false;
+                await _refreshTokenRepository.UpdateAsync(session);
+            }
+            else
+            {
+                session = new RefreshToken
+                {
+                    EmployeeId = employee.Id,
+                    Token = refreshToken,
+                    JwtId = Guid.NewGuid().ToString(),
+                    CreatedAt = now,
+                    ExpiresAt = now.AddMinutes(IdleMinutes),
+                    Revoked = false,
+                    DeviceId = deviceId,
+                    DeviceOs = device.Os,
+                    DeviceBrowser = device.Browser,
+                    IpAddress = request.IpAddress,
+                    LastSeenAt = now
+                };
+
+                // ابتدا ذخیره می‌شود تا Id (شناسه‌ی نشست) مشخص شود، سپس در توکن می‌آید.
+                await _refreshTokenRepository.AddAsync(session);
+            }
 
             var jwt = _jwtService.GenerateToken(
                 employee.Id,
@@ -100,25 +101,14 @@ namespace KasraLoan.Application.Features.Authentication.Login
                 employee.Role.ToString(),
                 employee.IsSeniorAdmin,
                 employee.ManagedLoanTypeId,
-                refreshTokenEntity.Id);
+                session.Id);
 
             return new LoginResponseDto
             {
                 AccessToken = jwt,
                 RefreshToken = refreshToken,
-                ExpireAt = now.AddMinutes(60)
+                ExpireAt = now.AddMinutes(IdleMinutes)
             };
         }
-
-        private static SessionDto ToSessionDto(RefreshToken t) => new()
-        {
-            Id = t.Id,
-            DeviceOs = t.DeviceOs,
-            DeviceBrowser = t.DeviceBrowser,
-            IpAddress = t.IpAddress,
-            LastSeenAt = t.LastSeenAt,
-            CreatedAt = t.CreatedAt,
-            IsCurrent = false
-        };
     }
 }
