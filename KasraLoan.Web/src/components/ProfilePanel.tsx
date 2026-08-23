@@ -190,7 +190,7 @@ export function ProfilePanel() {
         icon={<KeyOutlined />}
         onClick={() => setPasswordOpen(true)}
         block
-        style={{ textAlign: 'start', justifyContent: 'flex-start' }}
+        style={{ textAlign: 'start', justifyContent: 'flex-start', marginBlock: 10 }}
       >
         تغییر رمز عبور
       </Button>
@@ -203,7 +203,7 @@ export function ProfilePanel() {
         icon={<LaptopOutlined />}
         onClick={openSessions}
         block
-        style={{ textAlign: 'start', justifyContent: 'flex-start' }}
+        style={{ textAlign: 'start', justifyContent: 'flex-start', marginTop: 10 }}
       >
         نشست‌های فعال
       </Button>
