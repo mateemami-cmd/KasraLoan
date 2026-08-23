@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Button, Upload, Image, App, Modal, Tag, Divider, Form, Input } from 'antd'
-import { LogoutOutlined, PlusOutlined, LaptopOutlined, KeyOutlined } from '@ant-design/icons'
+import { LogoutOutlined, PlusOutlined, DesktopOutlined, KeyOutlined } from '@ant-design/icons'
 import type { UploadFile } from 'antd'
 import { useAuth } from '../auth/AuthContext'
 import {
@@ -161,7 +161,7 @@ export function ProfilePanel() {
 
         {/* بلوکِ نام + شماره پرسنلی کمی از عکس فاصله می‌گیرد (به سمت چپ/وسط). */}
         <div style={{ minWidth: 0, marginInlineStart: 24 }}>
-          <div style={{ fontWeight: 700, fontSize: 18 }}>
+          <div style={{ fontWeight: 700, fontSize: 20 }}>
             {user.firstName} {user.lastName}
           </div>
           <div style={{ color: 'var(--text-muted)', direction: 'ltr', textAlign: 'right' }}>
@@ -183,27 +183,27 @@ export function ProfilePanel() {
       )}
 
       {/* خطِ جداکننده بین سربرگِ پروفایل (عکس و نام) و گزینه‌های پایین، مثل نمونه. */}
-      <Divider style={{ margin: '12px 0 8px' }} />
+      <Divider style={{ margin: '31px 0 8px', borderColor: 'rgba(255,255,255,0.45)' }} />
 
       <Button
         type="text"
-        icon={<KeyOutlined />}
+        icon={<KeyOutlined style={{ fontSize: 18 }} />}
         onClick={() => setPasswordOpen(true)}
         block
-        style={{ textAlign: 'start', justifyContent: 'flex-start', marginBlock: 10 }}
+        style={{ textAlign: 'start', justifyContent: 'flex-start', marginBlock: 10, fontSize: 16 }}
       >
         تغییر رمز عبور
       </Button>
 
       {/* خطِ جداکننده بین «تغییر رمز عبور» و «نشست‌های فعال». */}
-      <Divider style={{ margin: '8px 0' }} />
+      <Divider style={{ margin: '8px 0', borderColor: 'rgba(255,255,255,0.45)' }} />
 
       <Button
         type="text"
-        icon={<LaptopOutlined />}
+        icon={<DesktopOutlined style={{ fontSize: 18 }} />}
         onClick={openSessions}
         block
-        style={{ textAlign: 'start', justifyContent: 'flex-start', marginTop: 10 }}
+        style={{ textAlign: 'start', justifyContent: 'flex-start', marginTop: 10, fontSize: 16 }}
       >
         نشست‌های فعال
       </Button>
@@ -211,10 +211,10 @@ export function ProfilePanel() {
       <Button
         type="text"
         danger
-        icon={<LogoutOutlined />}
+        icon={<LogoutOutlined style={{ fontSize: 18 }} />}
         onClick={logout}
         block
-        style={{ textAlign: 'start', justifyContent: 'flex-start', marginTop: 4 }}
+        style={{ textAlign: 'start', justifyContent: 'flex-start', marginTop: 4, fontSize: 16 }}
       >
         خروج
       </Button>
@@ -228,7 +228,7 @@ export function ProfilePanel() {
         destroyOnHidden
       >
         {/* خطِ جداکننده بین عنوان و فیلدها، مثل خطِ پروفایل. */}
-        <Divider style={{ marginTop: 0, marginBottom: 16 }} />
+        <Divider style={{ marginTop: 0, marginBottom: 16, borderColor: 'rgba(255,255,255,0.45)' }} />
         <Form form={passwordForm} layout="vertical" onFinish={submitPassword} requiredMark={false}>
           <Form.Item
             label="رمز عبور فعلی"

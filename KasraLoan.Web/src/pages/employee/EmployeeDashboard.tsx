@@ -175,7 +175,7 @@ export function EmployeeDashboard() {
 
       <Drawer
         placement="right"
-        width={400}
+        width={438}
         open={profileOpen}
         onClose={() => setProfileOpen(false)}
         closable={false}
