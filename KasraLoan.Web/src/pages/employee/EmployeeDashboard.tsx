@@ -105,7 +105,10 @@ export function EmployeeDashboard() {
           gap: 4,
         }}
       >
-        {icon}
+        {/* آیکون را در یک span می‌پیچیم تا «آیکونِ لختِ چسبیده به متن» نباشد؛ وگرنه
+            آنت‌دی به‌خاطر قانونِ «.anticon + span» به متن یک margin می‌دهد و آن را
+            چند px از وسط کج می‌کند (برخلافِ آیتم‌هایی که آیکونشان داخل Badge است). */}
+        <span style={{ display: 'flex', lineHeight: 0 }}>{icon}</span>
         <span style={{ fontSize: 12 }}>{title}</span>
       </div>
     </Tooltip>
