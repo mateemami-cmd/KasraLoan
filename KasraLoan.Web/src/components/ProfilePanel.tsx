@@ -235,7 +235,7 @@ export function ProfilePanel() {
             name="currentPassword"
             rules={[{ required: true, message: 'رمز عبور فعلی را وارد کنید' }]}
           >
-            <Input.Password autoComplete="current-password" />
+            <Input.Password autoComplete="current-password" placeholder="رمز عبور قبلی را وارد کنید" />
           </Form.Item>
 
           <Form.Item
@@ -246,7 +246,7 @@ export function ProfilePanel() {
               { min: 6, message: 'رمز عبور جدید باید حداقل ۶ کاراکتر باشد' },
             ]}
           >
-            <Input.Password autoComplete="new-password" />
+            <Input.Password autoComplete="new-password" placeholder="رمز عبور جدید را وارد کنید" />
           </Form.Item>
 
           <Form.Item
@@ -263,7 +263,7 @@ export function ProfilePanel() {
               }),
             ]}
           >
-            <Input.Password autoComplete="new-password" />
+            <Input.Password autoComplete="new-password" placeholder="تکرار رمز عبور جدید" />
           </Form.Item>
 
           <div style={{ display: 'flex', gap: 8 }}>
