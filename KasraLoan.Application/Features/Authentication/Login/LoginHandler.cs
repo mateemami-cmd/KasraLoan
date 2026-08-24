@@ -72,43 +72,27 @@ namespace KasraLoan.Application.Features.Authentication.Login
 
             var refreshToken = _jwtService.GenerateRefreshToken();
 
-            // یکتاسازی بر اساس دستگاه: اگر نشستِ فعالی برای همین دستگاه هست، همان را
-            // به‌روز می‌کنیم (نه ردیفِ جدید). پس صد بار ورود با یک دستگاه = یک نشست،
-            // و هیچ سقفی روی تعداد دستگاه‌ها نیست.
-            var session = await _refreshTokenRepository.GetActiveByEmployeeAndDeviceAsync(employee.Id, deviceId);
-
-            if (session != null)
+            // هر ورود یک نشستِ فعالِ جدید می‌سازد (بدونِ یکتاسازیِ per-device). پس اگر
+            // صفحه را ببندی و بعد دوباره وارد شوی، یک نشستِ فعالِ جدید ساخته می‌شود؛
+            // نشستِ قبلی هم اگر تبش بسته بماند، بعد از مهلتِ بی‌کاری خودش منقضی می‌شود.
+            // (DeviceId فقط برای نمایش نگه داشته می‌شود، نه برای یکتاسازی.)
+            var session = new RefreshToken
             {
-                session.Token = refreshToken;
-                session.JwtId = Guid.NewGuid().ToString();
-                session.ExpiresAt = now.AddMinutes(IdleMinutes);
-                session.LastSeenAt = now;
-                session.DeviceOs = device.Os;
-                session.DeviceBrowser = device.Browser;
-                session.IpAddress = request.IpAddress;
-                session.Revoked = false;
-                await _refreshTokenRepository.UpdateAsync(session);
-            }
-            else
-            {
-                session = new RefreshToken
-                {
-                    EmployeeId = employee.Id,
-                    Token = refreshToken,
-                    JwtId = Guid.NewGuid().ToString(),
-                    CreatedAt = now,
-                    ExpiresAt = now.AddMinutes(IdleMinutes),
-                    Revoked = false,
-                    DeviceId = deviceId,
-                    DeviceOs = device.Os,
-                    DeviceBrowser = device.Browser,
-                    IpAddress = request.IpAddress,
-                    LastSeenAt = now
-                };
+                EmployeeId = employee.Id,
+                Token = refreshToken,
+                JwtId = Guid.NewGuid().ToString(),
+                CreatedAt = now,
+                ExpiresAt = now.AddMinutes(IdleMinutes),
+                Revoked = false,
+                DeviceId = deviceId,
+                DeviceOs = device.Os,
+                DeviceBrowser = device.Browser,
+                IpAddress = request.IpAddress,
+                LastSeenAt = now
+            };
 
-                // ابتدا ذخیره می‌شود تا Id (شناسه‌ی نشست) مشخص شود، سپس در توکن می‌آید.
-                await _refreshTokenRepository.AddAsync(session);
-            }
+            // ابتدا ذخیره می‌شود تا Id (شناسه‌ی نشست) مشخص شود، سپس در توکن می‌آید.
+            await _refreshTokenRepository.AddAsync(session);
 
             var jwt = _jwtService.GenerateToken(
                 employee.Id,
