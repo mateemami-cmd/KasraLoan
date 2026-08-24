@@ -33,6 +33,9 @@ namespace KasraLoan.Application.Features.Authentication.Login
         // زنده می‌ماند و با هر فعالیت جلو می‌رود؛ اگر این‌قدر بی‌کار بماند منقضی می‌شود.
         private const int IdleMinutes = 10;
 
+        // حداکثر نشستِ فعالِ هم‌زمان: فقط ۴ نشستِ اخیر نگه داشته می‌شود.
+        private const int MaxActiveSessions = 4;
+
         public async Task<LoginResponseDto> Handle(LoginCommand request, CancellationToken cancellationToken)
         {
             var employee = await _employeeRepository.GetByUsernameAsync(request.LoginRequest.Username);
@@ -93,6 +96,17 @@ namespace KasraLoan.Application.Features.Authentication.Login
 
             // ابتدا ذخیره می‌شود تا Id (شناسه‌ی نشست) مشخص شود، سپس در توکن می‌آید.
             await _refreshTokenRepository.AddAsync(session);
+
+            // سقفِ نشست‌های فعال: پنجره‌ی غلتانِ ۴تایی. با ساختِ نشستِ جدید، اگر تعداد
+            // از ۴ بیشتر شد، قدیمی‌ترین‌ها باطل می‌شوند تا همیشه فقط ۴ نشستِ اخیر بماند.
+            // (GetActiveByEmployeeAsync از جدید به قدیم مرتب است، پس از ایندکس ۴ به بعد
+            // قدیمی‌ترها هستند.)
+            var activeSessions = await _refreshTokenRepository.GetActiveByEmployeeAsync(employee.Id);
+            foreach (var old in activeSessions.Skip(MaxActiveSessions))
+            {
+                old.Revoked = true;
+                await _refreshTokenRepository.UpdateAsync(old);
+            }
 
             var jwt = _jwtService.GenerateToken(
                 employee.Id,
