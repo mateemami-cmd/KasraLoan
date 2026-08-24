@@ -1,6 +1,12 @@
 import { useEffect, useState } from 'react'
 import { Button, Upload, Image, App, Modal, Tag, Divider, Form, Input } from 'antd'
-import { LogoutOutlined, PlusOutlined, DesktopOutlined, KeyOutlined } from '@ant-design/icons'
+import {
+  LogoutOutlined,
+  PlusOutlined,
+  DesktopOutlined,
+  KeyOutlined,
+  HistoryOutlined,
+} from '@ant-design/icons'
 import type { UploadFile } from 'antd'
 import { useAuth } from '../auth/AuthContext'
 import {
@@ -9,9 +15,11 @@ import {
   changePassword,
   getSessions,
   revokeSession,
+  getLoginHistory,
 } from '../api/services'
 import { SessionsTable } from './SessionsTable'
-import type { SessionInfo } from '../api/types'
+import { LoginHistoryTable } from './LoginHistoryTable'
+import type { SessionInfo, LoginHistoryItem } from '../api/types'
 
 /**
  * پنل پروفایل مشترک بین داشبورد کارمند و ادمین.
@@ -30,6 +38,9 @@ export function ProfilePanel() {
   const [sessions, setSessions] = useState<SessionInfo[]>([])
   const [sessionsLoading, setSessionsLoading] = useState(false)
   const [revokingId, setRevokingId] = useState<number | null>(null)
+  const [historyOpen, setHistoryOpen] = useState(false)
+  const [loginHistory, setLoginHistory] = useState<LoginHistoryItem[]>([])
+  const [historyLoading, setHistoryLoading] = useState(false)
   const [passwordOpen, setPasswordOpen] = useState(false)
   const [passwordSubmitting, setPasswordSubmitting] = useState(false)
   const [passwordForm] = Form.useForm()
@@ -99,6 +110,18 @@ export function ProfilePanel() {
       message.error('خطا در دریافت نشست‌ها.')
     } finally {
       setSessionsLoading(false)
+    }
+  }
+
+  async function openLoginHistory() {
+    setHistoryOpen(true)
+    setHistoryLoading(true)
+    try {
+      setLoginHistory(await getLoginHistory())
+    } catch {
+      message.error('خطا در دریافت تاریخچه ورودها.')
+    } finally {
+      setHistoryLoading(false)
     }
   }
 
@@ -195,7 +218,20 @@ export function ProfilePanel() {
         تغییر رمز عبور
       </Button>
 
-      {/* خطِ جداکننده بین «تغییر رمز عبور» و «نشست‌های فعال». */}
+      {/* خطِ جداکننده بین «تغییر رمز عبور» و «تاریخچه ورودهای اخیر». */}
+      <Divider style={{ margin: '8px 0', borderColor: 'rgba(255,255,255,0.45)' }} />
+
+      <Button
+        type="text"
+        icon={<HistoryOutlined style={{ fontSize: 18 }} />}
+        onClick={openLoginHistory}
+        block
+        style={{ textAlign: 'start', justifyContent: 'flex-start', marginBlock: 10, fontSize: 16 }}
+      >
+        تاریخچه ورودهای اخیر
+      </Button>
+
+      {/* خطِ جداکننده بین «تاریخچه ورودهای اخیر» و «نشست‌های فعال». */}
       <Divider style={{ margin: '8px 0', borderColor: 'rgba(255,255,255,0.45)' }} />
 
       <Button
@@ -203,10 +239,13 @@ export function ProfilePanel() {
         icon={<DesktopOutlined style={{ fontSize: 18 }} />}
         onClick={openSessions}
         block
-        style={{ textAlign: 'start', justifyContent: 'flex-start', marginTop: 10, fontSize: 16 }}
+        style={{ textAlign: 'start', justifyContent: 'flex-start', marginBlock: 10, fontSize: 16 }}
       >
         نشست‌های فعال
       </Button>
+
+      {/* خطِ جداکننده بین «نشست‌های فعال» و «خروج»، دقیقاً مثل خطِ بالای آن. */}
+      <Divider style={{ margin: '8px 0', borderColor: 'rgba(255,255,255,0.45)' }} />
 
       <Button
         type="text"
@@ -214,7 +253,7 @@ export function ProfilePanel() {
         icon={<LogoutOutlined style={{ fontSize: 18 }} />}
         onClick={logout}
         block
-        style={{ textAlign: 'start', justifyContent: 'flex-start', marginTop: 4, fontSize: 16 }}
+        style={{ textAlign: 'start', justifyContent: 'flex-start', marginTop: 10, fontSize: 16 }}
       >
         خروج
       </Button>
@@ -301,6 +340,17 @@ export function ProfilePanel() {
             )
           }
         />
+      </Modal>
+
+      <Modal
+        open={historyOpen}
+        onCancel={() => setHistoryOpen(false)}
+        footer={null}
+        width={720}
+        centered
+        title="تاریخچه ورودهای اخیر"
+      >
+        <LoginHistoryTable history={loginHistory} loading={historyLoading} />
       </Modal>
     </>
   )

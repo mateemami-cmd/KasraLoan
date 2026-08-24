@@ -1,6 +1,7 @@
 import { api } from './client'
 import type {
   SessionInfo,
+  LoginHistoryItem,
   LoanType,
   LoanPermissionRequestItem,
   NotificationItem,
@@ -400,6 +401,13 @@ export async function resetPassword(newPassword: string) {
 export async function getSessions(): Promise<SessionInfo[]> {
   const res = await api.get<{ sessions: SessionInfo[] }>('/auth/sessions')
   return res.data.sessions
+}
+
+// ---------- Login history ----------
+/** سه ورودِ اخیرِ کاربرِ جاری (موفق و ناموفق). */
+export async function getLoginHistory(): Promise<LoginHistoryItem[]> {
+  const res = await api.get<{ history: LoginHistoryItem[] }>('/auth/login-history')
+  return res.data.history
 }
 
 /** قطعِ یکی از نشست‌های کاربرِ جاری (خروج از راه دور). */

@@ -28,6 +28,7 @@ namespace KasraLoan.Infrastructure.Data
         public DbSet<JobPosition> JobPositions { get; set; }
         public DbSet<EmploymentStatusChange> EmploymentStatusChanges { get; set; }
         public DbSet<InstallmentPayment> InstallmentPayments { get; set; }
+        public DbSet<LoginHistory> LoginHistories { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

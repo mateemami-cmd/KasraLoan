@@ -10,6 +10,15 @@ export interface SessionInfo {
   isCurrent: boolean
 }
 
+/** یک ردیف از «تاریخچه ورودهای اخیر». */
+export interface LoginHistoryItem {
+  attemptedAt: string
+  ipAddress?: string | null
+  deviceOs?: string | null
+  deviceBrowser?: string | null
+  isSuccess: boolean
+}
+
 export interface LoginResponse {
   accessToken: string
   refreshToken: string

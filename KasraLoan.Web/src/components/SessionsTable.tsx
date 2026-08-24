@@ -7,7 +7,7 @@ import type { SessionInfo } from '../api/types'
 // چون ترتیبِ پیش‌فرضِ Intl برای fa-IR (سال-ماه-روز) دلخواه نیست، بخش‌ها را جدا
 // می‌گیریم و به ترتیبِ «روزِ هفته روز ماه سال» می‌چینیم.
 // سشن‌های قبل از این قابلیت تاریخِ نامعتبر دارند → «—».
-function formatDateTime(value: string): string {
+export function formatDateTime(value: string): string {
   const d = new Date(value)
   if (isNaN(d.getTime()) || d.getFullYear() < 1900) return '—'
   const fa = (opt: Intl.DateTimeFormatOptions) => d.toLocaleDateString('fa-IR', opt)

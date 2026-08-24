@@ -2,6 +2,7 @@
 using KasraLoan.Application.DTOs.Employee;
 using KasraLoan.Application.Features.Authentication.ChangePassword;
 using KasraLoan.Application.Features.Authentication.ForgotPassword;
+using KasraLoan.Application.Features.Authentication.GetLoginHistory;
 using KasraLoan.Application.Features.Authentication.Login;
 using KasraLoan.Application.Features.Authentication.Logout;
 using KasraLoan.Application.Features.Authentication.Refresh;
@@ -131,6 +132,16 @@ namespace KasraLoan.API.Controllers
         public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequestDto request)
         {
             var result = await _mediator.Send(new ChangePasswordCommand { Request = request });
+
+            return Ok(result);
+        }
+
+        // سه ورودِ اخیرِ کاربرِ جاری (برای «تاریخچه ورودهای اخیر»).
+        [Authorize]
+        [HttpGet("login-history")]
+        public async Task<IActionResult> GetLoginHistory()
+        {
+            var result = await _mediator.Send(new GetLoginHistoryQuery());
 
             return Ok(result);
         }

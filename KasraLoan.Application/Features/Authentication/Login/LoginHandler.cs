@@ -18,13 +18,15 @@ namespace KasraLoan.Application.Features.Authentication.Login
         private readonly IPasswordHasher _passwordHasher;
         private readonly IJwtService _jwtService;
         private readonly IRefreshTokenRepository _refreshTokenRepository;
+        private readonly ILoginHistoryRepository _loginHistoryRepository;
 
-        public LoginHandler(IEmployeeRepository employeeRepository, IPasswordHasher passwordHasher, IJwtService jwtService, IRefreshTokenRepository refreshTokenRepository)
+        public LoginHandler(IEmployeeRepository employeeRepository, IPasswordHasher passwordHasher, IJwtService jwtService, IRefreshTokenRepository refreshTokenRepository, ILoginHistoryRepository loginHistoryRepository)
         {
             _employeeRepository = employeeRepository;
             _passwordHasher = passwordHasher;
             _jwtService = jwtService;
             _refreshTokenRepository = refreshTokenRepository;
+            _loginHistoryRepository = loginHistoryRepository;
         }
 
         // مهلتِ بی‌کاری (idle) برحسب دقیقه: تا وقتی داخل این بازه فعالیت باشد نشست
@@ -37,16 +39,30 @@ namespace KasraLoan.Application.Features.Authentication.Login
 
             const string invalidCredentialsMessage = "نام کاربری یا رمز عبور اشتباه است.";
 
-            if (employee == null || !employee.IsActive)
-                throw new UnauthorizedAccessException(invalidCredentialsMessage);
-
-            var isPasswordValid = _passwordHasher.Verify(request.LoginRequest.Password, employee.PasswordHash);
-
-            if (!isPasswordValid)
+            // نامِ کاربریِ اشتباه: کاربری برای نسبت‌دادن وجود ندارد، پس تاریخچه ثبت نمی‌شود.
+            if (employee == null)
                 throw new UnauthorizedAccessException(invalidCredentialsMessage);
 
             var now = DateTime.UtcNow;
             var device = DeviceInfoParser.Parse(request.UserAgent);
+
+            // نتیجه‌ی این تلاش = رمزِ درست و حسابِ فعال. در هر حال (موفق یا ناموفق) در
+            // «تاریخچه ورودها» ثبت می‌شود تا ستونِ «نتیجه» معنی داشته باشد.
+            var isPasswordValid = _passwordHasher.Verify(request.LoginRequest.Password, employee.PasswordHash);
+            var loginSucceeded = employee.IsActive && isPasswordValid;
+
+            await _loginHistoryRepository.AddAsync(new LoginHistory
+            {
+                EmployeeId = employee.Id,
+                AttemptedAt = now,
+                IpAddress = request.IpAddress,
+                DeviceOs = device.Os,
+                DeviceBrowser = device.Browser,
+                IsSuccess = loginSucceeded
+            });
+
+            if (!loginSucceeded)
+                throw new UnauthorizedAccessException(invalidCredentialsMessage);
 
             // شناسه‌ی دستگاه از کلاینت می‌آید. اگر نیامد (کلاینتِ قدیمی)، یک شناسه‌ی
             // یک‌بارمصرف می‌سازیم تا این ورود مثل یک دستگاهِ مستقل رفتار کند.
