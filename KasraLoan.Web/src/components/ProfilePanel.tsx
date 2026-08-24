@@ -231,9 +231,6 @@ export function ProfilePanel() {
         تاریخچه ورودهای اخیر
       </Button>
 
-      {/* خطِ جداکننده بین «تاریخچه ورودهای اخیر» و «نشست‌های فعال». */}
-      <Divider style={{ margin: '8px 0', borderColor: 'rgba(255,255,255,0.45)' }} />
-
       <Button
         type="text"
         icon={<DesktopOutlined style={{ fontSize: 18 }} />}
