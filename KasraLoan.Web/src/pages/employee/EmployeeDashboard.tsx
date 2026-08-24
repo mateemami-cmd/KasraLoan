@@ -97,12 +97,19 @@ export function EmployeeDashboard() {
   // برای کل آیتم بیاید، نه یکی برای آیکون و یکی برای متن.
   const railItem = (title: string, icon: ReactNode) => (
     <Tooltip title={title} placement="left">
+      {/* این div کلِ سطحِ آیتم را پر می‌کند (عرض و padding از خودِ آیتم به اینجا
+          منتقل شده) تا: ۱) با hover روی هر جای دکمه تولتیپ بیاید، نه فقط آیکون؛
+          ۲) تولتیپ به لبه‌ی دکمه بچسبد و دقیقاً روبه‌رویِ مرکزِ عمودیِ دکمه بیفتد. */}
       <div
         style={{
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
+          justifyContent: 'center',
           gap: 4,
+          width: '100%',
+          padding: '12px 4px',
+          boxSizing: 'border-box',
         }}
       >
         {/* آیکون را در یک span می‌پیچیم تا «آیکونِ لختِ چسبیده به متن» نباشد؛ وگرنه

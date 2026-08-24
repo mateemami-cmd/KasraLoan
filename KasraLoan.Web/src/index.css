@@ -49,7 +49,9 @@ body {
   border-bottom: 1px solid var(--border-soft);
 }
 
-/* نوار باریک کناری (سبک نکسوس): آیکون بالا، متن پایین */
+/* نوار باریک کناری (سبک نکسوس): آیکون بالا، متن پایین.
+   padding صفر است و به‌جایش داخلِ خودِ آیتم (div محتوایی) گذاشته می‌شود، تا آن div
+   کلِ سطحِ آیتم را پر کند و tooltipِ hover روی کلِ دکمه بیاید و به لبه بچسبد. */
 .app-sider .ant-menu-item,
 .app-sider .ant-menu-submenu-title {
   display: flex !important;
@@ -58,10 +60,15 @@ body {
   justify-content: center;
   height: auto !important;
   line-height: 1.3;
-  padding: 12px 4px !important;
+  padding: 0 !important;
   gap: 4px;
   margin: 4px 0 !important;
   border-radius: 10px;
+}
+
+/* لِیبلِ آیتم کلِ عرضِ آیتم را بگیرد تا div داخلش هم تمام‌عرض شود. */
+.app-sider .ant-menu-title-content {
+  width: 100%;
 }
 
 .app-sider .ant-menu-item .ant-menu-item-icon,
