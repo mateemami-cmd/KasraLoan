@@ -410,6 +410,15 @@ export async function getLoginHistory(): Promise<LoginHistoryItem[]> {
   return res.data.history
 }
 
+/**
+ * ثبتِ ورودِ یک تبِ تازه که با توکنِ موجود وارد شده (auto-resume): یک نشستِ فعالِ
+ * جدید و یک ردیفِ تاریخچه می‌سازد و توکن‌های جدیدِ همین نشست را برمی‌گرداند.
+ */
+export async function registerVisit() {
+  const res = await api.post('/auth/register-visit')
+  return res.data as { accessToken: string; refreshToken: string; expireAt: string }
+}
+
 /** قطعِ یکی از نشست‌های کاربرِ جاری (خروج از راه دور). */
 export async function revokeSession(sessionId: number) {
   const res = await api.post(`/auth/sessions/${sessionId}/revoke`)

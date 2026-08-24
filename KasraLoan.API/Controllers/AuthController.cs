@@ -6,6 +6,7 @@ using KasraLoan.Application.Features.Authentication.GetLoginHistory;
 using KasraLoan.Application.Features.Authentication.Login;
 using KasraLoan.Application.Features.Authentication.Logout;
 using KasraLoan.Application.Features.Authentication.Refresh;
+using KasraLoan.Application.Features.Authentication.RegisterVisit;
 using KasraLoan.Application.Features.Authentication.ResetPassword;
 using KasraLoan.Application.Features.Authentication.Sessions;
 using KasraLoan.Application.Features.Employee.Commands.DeleteProfilePicture;
@@ -132,6 +133,20 @@ namespace KasraLoan.API.Controllers
         public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequestDto request)
         {
             var result = await _mediator.Send(new ChangePasswordCommand { Request = request });
+
+            return Ok(result);
+        }
+
+        // ثبتِ ورودِ یک تبِ تازه (auto-resume): یک نشستِ فعال و یک ردیفِ تاریخچه می‌سازد.
+        [Authorize]
+        [HttpPost("register-visit")]
+        public async Task<IActionResult> RegisterVisit()
+        {
+            var result = await _mediator.Send(new RegisterVisitCommand
+            {
+                UserAgent = Request.Headers.UserAgent.ToString(),
+                IpAddress = GetClientIp()
+            });
 
             return Ok(result);
         }
