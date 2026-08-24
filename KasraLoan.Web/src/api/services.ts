@@ -414,6 +414,18 @@ export async function setAccountStatus(employeeId: string, isActive: boolean) {
   return res.data as { employeeId: string; isActive: boolean; message: string }
 }
 
+/** حذفِ نرمِ کارمند؛ سوابق و وام‌های او حفظ می‌شوند. */
+export async function deleteEmployee(employeeId: string) {
+  const res = await api.delete(`/employee/${employeeId}`)
+  return res.data as { employeeId: string; message: string }
+}
+
+/** بازگرداندنِ کارمندِ حذف‌شده (به‌صورتِ غیرفعال). */
+export async function restoreEmployee(employeeId: string) {
+  const res = await api.post(`/employee/${employeeId}/restore`)
+  return res.data as { employeeId: string; message: string }
+}
+
 /** تغییر سطح دسترسی یک ادمین: ارشد کردن، یا سپردنِ یک نوع وام به او. */
 export async function setAdminScope(
   employeeId: string,

@@ -54,6 +54,16 @@ namespace KasraLoan.Domain.Entities
         /// </summary>
         public bool IsActive { get; set; }
 
+        /// <summary>
+        /// حذفِ نرم (soft delete): کارمندِ حذف‌شده از فهرست‌های عادی کنار می‌رود و
+        /// نمی‌تواند وارد شود، ولی <b>ردیفش و همه‌ی سوابقش (وام‌ها، اقساط، ...) در
+        /// دیتابیس می‌ماند</b> چون آن اطلاعات متعلق به شرکت است. قابلِ بازگردانی است.
+        /// </summary>
+        public bool IsDeleted { get; set; }
+
+        /// <summary>زمانِ حذفِ نرم، اگر حذف شده باشد.</summary>
+        public DateTime? DeletedAt { get; set; }
+
         /// <summary>وضعیت اشتغال. فقط از اندپوینت اختصاصی خودش قابل تغییر است.</summary>
         public EmploymentStatus EmploymentStatus { get; set; } = EmploymentStatus.Active;
 

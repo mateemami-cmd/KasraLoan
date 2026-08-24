@@ -46,6 +46,8 @@ import {
   getNextIdentifier,
   getAllEmployees,
   setAccountStatus,
+  deleteEmployee,
+  restoreEmployee,
   setAdminScope,
   getRequestPool,
   getAllLoans,
@@ -1116,6 +1118,8 @@ interface EmployeeRow {
   managedLoanTypeId?: number | null
   managedLoanTypeName?: string | null
   isActive: boolean
+  isDeleted: boolean
+  deletedAt?: string | null
   jobPositionTitle?: string | null
   effectiveMonthlySalary: number
   maxMonthlyInstallment: number
@@ -1127,6 +1131,8 @@ function PeopleSection({ role, title }: { role: 'Admin' | 'Employee'; title: str
   const [rows, setRows] = useState<EmployeeRow[]>([])
   const [loading, setLoading] = useState(true)
   const [busyId, setBusyId] = useState<string | null>(null)
+  // نمای فعلی: همه / فعال / غیرفعال. «غیرفعال» شاملِ حذف‌شده‌ها هم هست.
+  const [view, setView] = useState<'all' | 'active' | 'inactive'>('all')
 
   useEffect(() => {
     setLoading(true)
@@ -1135,8 +1141,17 @@ function PeopleSection({ role, title }: { role: 'Admin' | 'Employee'; title: str
       .finally(() => setLoading(false))
   }, [])
 
-  // فقط افراد با نقش موردنظر همین بخش نمایش داده می‌شوند.
-  const filtered = rows.filter((r) => r.role === role)
+  // فقط افراد با نقش موردنظر همین بخش نمایش داده می‌شوند، بعد بر اساس نما فیلتر می‌شوند.
+  const byRole = rows.filter((r) => r.role === role)
+  const filtered = byRole.filter((r) =>
+    view === 'active'
+      ? r.isActive && !r.isDeleted
+      : view === 'inactive'
+        ? !r.isActive || r.isDeleted
+        : true,
+  )
+  const activeCount = byRole.filter((r) => r.isActive && !r.isDeleted).length
+  const inactiveCount = byRole.length - activeCount
 
   const money = (v: number) => (v > 0 ? `${v.toLocaleString('fa-IR')} تومان` : '—')
 
@@ -1153,6 +1168,37 @@ function PeopleSection({ role, title }: { role: 'Admin' | 'Employee'; title: str
     } catch (err: unknown) {
       const e = err as { response?: { data?: { message?: string } } }
       message.error(e.response?.data?.message ?? 'خطا در تغییر وضعیت حساب.')
+    } finally {
+      setBusyId(null)
+    }
+  }
+
+  async function removeRow(row: EmployeeRow) {
+    setBusyId(row.id)
+    try {
+      await deleteEmployee(row.id)
+      // حذفِ نرم: از فهرست حذف نمی‌شود، فقط علامت می‌خورد و غیرفعال می‌شود.
+      setRows((prev) =>
+        prev.map((x) => (x.id === row.id ? { ...x, isDeleted: true, isActive: false } : x)),
+      )
+      message.success('کارمند حذف شد؛ سوابق و وام‌های او حفظ شد.')
+    } catch (err: unknown) {
+      const e = err as { response?: { data?: { message?: string } } }
+      message.error(e.response?.data?.message ?? 'خطا در حذف کارمند.')
+    } finally {
+      setBusyId(null)
+    }
+  }
+
+  async function restoreRow(row: EmployeeRow) {
+    setBusyId(row.id)
+    try {
+      await restoreEmployee(row.id)
+      setRows((prev) => prev.map((x) => (x.id === row.id ? { ...x, isDeleted: false } : x)))
+      message.success('کارمند بازگردانده شد (غیرفعال).')
+    } catch (err: unknown) {
+      const e = err as { response?: { data?: { message?: string } } }
+      message.error(e.response?.data?.message ?? 'خطا در بازگردانی کارمند.')
     } finally {
       setBusyId(null)
     }
@@ -1193,10 +1239,11 @@ function PeopleSection({ role, title }: { role: 'Admin' | 'Employee'; title: str
     {
       title: 'حساب کاربری',
       dataIndex: 'isActive',
-      // برای کارمند قابل فعال/غیرفعال کردن است؛ برای ادمین فقط نمایش (طبق تصمیم فعلی
-      // که فعلاً کاری به حساب ادمین‌ها نداریم).
+      // حذف‌شده: فقط تگ؛ کارمندِ عادی: سوییچ فعال/غیرفعال؛ ادمین: فقط نمایش.
       render: (v: boolean, r) =>
-        role === 'Employee' ? (
+        r.isDeleted ? (
+          <Tag color="red">حذف‌شده</Tag>
+        ) : role === 'Employee' ? (
           <Switch
             checked={v}
             loading={busyId === r.id}
@@ -1210,11 +1257,55 @@ function PeopleSection({ role, title }: { role: 'Admin' | 'Employee'; title: str
           <Tag>غیرفعال</Tag>
         ),
     },
+    ...(role === 'Employee'
+      ? ([
+          {
+            title: 'عملیات',
+            render: (_: unknown, r: EmployeeRow) =>
+              r.isDeleted ? (
+                <Button size="small" loading={busyId === r.id} onClick={() => restoreRow(r)}>
+                  بازگردانی
+                </Button>
+              ) : (
+                <Popconfirm
+                  title="حذف کارمند"
+                  description="کارمند حذف می‌شود ولی سوابق و وام‌هایش حفظ می‌ماند. مطمئنید؟"
+                  okText="حذف"
+                  okButtonProps={{ danger: true }}
+                  cancelText="انصراف"
+                  onConfirm={() => removeRow(r)}
+                >
+                  <Button danger size="small" loading={busyId === r.id}>
+                    حذف
+                  </Button>
+                </Popconfirm>
+              ),
+          },
+        ] as ColumnsType<EmployeeRow>)
+      : []),
   ]
 
   return (
     <Card title={`${title} (${filtered.length})`}>
-      <Table rowKey="id" loading={loading} columns={columns} dataSource={filtered} pagination={{ pageSize: 10 }} scroll={{ x: 'max-content' }} />
+      <div style={{ marginBottom: 12 }}>
+        <Segmented
+          value={view}
+          onChange={(v) => setView(v as 'all' | 'active' | 'inactive')}
+          options={[
+            { label: `همه (${byRole.length})`, value: 'all' },
+            { label: `فعال (${activeCount})`, value: 'active' },
+            { label: `غیرفعال (${inactiveCount})`, value: 'inactive' },
+          ]}
+        />
+      </div>
+      <Table
+        rowKey="id"
+        loading={loading}
+        columns={columns}
+        dataSource={filtered}
+        pagination={{ pageSize: 10 }}
+        scroll={{ x: 'max-content' }}
+      />
     </Card>
   )
 }

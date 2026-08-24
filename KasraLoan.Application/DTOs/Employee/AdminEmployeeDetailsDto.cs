@@ -43,6 +43,11 @@ namespace KasraLoan.Application.DTOs.Employee
         /// <summary>وضعیت حساب کاربری (اجازه‌ی ورود به سیستم).</summary>
         public bool IsActive { get; set; }
 
+        /// <summary>حذفِ نرم شده؟ (ردیف و سوابق می‌مانند، فقط از فهرست‌های عادی کنار می‌رود.)</summary>
+        public bool IsDeleted { get; set; }
+
+        public DateTime? DeletedAt { get; set; }
+
         /// <summary>وضعیت اشتغال: "Active" یا "Terminated". با IsActive یکی نیست.</summary>
         public string EmploymentStatus { get; set; } = string.Empty;
 

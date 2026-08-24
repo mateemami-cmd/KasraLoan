@@ -46,6 +46,8 @@ namespace KasraLoan.Application.Features.Employee.Queries.GetAllEmployees
                 ManagedLoanTypeId = e.ManagedLoanTypeId,
                 ManagedLoanTypeName = e.ManagedLoanType?.Name,
                 IsActive = e.IsActive,
+                IsDeleted = e.IsDeleted,
+                DeletedAt = e.DeletedAt,
                 EmploymentStatus = e.EmploymentStatus.ToString(),
                 TerminationDate = e.TerminationDate,
                 JobPositionId = e.JobPositionId,

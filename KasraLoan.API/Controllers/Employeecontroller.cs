@@ -1,6 +1,8 @@
 ﻿using KasraLoan.Application.DTOs.Employee;
 using KasraLoan.Application.Features.Employee.Commands.CreateEmployee;
+using KasraLoan.Application.Features.Employee.Commands.DeleteEmployee;
 using KasraLoan.Application.Features.Employee.Commands.RegenerateUsernames;
+using KasraLoan.Application.Features.Employee.Commands.RestoreEmployee;
 using KasraLoan.Application.Features.Employee.Commands.SetAccountStatus;
 using KasraLoan.Application.Features.Employee.Commands.SetAdminScope;
 using KasraLoan.Application.Features.Employee.Commands.GrantLoanPermission;
@@ -20,9 +22,10 @@ using System;
 
 namespace KasraLoan.API.Controllers
 {
-    // نکته‌ی طراحی مهم: در این کنترلر عمداً هیچ اندپوینت DELETE وجود ندارد.
-    // این سیستم فقط برای مدیریت وام است، نه مدیریت کامل پرسنل شرکت؛
-    // بنابراین ادمین می‌تواند کارمندان را ویرایش یا غیرفعال کند، اما حذف کامل مجاز نیست.
+    // نکته‌ی طراحی مهم: «حذف» در اینجا حذفِ نرم (soft delete) است، نه حذفِ فیزیکی.
+    // ردیفِ کارمند و همه‌ی سوابقش (وام‌ها، اقساط، پرداخت‌ها) در دیتابیس می‌ماند چون
+    // متعلق به شرکت است؛ فقط علامتِ IsDeleted می‌خورد و از فهرست‌های عادی کنار می‌رود.
+    // قابلِ بازگردانی است (endpoint ‌restore).
     //
     // کلِ مدیریت کارمندان و ادمین‌ها فقط دستِ «ادمین ارشد» است؛ ادمین‌های وام
     // اینجا هیچ دسترسی‌ای ندارند.
@@ -165,6 +168,25 @@ namespace KasraLoan.API.Controllers
                 EmployeeId = employeeId,
                 Request = request
             });
+
+            return Ok(result);
+        }
+
+        // حذفِ نرمِ کارمند: ردیف و سوابقش می‌ماند، فقط علامتِ حذف می‌خورد و از
+        // فهرست‌های عادی کنار می‌رود. قابلِ بازگردانی.
+        [HttpDelete("{employeeId}")]
+        public async Task<IActionResult> Delete(Guid employeeId)
+        {
+            var result = await _mediator.Send(new DeleteEmployeeCommand { EmployeeId = employeeId });
+
+            return Ok(result);
+        }
+
+        // بازگرداندنِ کارمندِ حذف‌شده (به‌صورتِ غیرفعال).
+        [HttpPost("{employeeId}/restore")]
+        public async Task<IActionResult> Restore(Guid employeeId)
+        {
+            var result = await _mediator.Send(new RestoreEmployeeCommand { EmployeeId = employeeId });
 
             return Ok(result);
         }
