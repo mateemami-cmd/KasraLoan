@@ -39,6 +39,16 @@ namespace KasraLoan.Infrastructure.Repositories
                 .FirstOrDefaultAsync(x => x.Username == username);
         }
 
+        public async Task<Employee?> GetByEmailAsync(string email)
+        {
+            if (string.IsNullOrWhiteSpace(email))
+                return null;
+
+            var normalized = email.Trim().ToLower();
+            return await _context.Employees
+                .FirstOrDefaultAsync(x => x.Email != null && x.Email.ToLower() == normalized);
+        }
+
         public async Task<bool> UsernameExistsAsync(string username)
         {
             return await _context.Employees

@@ -13,6 +13,9 @@ namespace KasraLoan.Application.Interfaces.Repositories
 
         Task<Employee?> GetByUsernameAsync(string username);
 
+        /// <summary>یافتنِ کارمند با ایمیل (حساس‌نبودن به بزرگ/کوچیکی حروف).</summary>
+        Task<Employee?> GetByEmailAsync(string email);
+
         Task<bool> UsernameExistsAsync(string username);
 
         Task<bool> PersonnelNumberExistsAsync(string personnelNumber);

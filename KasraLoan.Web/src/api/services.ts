@@ -375,6 +375,26 @@ export async function changePassword(currentPassword: string, newPassword: strin
   return res.data as { message: string }
 }
 
+// ---------- Forgot / reset password ----------
+export interface ForgotPasswordResult {
+  message: string
+  emailSent: boolean
+  /** فقط در حالتِ تست (SMTP خاموش): رمزِ موقت برای نمایش. در حالتِ واقعی null است. */
+  devTempPassword?: string | null
+}
+
+/** درخواستِ رمزِ موقت با ایمیل. اگر ایمیل ثبت نشده باشد، سرور خطای ۴۰۰ می‌دهد. */
+export async function forgotPassword(email: string): Promise<ForgotPasswordResult> {
+  const res = await api.post('/auth/forgot-password', { email })
+  return res.data as ForgotPasswordResult
+}
+
+/** تعیینِ رمزِ جدید بعد از ورود با رمزِ موقت (بدونِ رمزِ فعلی). */
+export async function resetPassword(newPassword: string) {
+  const res = await api.post('/auth/reset-password', { newPassword })
+  return res.data as { message: string }
+}
+
 // ---------- Active sessions ----------
 /** نشست‌های فعالِ کاربرِ جاری. */
 export async function getSessions(): Promise<SessionInfo[]> {

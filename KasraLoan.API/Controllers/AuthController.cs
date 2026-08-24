@@ -1,9 +1,11 @@
 ﻿using KasraLoan.Application.DTOs.Auth;
 using KasraLoan.Application.DTOs.Employee;
 using KasraLoan.Application.Features.Authentication.ChangePassword;
+using KasraLoan.Application.Features.Authentication.ForgotPassword;
 using KasraLoan.Application.Features.Authentication.Login;
 using KasraLoan.Application.Features.Authentication.Logout;
 using KasraLoan.Application.Features.Authentication.Refresh;
+using KasraLoan.Application.Features.Authentication.ResetPassword;
 using KasraLoan.Application.Features.Authentication.Sessions;
 using KasraLoan.Application.Features.Employee.Commands.DeleteProfilePicture;
 using KasraLoan.Application.Features.Employee.Commands.UpdateProfile;
@@ -89,6 +91,27 @@ namespace KasraLoan.API.Controllers
             {
                 Request = request
             });
+
+            return Ok(result);
+        }
+
+        // فراموشیِ رمز عبور: کاربر ایمیلش را می‌دهد، رمزِ موقت به ایمیلش می‌رود.
+        // بدونِ احراز هویت (چون کاربر نمی‌تواند وارد شود).
+        [HttpPost("forgot-password")]
+        public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequestDto request)
+        {
+            var result = await _mediator.Send(new ForgotPasswordCommand { Request = request });
+
+            return Ok(result);
+        }
+
+        // تعیینِ رمزِ جدید بعد از ورود با رمزِ موقت. کاربر واردشده است (Authorize)،
+        // ولی رمزِ فعلی گرفته نمی‌شود چون موقت است و خودش نمی‌داند.
+        [Authorize]
+        [HttpPost("reset-password")]
+        public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordRequestDto request)
+        {
+            var result = await _mediator.Send(new ResetPasswordCommand { Request = request });
 
             return Ok(result);
         }

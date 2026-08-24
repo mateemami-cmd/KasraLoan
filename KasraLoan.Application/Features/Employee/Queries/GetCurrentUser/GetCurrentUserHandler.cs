@@ -74,7 +74,8 @@ namespace KasraLoan.Application.Features.Employee.Queries.GetCurrentUser
                 CanRequestLoan =
                     employee.EmploymentStatus == Domain.Enums.EmploymentStatus.Active
                     && (effectiveScore >= _employeeScoreService.MinimumScoreRequiredForLoan
-                        || hasLoanPermission)
+                        || hasLoanPermission),
+                MustResetPassword = employee.MustResetPassword
             };
         }
     }

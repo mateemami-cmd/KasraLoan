@@ -49,6 +49,8 @@ export interface CurrentUser {
    * سرور تصمیم می‌گیرد — امتیاز کافی یا مجوز استثنایی، هر کدام کافی است.
    */
   canRequestLoan: boolean
+  /** اگر true باشد، رمزِ فعلی موقت است (از فراموشیِ رمز) و باید بلافاصله رمزِ جدید بگذارد. */
+  mustResetPassword: boolean
 }
 
 export interface LoanType {

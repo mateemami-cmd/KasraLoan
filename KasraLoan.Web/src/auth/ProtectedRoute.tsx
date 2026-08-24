@@ -1,6 +1,7 @@
 import { Navigate } from 'react-router-dom'
 import { Spin } from 'antd'
 import { useAuth } from './AuthContext'
+import { ForcedResetPassword } from './ForcedResetPassword'
 import type { ReactNode } from 'react'
 
 interface Props {
@@ -22,6 +23,11 @@ export function ProtectedRoute({ children, role }: Props) {
 
   if (!user) {
     return <Navigate to="/login" replace />
+  }
+
+  // با رمزِ موقت وارد شده: تا رمزِ جدید نگذارد، هیچ صفحه‌ی دیگری نمی‌بیند.
+  if (user.mustResetPassword) {
+    return <ForcedResetPassword />
   }
 
   if (role && user.role !== role) {

@@ -68,6 +68,8 @@ namespace KasraLoan.Infrastructure
 
             services.AddScoped<IPasswordHasher, PasswordHasher>();
 
+            services.AddScoped<IEmailSender, SmtpEmailSender>();
+
             services.AddScoped<IJwtService, JwtService>();
 
             services.AddHttpContextAccessor();

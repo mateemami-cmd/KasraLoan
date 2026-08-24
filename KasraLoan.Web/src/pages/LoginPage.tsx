@@ -4,6 +4,7 @@ import { Button, Card, Form, Input, Typography, App, Spin, Modal, Alert } from '
 import { UserOutlined, LockOutlined } from '@ant-design/icons'
 import { useAuth } from '../auth/AuthContext'
 import { SessionsTable } from '../components/SessionsTable'
+import { forgotPassword } from '../api/services'
 import type { CurrentUser, SessionInfo } from '../api/types'
 import axios from 'axios'
 
@@ -20,6 +21,33 @@ export function LoginPage() {
     sessions: SessionInfo[]
   } | null>(null)
   const [busyId, setBusyId] = useState<number | null>(null)
+  // مودالِ فراموشیِ رمز عبور.
+  const [forgotOpen, setForgotOpen] = useState(false)
+  const [forgotLoading, setForgotLoading] = useState(false)
+  // نتیجه‌ی درخواست؛ در حالتِ تست رمزِ موقت را روی صفحه نشان می‌دهیم.
+  const [forgotResult, setForgotResult] = useState<{ message: string; tempPassword?: string | null } | null>(null)
+
+  async function handleForgot(values: { email: string }) {
+    setForgotLoading(true)
+    try {
+      const res = await forgotPassword(values.email)
+      setForgotResult({ message: res.message, tempPassword: res.devTempPassword })
+      if (res.emailSent) message.success('رمزِ موقت به ایمیل شما ارسال شد.')
+    } catch (err) {
+      const msg =
+        axios.isAxiosError(err) && err.response?.data?.message
+          ? (err.response.data.message as string)
+          : 'خطا در ارسال درخواست. دوباره تلاش کنید.'
+      message.error(msg)
+    } finally {
+      setForgotLoading(false)
+    }
+  }
+
+  function closeForgot() {
+    setForgotOpen(false)
+    setForgotResult(null)
+  }
 
   // اگر کاربر از قبل واردشده باشد، اجازه نمی‌دهیم صفحه‌ی لاگین را ببیند و فوراً
   // به داشبوردش برمی‌گردانیم. این جلوی برگشتن با دکمه‌ی Back به صفحه‌ی ورود را
@@ -111,6 +139,10 @@ export function LoginPage() {
           <Button type="primary" htmlType="submit" block loading={loading}>
             ورود
           </Button>
+
+          <Button type="link" block onClick={() => setForgotOpen(true)} style={{ marginTop: 8 }}>
+            رمز عبور را فراموش کرده‌اید؟
+          </Button>
         </Form>
       </Card>
 
@@ -143,6 +175,64 @@ export function LoginPage() {
               </Button>
             )}
           />
+        )}
+      </Modal>
+
+      <Modal
+        open={forgotOpen}
+        onCancel={closeForgot}
+        footer={null}
+        centered
+        title="فراموشی رمز عبور"
+        destroyOnHidden
+      >
+        {!forgotResult ? (
+          <Form layout="vertical" onFinish={handleForgot} requiredMark={false}>
+            <Typography.Paragraph type="secondary">
+              ایمیلی که با آن ثبت شده‌اید را وارد کنید؛ یک رمزِ موقت برایتان ارسال می‌شود تا با آن
+              وارد شوید و رمزِ جدید بگذارید.
+            </Typography.Paragraph>
+            <Form.Item
+              label="ایمیل"
+              name="email"
+              rules={[
+                { required: true, message: 'ایمیل را وارد کنید' },
+                { type: 'email', message: 'فرمتِ ایمیل درست نیست' },
+              ]}
+            >
+              <Input placeholder="you@gmail.com" autoComplete="email" />
+            </Form.Item>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <Button type="primary" htmlType="submit" loading={forgotLoading}>
+                ارسال رمز موقت
+              </Button>
+              <Button onClick={closeForgot}>بستن</Button>
+            </div>
+          </Form>
+        ) : (
+          <>
+            <Alert type="success" showIcon style={{ marginBottom: 12 }} message={forgotResult.message} />
+            {forgotResult.tempPassword && (
+              <Alert
+                type="info"
+                showIcon
+                message="حالتِ تست: رمزِ موقت"
+                description={
+                  <span>
+                    چون ارسالِ ایمیل هنوز فعال نشده، رمزِ موقت اینجا نمایش داده می‌شود:{' '}
+                    <b style={{ direction: 'ltr', display: 'inline-block', letterSpacing: 1 }}>
+                      {forgotResult.tempPassword}
+                    </b>
+                    <br />
+                    با این رمز وارد شوید و بعد رمزِ جدید بگذارید.
+                  </span>
+                }
+              />
+            )}
+            <Button type="primary" block style={{ marginTop: 16 }} onClick={closeForgot}>
+              باشه، می‌روم برای ورود
+            </Button>
+          </>
         )}
       </Modal>
     </div>

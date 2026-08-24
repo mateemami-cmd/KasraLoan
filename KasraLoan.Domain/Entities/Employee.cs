@@ -21,6 +21,13 @@ namespace KasraLoan.Domain.Entities
 
         public string PasswordHash { get; set; } = string.Empty;
 
+        /// <summary>
+        /// اگر true باشد، رمزِ فعلی یک «رمزِ موقت» است (از مسیرِ فراموشی رمز عبور
+        /// ایمیل شده) و کاربر بلافاصله بعد از ورود باید رمزِ جدید بگذارد. با ثبتِ
+        /// رمزِ جدید دوباره false می‌شود.
+        /// </summary>
+        public bool MustResetPassword { get; set; }
+
         public string? PhoneNumber { get; set; }
 
         /// <summary>

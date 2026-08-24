@@ -67,5 +67,11 @@ namespace KasraLoan.Application.Features.Employee.Queries.GetCurrentUser
         /// عملاً از رابط کاربری قابل استفاده نبود.
         /// </summary>
         public bool CanRequestLoan { get; set; }
+
+        /// <summary>
+        /// اگر true باشد، رمزِ فعلی موقت است (از فراموشیِ رمز) و فرانت باید به‌جای
+        /// داشبورد، صفحه‌ی «تعیین رمز جدید» را نشان دهد.
+        /// </summary>
+        public bool MustResetPassword { get; set; }
     }
 }

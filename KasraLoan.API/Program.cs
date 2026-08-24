@@ -67,6 +67,11 @@ namespace KasraLoan.API
 
                 builder.Services.AddInfrastructure();
 
+                // تنظیماتِ SMTP برای ایمیل (رمزِ موقتِ فراموشیِ رمز عبور). مقادیرِ
+                // حساس در User Secrets می‌آیند.
+                builder.Services.Configure<KasraLoan.Infrastructure.Services.EmailSettings>(
+                    builder.Configuration.GetSection("EmailSettings"));
+
                 builder.Services.AddEndpointsApiExplorer();
 
                 builder.Services.AddSwaggerGen(options =>
