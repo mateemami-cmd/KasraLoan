@@ -4,6 +4,7 @@ using KasraLoan.Application.Features.Employee.Commands.DeleteEmployee;
 using KasraLoan.Application.Features.Employee.Commands.RegenerateUsernames;
 using KasraLoan.Application.Features.Employee.Commands.RestoreEmployee;
 using KasraLoan.Application.Features.Employee.Commands.SetAccountStatus;
+using KasraLoan.Application.Features.Employee.Commands.SetNationalId;
 using KasraLoan.Application.Features.Employee.Commands.SetAdminScope;
 using KasraLoan.Application.Features.Employee.Commands.GrantLoanPermission;
 using KasraLoan.Application.Features.Employee.Commands.SetEmployeeScoreOverride;
@@ -178,6 +179,21 @@ namespace KasraLoan.API.Controllers
         public async Task<IActionResult> Delete(Guid employeeId)
         {
             var result = await _mediator.Send(new DeleteEmployeeCommand { EmployeeId = employeeId });
+
+            return Ok(result);
+        }
+
+        // تعیین/ویرایشِ کد ملی (برای جایگزینیِ مقادیرِ موقتِ کاربرانِ قدیمی).
+        [HttpPut("{employeeId}/national-id")]
+        public async Task<IActionResult> SetNationalId(
+            Guid employeeId,
+            [FromBody] SetNationalIdRequestDto request)
+        {
+            var result = await _mediator.Send(new SetNationalIdCommand
+            {
+                EmployeeId = employeeId,
+                Request = request
+            });
 
             return Ok(result);
         }

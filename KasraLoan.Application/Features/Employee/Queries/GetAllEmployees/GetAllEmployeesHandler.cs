@@ -37,6 +37,7 @@ namespace KasraLoan.Application.Features.Employee.Queries.GetAllEmployees
                 LastName = e.LastName,
                 Username = e.Username,
                 PersonnelNumber = e.PersonnelNumber ?? "",
+                NationalId = e.NationalId,
                 PhoneNumber = e.PhoneNumber,
                 Email = e.Email,
                 HireDate = e.HireDate,

@@ -291,6 +291,8 @@ export async function markAllNotificationsRead() {
 export interface CreateEmployeePayload {
   firstName: string
   lastName: string
+  /** کد ملی (دقیقاً ۱۰ رقم). الزامی. */
+  nationalId: string
   /** رمزی که ادمین برای کاربر تعیین می‌کند. */
   password: string
   /** فقط برای ادمین لازم است؛ برای کارمند خودکار (برابر نام کاربری) ساخته می‌شود. */
@@ -396,6 +398,19 @@ export async function resetPassword(newPassword: string) {
   return res.data as { message: string }
 }
 
+// ---------- Forgot password via national ID ----------
+/** فراموشی رمز — مرحله ۱: تأیید نام کاربری + کد ملی (خطای ۴۰۰ اگر نادرست باشد). */
+export async function verifyIdentity(username: string, nationalId: string) {
+  const res = await api.post('/auth/verify-identity', { username, nationalId })
+  return res.data as { message: string }
+}
+
+/** فراموشی رمز — مرحله ۲: تعیین رمز جدید پس از تأیید نام کاربری + کد ملی. */
+export async function resetByIdentity(username: string, nationalId: string, newPassword: string) {
+  const res = await api.post('/auth/reset-by-identity', { username, nationalId, newPassword })
+  return res.data as { message: string }
+}
+
 // ---------- Active sessions ----------
 /** نشست‌های فعالِ کاربرِ جاری. */
 export async function getSessions(): Promise<SessionInfo[]> {
@@ -429,6 +444,12 @@ export async function revokeSession(sessionId: number) {
 export async function setAccountStatus(employeeId: string, isActive: boolean) {
   const res = await api.put(`/employee/${employeeId}/account-status`, { isActive })
   return res.data as { employeeId: string; isActive: boolean; message: string }
+}
+
+/** تعیین/ویرایشِ کد ملیِ یک کارمند (دقیقاً ۱۰ رقم). */
+export async function setNationalId(employeeId: string, nationalId: string) {
+  const res = await api.put(`/employee/${employeeId}/national-id`, { nationalId })
+  return res.data as { employeeId: string; nationalId: string; message: string }
 }
 
 /** حذفِ نرمِ کارمند؛ سوابق و وام‌های او حفظ می‌شوند. */

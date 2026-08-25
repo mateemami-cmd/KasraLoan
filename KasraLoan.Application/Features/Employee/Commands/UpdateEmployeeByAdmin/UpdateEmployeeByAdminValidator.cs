@@ -24,6 +24,10 @@ namespace KasraLoan.Application.Features.Employee.Commands.UpdateEmployeeByAdmin
                 .NotEmpty().WithMessage("شماره پرسنلی الزامی است.")
                 .MaximumLength(50);
 
+            RuleFor(x => x.Request.NationalId)
+                .NotEmpty().WithMessage("کد ملی الزامی است.")
+                .Matches("^[0-9]{10}$").WithMessage("کد ملی باید دقیقاً ۱۰ رقم باشد.");
+
             RuleFor(x => x.Request.Username)
                 .NotEmpty().WithMessage("نام کاربری الزامی است.")
                 .MinimumLength(4).WithMessage("نام کاربری باید حداقل ۴ کاراکتر باشد.")

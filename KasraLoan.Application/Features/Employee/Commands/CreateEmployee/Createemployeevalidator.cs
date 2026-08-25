@@ -20,6 +20,12 @@ namespace KasraLoan.Application.Features.Employee.Commands.CreateEmployee
                 .NotEmpty().WithMessage("نام‌خانوادگی الزامی است.")
                 .MaximumLength(100);
 
+            // کد ملی برای همه (کارمند و ادمین) الزامی و دقیقاً ۱۰ رقم است؛
+            // در «فراموشی رمز عبور» برای احراز هویت استفاده می‌شود.
+            RuleFor(x => x.Request.NationalId)
+                .NotEmpty().WithMessage("کد ملی الزامی است.")
+                .Matches("^[0-9]{10}$").WithMessage("کد ملی باید دقیقاً ۱۰ رقم باشد.");
+
             // رمز را ادمین هنگام ساخت تعیین می‌کند (دیگر رمز خودکار نداریم).
             RuleFor(x => x.Request.Password)
                 .NotEmpty().WithMessage("رمز عبور الزامی است.")

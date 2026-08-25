@@ -21,6 +21,9 @@ namespace KasraLoan.Application.DTOs.Employee
 
         public string PersonnelNumber { get; set; } = string.Empty;
 
+        /// <summary>کد ملی (دقیقاً ۱۰ رقم).</summary>
+        public string NationalId { get; set; } = string.Empty;
+
         public string? PhoneNumber { get; set; }
 
         public string? Email { get; set; }

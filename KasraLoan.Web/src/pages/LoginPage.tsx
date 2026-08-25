@@ -4,7 +4,7 @@ import { Button, Card, Form, Input, Typography, App, Spin, Modal, Alert } from '
 import { UserOutlined, LockOutlined } from '@ant-design/icons'
 import { useAuth } from '../auth/AuthContext'
 import { SessionsTable } from '../components/SessionsTable'
-import { forgotPassword } from '../api/services'
+import { verifyIdentity, resetByIdentity } from '../api/services'
 import type { CurrentUser, SessionInfo } from '../api/types'
 import axios from 'axios'
 
@@ -21,24 +21,44 @@ export function LoginPage() {
     sessions: SessionInfo[]
   } | null>(null)
   const [busyId, setBusyId] = useState<number | null>(null)
-  // مودالِ فراموشیِ رمز عبور.
+  // مودالِ فراموشیِ رمز عبور: مرحله ۱ (نام کاربری + کد ملی)، مرحله ۲ (رمز جدید).
   const [forgotOpen, setForgotOpen] = useState(false)
   const [forgotLoading, setForgotLoading] = useState(false)
-  // نتیجه‌ی درخواست؛ در حالتِ تست رمزِ موقت را روی صفحه نشان می‌دهیم.
-  const [forgotResult, setForgotResult] = useState<{ message: string; tempPassword?: string | null } | null>(null)
+  const [forgotStep, setForgotStep] = useState<1 | 2>(1)
+  const [forgotCreds, setForgotCreds] = useState<{ username: string; nationalId: string } | null>(null)
 
-  async function handleForgot(values: { email: string }) {
+  function forgotError(err: unknown, fallback: string) {
+    message.error(
+      axios.isAxiosError(err) && err.response?.data?.message
+        ? (err.response.data.message as string)
+        : fallback,
+    )
+  }
+
+  // مرحله ۱: تأیید نام کاربری + کد ملی.
+  async function handleVerify(values: { username: string; nationalId: string }) {
     setForgotLoading(true)
     try {
-      const res = await forgotPassword(values.email)
-      setForgotResult({ message: res.message, tempPassword: res.devTempPassword })
-      if (res.emailSent) message.success('رمزِ موقت به ایمیل شما ارسال شد.')
+      await verifyIdentity(values.username, values.nationalId)
+      setForgotCreds({ username: values.username, nationalId: values.nationalId })
+      setForgotStep(2)
     } catch (err) {
-      const msg =
-        axios.isAxiosError(err) && err.response?.data?.message
-          ? (err.response.data.message as string)
-          : 'خطا در ارسال درخواست. دوباره تلاش کنید.'
-      message.error(msg)
+      forgotError(err, 'خطا در بررسی اطلاعات.')
+    } finally {
+      setForgotLoading(false)
+    }
+  }
+
+  // مرحله ۲: تعیین رمز جدید.
+  async function handleResetByIdentity(values: { newPassword: string }) {
+    if (!forgotCreds) return
+    setForgotLoading(true)
+    try {
+      await resetByIdentity(forgotCreds.username, forgotCreds.nationalId, values.newPassword)
+      message.success('رمز عبور تغییر کرد. اکنون با رمز جدید وارد شوید.')
+      closeForgot()
+    } catch (err) {
+      forgotError(err, 'خطا در تغییر رمز عبور.')
     } finally {
       setForgotLoading(false)
     }
@@ -46,7 +66,8 @@ export function LoginPage() {
 
   function closeForgot() {
     setForgotOpen(false)
-    setForgotResult(null)
+    setForgotStep(1)
+    setForgotCreds(null)
   }
 
   // اگر کاربر از قبل واردشده باشد، اجازه نمی‌دهیم صفحه‌ی لاگین را ببیند و فوراً
@@ -186,53 +207,81 @@ export function LoginPage() {
         title="فراموشی رمز عبور"
         destroyOnHidden
       >
-        {!forgotResult ? (
-          <Form layout="vertical" onFinish={handleForgot} requiredMark={false}>
+        {forgotStep === 1 ? (
+          <Form layout="vertical" onFinish={handleVerify} requiredMark={false}>
             <Typography.Paragraph type="secondary">
-              ایمیلی که با آن ثبت شده‌اید را وارد کنید؛ یک رمزِ موقت برایتان ارسال می‌شود تا با آن
-              وارد شوید و رمزِ جدید بگذارید.
+              نام کاربری و کد ملی خود را وارد کنید. اگر درست باشند، می‌توانید رمز عبور جدید بگذارید.
             </Typography.Paragraph>
             <Form.Item
-              label="ایمیل"
-              name="email"
+              label="نام کاربری"
+              name="username"
+              rules={[{ required: true, message: 'نام کاربری را وارد کنید' }]}
+            >
+              <Input prefix={<UserOutlined />} placeholder="نام کاربری" />
+            </Form.Item>
+            <Form.Item
+              label="کد ملی"
+              name="nationalId"
               rules={[
-                { required: true, message: 'ایمیل را وارد کنید' },
-                { type: 'email', message: 'فرمتِ ایمیل درست نیست' },
+                { required: true, message: 'کد ملی را وارد کنید' },
+                { pattern: /^\d{10}$/, message: 'کد ملی باید دقیقاً ۱۰ رقم باشد' },
               ]}
             >
-              <Input placeholder="you@gmail.com" autoComplete="email" />
+              <Input
+                placeholder="۱۰ رقم"
+                maxLength={10}
+                inputMode="numeric"
+                style={{ direction: 'ltr', textAlign: 'right' }}
+              />
             </Form.Item>
             <div style={{ display: 'flex', gap: 8 }}>
               <Button type="primary" htmlType="submit" loading={forgotLoading}>
-                ارسال رمز موقت
+                ادامه
               </Button>
               <Button onClick={closeForgot}>بستن</Button>
             </div>
           </Form>
         ) : (
-          <>
-            <Alert type="success" showIcon style={{ marginBottom: 12 }} message={forgotResult.message} />
-            {forgotResult.tempPassword && (
-              <Alert
-                type="info"
-                showIcon
-                message="حالتِ تست: رمزِ موقت"
-                description={
-                  <span>
-                    چون ارسالِ ایمیل هنوز فعال نشده، رمزِ موقت اینجا نمایش داده می‌شود:{' '}
-                    <b style={{ direction: 'ltr', display: 'inline-block', letterSpacing: 1 }}>
-                      {forgotResult.tempPassword}
-                    </b>
-                    <br />
-                    با این رمز وارد شوید و بعد رمزِ جدید بگذارید.
-                  </span>
-                }
-              />
-            )}
-            <Button type="primary" block style={{ marginTop: 16 }} onClick={closeForgot}>
-              باشه، می‌روم برای ورود
-            </Button>
-          </>
+          <Form layout="vertical" onFinish={handleResetByIdentity} requiredMark={false}>
+            <Alert
+              type="success"
+              showIcon
+              style={{ marginBottom: 12 }}
+              message="هویت تأیید شد. رمز عبور جدید را وارد کنید."
+            />
+            <Form.Item
+              label="رمز عبور جدید"
+              name="newPassword"
+              rules={[
+                { required: true, message: 'رمز عبور جدید را وارد کنید' },
+                { min: 6, message: 'رمز عبور جدید باید حداقل ۶ کاراکتر باشد' },
+              ]}
+            >
+              <Input.Password prefix={<LockOutlined />} placeholder="رمز عبور جدید را وارد کنید" />
+            </Form.Item>
+            <Form.Item
+              label="تکرار رمز عبور جدید"
+              name="confirmPassword"
+              dependencies={['newPassword']}
+              rules={[
+                { required: true, message: 'رمز عبور جدید را دوباره وارد کنید' },
+                ({ getFieldValue }) => ({
+                  validator(_, value) {
+                    if (!value || getFieldValue('newPassword') === value) return Promise.resolve()
+                    return Promise.reject(new Error('دو رمز عبور یکسان نیستند'))
+                  },
+                }),
+              ]}
+            >
+              <Input.Password prefix={<LockOutlined />} placeholder="تکرار رمز عبور جدید" />
+            </Form.Item>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <Button type="primary" htmlType="submit" loading={forgotLoading}>
+                ثبت رمز جدید
+              </Button>
+              <Button onClick={closeForgot}>بستن</Button>
+            </div>
+          </Form>
         )}
       </Modal>
     </div>

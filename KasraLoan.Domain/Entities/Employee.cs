@@ -17,6 +17,9 @@ namespace KasraLoan.Domain.Entities
 
         public string PersonnelNumber { get; set; }
 
+        /// <summary>کد ملی (دقیقاً ۱۰ رقم). برای احراز هویت در «فراموشی رمز عبور» استفاده می‌شود.</summary>
+        public string? NationalId { get; set; }
+
         public string Username { get; set; } = string.Empty;
 
         public string PasswordHash { get; set; } = string.Empty;

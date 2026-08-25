@@ -46,6 +46,7 @@ import {
   getNextIdentifier,
   getAllEmployees,
   setAccountStatus,
+  setNationalId,
   deleteEmployee,
   restoreEmployee,
   setAdminScope,
@@ -901,6 +902,7 @@ function AddEmployeeSection() {
   async function onFinish(values: {
     firstName: string
     lastName: string
+    nationalId: string
     password: string
     personnelNumber?: string
     username?: string
@@ -917,6 +919,7 @@ function AddEmployeeSection() {
       const res = await createEmployee({
         firstName: values.firstName,
         lastName: values.lastName,
+        nationalId: values.nationalId,
         password: values.password,
         // شماره پرسنلی و نام کاربری فقط برای ادمین دستی‌اند؛ برای کارمند سرور خودش
         // یک عددِ ۹ رقمیِ یکسان برای هر دو می‌سازد.
@@ -963,6 +966,16 @@ function AddEmployeeSection() {
                 </Form.Item>
               </Col>
             </Row>
+            <Form.Item
+              label="کد ملی"
+              name="nationalId"
+              rules={[
+                { required: true, message: 'کد ملی را وارد کنید' },
+                { pattern: /^\d{10}$/, message: 'کد ملی باید دقیقاً ۱۰ رقم باشد' },
+              ]}
+            >
+              <Input maxLength={10} inputMode="numeric" placeholder="۱۰ رقم" style={{ direction: 'ltr', textAlign: 'right' }} />
+            </Form.Item>
             <Form.Item
               label="رمز عبور"
               name="password"
@@ -1113,6 +1126,7 @@ interface EmployeeRow {
   lastName: string
   username: string
   personnelNumber: string
+  nationalId?: string | null
   role: string
   isSeniorAdmin: boolean
   managedLoanTypeId?: number | null
@@ -1133,6 +1147,10 @@ function PeopleSection({ role, title }: { role: 'Admin' | 'Employee'; title: str
   const [busyId, setBusyId] = useState<string | null>(null)
   // نمای فعلی: همه / فعال / غیرفعال. «غیرفعال» شاملِ حذف‌شده‌ها هم هست.
   const [view, setView] = useState<'all' | 'active' | 'inactive'>('all')
+  // ویرایشِ کد ملی (برای جایگزینیِ مقادیرِ موقتِ کاربرانِ قدیمی).
+  const [editNid, setEditNid] = useState<EmployeeRow | null>(null)
+  const [nidValue, setNidValue] = useState('')
+  const [nidSaving, setNidSaving] = useState(false)
 
   useEffect(() => {
     setLoading(true)
@@ -1140,6 +1158,31 @@ function PeopleSection({ role, title }: { role: 'Admin' | 'Employee'; title: str
       .then((data) => setRows(Array.isArray(data) ? data : data.items ?? []))
       .finally(() => setLoading(false))
   }, [])
+
+  function openEditNid(row: EmployeeRow) {
+    setEditNid(row)
+    setNidValue(row.nationalId ?? '')
+  }
+
+  async function saveNid() {
+    if (!editNid) return
+    if (!/^\d{10}$/.test(nidValue)) {
+      message.error('کد ملی باید دقیقاً ۱۰ رقم باشد.')
+      return
+    }
+    setNidSaving(true)
+    try {
+      await setNationalId(editNid.id, nidValue)
+      setRows((prev) => prev.map((x) => (x.id === editNid.id ? { ...x, nationalId: nidValue } : x)))
+      message.success('کد ملی به‌روزرسانی شد.')
+      setEditNid(null)
+    } catch (err: unknown) {
+      const e = err as { response?: { data?: { message?: string } } }
+      message.error(e.response?.data?.message ?? 'خطا در به‌روزرسانی کد ملی.')
+    } finally {
+      setNidSaving(false)
+    }
+  }
 
   // فقط افراد با نقش موردنظر همین بخش نمایش داده می‌شوند، بعد بر اساس نما فیلتر می‌شوند.
   const byRole = rows.filter((r) => r.role === role)
@@ -1208,6 +1251,18 @@ function PeopleSection({ role, title }: { role: 'Admin' | 'Employee'; title: str
     { title: 'نام', render: (_, r) => `${r.firstName} ${r.lastName}` },
     { title: 'نام کاربری', dataIndex: 'username' },
     { title: 'شماره پرسنلی', dataIndex: 'personnelNumber' },
+    {
+      title: 'کد ملی',
+      dataIndex: 'nationalId',
+      render: (v: string | null | undefined, r: EmployeeRow) => (
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, direction: 'ltr' }}>
+          {v || '—'}
+          <Button type="link" size="small" onClick={() => openEditNid(r)}>
+            ویرایش
+          </Button>
+        </span>
+      ),
+    },
     ...(role === 'Employee'
       ? ([
           { title: 'سمت', dataIndex: 'jobPositionTitle', render: (v?: string) => v || '—' },
@@ -1286,27 +1341,53 @@ function PeopleSection({ role, title }: { role: 'Admin' | 'Employee'; title: str
   ]
 
   return (
-    <Card title={`${title} (${filtered.length})`}>
-      <div style={{ marginBottom: 12 }}>
-        <Segmented
-          value={view}
-          onChange={(v) => setView(v as 'all' | 'active' | 'inactive')}
-          options={[
-            { label: `همه (${byRole.length})`, value: 'all' },
-            { label: `فعال (${activeCount})`, value: 'active' },
-            { label: `غیرفعال (${inactiveCount})`, value: 'inactive' },
-          ]}
+    <>
+      <Card title={`${title} (${filtered.length})`}>
+        <div style={{ marginBottom: 12 }}>
+          <Segmented
+            value={view}
+            onChange={(v) => setView(v as 'all' | 'active' | 'inactive')}
+            options={[
+              { label: `همه (${byRole.length})`, value: 'all' },
+              { label: `فعال (${activeCount})`, value: 'active' },
+              { label: `غیرفعال (${inactiveCount})`, value: 'inactive' },
+            ]}
+          />
+        </div>
+        <Table
+          rowKey="id"
+          loading={loading}
+          columns={columns}
+          dataSource={filtered}
+          pagination={{ pageSize: 10 }}
+          scroll={{ x: 'max-content' }}
         />
-      </div>
-      <Table
-        rowKey="id"
-        loading={loading}
-        columns={columns}
-        dataSource={filtered}
-        pagination={{ pageSize: 10 }}
-        scroll={{ x: 'max-content' }}
-      />
-    </Card>
+      </Card>
+
+      <Modal
+        open={!!editNid}
+        onCancel={() => setEditNid(null)}
+        onOk={saveNid}
+        confirmLoading={nidSaving}
+        title="ویرایش کد ملی"
+        okText="ذخیره"
+        cancelText="انصراف"
+        centered
+        destroyOnHidden
+      >
+        <div style={{ marginBottom: 8, color: 'var(--text-muted)' }}>
+          {editNid ? `${editNid.firstName} ${editNid.lastName}` : ''}
+        </div>
+        <Input
+          value={nidValue}
+          onChange={(e) => setNidValue(e.target.value.replace(/\D/g, '').slice(0, 10))}
+          maxLength={10}
+          inputMode="numeric"
+          placeholder="۱۰ رقم"
+          style={{ direction: 'ltr', textAlign: 'right' }}
+        />
+      </Modal>
+    </>
   )
 }
 

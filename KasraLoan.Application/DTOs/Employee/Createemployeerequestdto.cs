@@ -14,6 +14,9 @@ namespace KasraLoan.Application.DTOs.Employee
 
         public string PersonnelNumber { get; set; } = string.Empty;
 
+        /// <summary>کد ملی (دقیقاً ۱۰ رقم). الزامی است.</summary>
+        public string NationalId { get; set; } = string.Empty;
+
         public string Username { get; set; } = string.Empty;
 
         /// <summary>رمز عبوری که ادمین هنگام ساخت تعیین می‌کند. کاربر بعداً می‌تواند عوضش کند.</summary>

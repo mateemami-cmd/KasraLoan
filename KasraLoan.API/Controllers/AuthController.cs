@@ -7,6 +7,7 @@ using KasraLoan.Application.Features.Authentication.Login;
 using KasraLoan.Application.Features.Authentication.Logout;
 using KasraLoan.Application.Features.Authentication.Refresh;
 using KasraLoan.Application.Features.Authentication.RegisterVisit;
+using KasraLoan.Application.Features.Authentication.ResetByIdentity;
 using KasraLoan.Application.Features.Authentication.ResetPassword;
 using KasraLoan.Application.Features.Authentication.Sessions;
 using KasraLoan.Application.Features.Employee.Commands.DeleteProfilePicture;
@@ -93,6 +94,24 @@ namespace KasraLoan.API.Controllers
             {
                 Request = request
             });
+
+            return Ok(result);
+        }
+
+        // فراموشیِ رمز — مرحله‌ی ۱: تأییدِ نام کاربری + کد ملی. بدونِ احراز هویت.
+        [HttpPost("verify-identity")]
+        public async Task<IActionResult> VerifyIdentity([FromBody] VerifyIdentityRequestDto request)
+        {
+            var result = await _mediator.Send(new VerifyIdentityCommand { Request = request });
+
+            return Ok(result);
+        }
+
+        // فراموشیِ رمز — مرحله‌ی ۲: تعیینِ رمزِ جدید پس از تأییدِ نام کاربری + کد ملی.
+        [HttpPost("reset-by-identity")]
+        public async Task<IActionResult> ResetByIdentity([FromBody] ResetByIdentityRequestDto request)
+        {
+            var result = await _mediator.Send(new ResetByIdentityCommand { Request = request });
 
             return Ok(result);
         }
