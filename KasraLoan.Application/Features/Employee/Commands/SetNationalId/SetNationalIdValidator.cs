@@ -1,4 +1,5 @@
 using FluentValidation;
+using KasraLoan.Application.Common;
 
 namespace KasraLoan.Application.Features.Employee.Commands.SetNationalId
 {
@@ -8,7 +9,8 @@ namespace KasraLoan.Application.Features.Employee.Commands.SetNationalId
         {
             RuleFor(x => x.Request.NationalId)
                 .NotEmpty().WithMessage("کد ملی الزامی است.")
-                .Matches("^[0-9]{10}$").WithMessage("کد ملی باید دقیقاً ۱۰ رقم باشد.");
+                .Must(NationalIdValidator.IsValid)
+                    .WithMessage("کد ملی معتبر نیست (باید ۱۰ رقم با رقمِ کنترلیِ درست باشد).");
         }
     }
 }

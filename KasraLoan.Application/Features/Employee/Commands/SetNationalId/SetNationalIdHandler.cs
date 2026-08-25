@@ -22,7 +22,7 @@ namespace KasraLoan.Application.Features.Employee.Commands.SetNationalId
             if (employee == null)
                 throw new KeyNotFoundException("کارمند یافت نشد.");
 
-            employee.NationalId = request.Request.NationalId.Trim();
+            employee.NationalId = KasraLoan.Application.Common.NationalIdValidator.Normalize(request.Request.NationalId);
 
             await _employeeRepository.UpdateAsync(employee);
             await _employeeRepository.SaveChangesAsync();

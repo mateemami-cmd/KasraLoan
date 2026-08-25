@@ -5,6 +5,7 @@ import { UserOutlined, LockOutlined } from '@ant-design/icons'
 import { useAuth } from '../auth/AuthContext'
 import { SessionsTable } from '../components/SessionsTable'
 import { verifyIdentity, resetByIdentity } from '../api/services'
+import { hasTenDigits } from '../utils/nationalId'
 import type { CurrentUser, SessionInfo } from '../api/types'
 import axios from 'axios'
 
@@ -224,7 +225,12 @@ export function LoginPage() {
               name="nationalId"
               rules={[
                 { required: true, message: 'کد ملی را وارد کنید' },
-                { pattern: /^\d{10}$/, message: 'کد ملی باید دقیقاً ۱۰ رقم باشد' },
+                {
+                  validator: (_, value) =>
+                    !value || hasTenDigits(value)
+                      ? Promise.resolve()
+                      : Promise.reject(new Error('کد ملی باید دقیقاً ۱۰ رقم باشد')),
+                },
               ]}
             >
               <Input

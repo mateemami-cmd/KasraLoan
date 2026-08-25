@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using FluentValidation;
+using KasraLoan.Application.Common;
 using KasraLoan.Domain.Enums;
 
 namespace KasraLoan.Application.Features.Employee.Commands.UpdateEmployeeByAdmin
@@ -26,7 +27,8 @@ namespace KasraLoan.Application.Features.Employee.Commands.UpdateEmployeeByAdmin
 
             RuleFor(x => x.Request.NationalId)
                 .NotEmpty().WithMessage("کد ملی الزامی است.")
-                .Matches("^[0-9]{10}$").WithMessage("کد ملی باید دقیقاً ۱۰ رقم باشد.");
+                .Must(NationalIdValidator.IsValid)
+                    .WithMessage("کد ملی معتبر نیست (باید ۱۰ رقم با رقمِ کنترلیِ درست باشد).");
 
             RuleFor(x => x.Request.Username)
                 .NotEmpty().WithMessage("نام کاربری الزامی است.")

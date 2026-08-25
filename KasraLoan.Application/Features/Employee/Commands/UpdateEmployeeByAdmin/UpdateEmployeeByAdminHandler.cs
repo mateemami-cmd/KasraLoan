@@ -88,7 +88,7 @@ namespace KasraLoan.Application.Features.Employee.Commands.UpdateEmployeeByAdmin
             employee.LastName = dto.LastName;
             employee.Username = dto.Username;
             employee.PersonnelNumber = dto.PersonnelNumber;
-            employee.NationalId = dto.NationalId?.Trim();
+            employee.NationalId = KasraLoan.Application.Common.NationalIdValidator.Normalize(dto.NationalId);
             employee.PhoneNumber = dto.PhoneNumber;
             employee.Email = dto.Email;
             employee.HireDate = dto.HireDate;

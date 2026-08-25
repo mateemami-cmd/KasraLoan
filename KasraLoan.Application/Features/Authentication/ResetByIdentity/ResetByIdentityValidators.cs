@@ -1,4 +1,5 @@
 using FluentValidation;
+using KasraLoan.Application.Common;
 
 namespace KasraLoan.Application.Features.Authentication.ResetByIdentity
 {
@@ -9,7 +10,7 @@ namespace KasraLoan.Application.Features.Authentication.ResetByIdentity
             RuleFor(x => x.Request.Username).NotEmpty().WithMessage("نام کاربری را وارد کنید.");
             RuleFor(x => x.Request.NationalId)
                 .NotEmpty().WithMessage("کد ملی را وارد کنید.")
-                .Matches("^[0-9]{10}$").WithMessage("کد ملی باید دقیقاً ۱۰ رقم باشد.");
+                .Must(NationalIdValidator.HasTenDigits).WithMessage("کد ملی باید دقیقاً ۱۰ رقم باشد.");
         }
     }
 
@@ -20,7 +21,7 @@ namespace KasraLoan.Application.Features.Authentication.ResetByIdentity
             RuleFor(x => x.Request.Username).NotEmpty().WithMessage("نام کاربری را وارد کنید.");
             RuleFor(x => x.Request.NationalId)
                 .NotEmpty().WithMessage("کد ملی را وارد کنید.")
-                .Matches("^[0-9]{10}$").WithMessage("کد ملی باید دقیقاً ۱۰ رقم باشد.");
+                .Must(NationalIdValidator.HasTenDigits).WithMessage("کد ملی باید دقیقاً ۱۰ رقم باشد.");
             RuleFor(x => x.Request.NewPassword)
                 .NotEmpty().WithMessage("رمز عبور جدید را وارد کنید.")
                 .MinimumLength(6).WithMessage("رمز عبور جدید باید حداقل ۶ کاراکتر باشد.");

@@ -35,6 +35,7 @@ import {
 import type { ColumnsType } from 'antd/es/table'
 import { DashboardLayout } from '../../components/DashboardLayout'
 import { ProfilePanel } from '../../components/ProfilePanel'
+import { isValidNationalId } from '../../utils/nationalId'
 import { useAuth } from '../../auth/AuthContext'
 import {
   getAllPermissionRequests,
@@ -971,7 +972,12 @@ function AddEmployeeSection() {
               name="nationalId"
               rules={[
                 { required: true, message: 'کد ملی را وارد کنید' },
-                { pattern: /^\d{10}$/, message: 'کد ملی باید دقیقاً ۱۰ رقم باشد' },
+                {
+                  validator: (_, value) =>
+                    !value || isValidNationalId(value)
+                      ? Promise.resolve()
+                      : Promise.reject(new Error('کد ملی معتبر نیست (۱۰ رقم با رقمِ کنترلیِ درست).')),
+                },
               ]}
             >
               <Input maxLength={10} inputMode="numeric" placeholder="۱۰ رقم" style={{ direction: 'ltr', textAlign: 'right' }} />
@@ -1166,8 +1172,8 @@ function PeopleSection({ role, title }: { role: 'Admin' | 'Employee'; title: str
 
   async function saveNid() {
     if (!editNid) return
-    if (!/^\d{10}$/.test(nidValue)) {
-      message.error('کد ملی باید دقیقاً ۱۰ رقم باشد.')
+    if (!isValidNationalId(nidValue)) {
+      message.error('کد ملی معتبر نیست (۱۰ رقم با رقمِ کنترلیِ درست).')
       return
     }
     setNidSaving(true)

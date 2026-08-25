@@ -1,5 +1,6 @@
 using System.Threading;
 using System.Threading.Tasks;
+using KasraLoan.Application.Common;
 using KasraLoan.Application.Common.Exceptions;
 using KasraLoan.Application.Interfaces.Repositories;
 using MediatR;
@@ -32,11 +33,14 @@ namespace KasraLoan.Application.Features.Authentication.ResetByIdentity
         {
             const string invalid = "نام کاربری یا کد ملی نادرست است.";
 
+            var stored = NationalIdValidator.Normalize(employee?.NationalId);
+            var entered = NationalIdValidator.Normalize(nationalId);
+
             if (employee == null
                 || employee.IsDeleted
                 || !employee.IsActive
-                || string.IsNullOrWhiteSpace(employee.NationalId)
-                || employee.NationalId.Trim() != (nationalId ?? string.Empty).Trim())
+                || stored.Length == 0
+                || stored != entered)
             {
                 throw new BusinessRuleException(invalid);
             }

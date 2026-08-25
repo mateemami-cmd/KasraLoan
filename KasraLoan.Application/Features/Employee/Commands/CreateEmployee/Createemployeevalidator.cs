@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using FluentValidation;
+using KasraLoan.Application.Common;
 using KasraLoan.Domain.Enums;
 
 namespace KasraLoan.Application.Features.Employee.Commands.CreateEmployee
@@ -24,7 +25,8 @@ namespace KasraLoan.Application.Features.Employee.Commands.CreateEmployee
             // در «فراموشی رمز عبور» برای احراز هویت استفاده می‌شود.
             RuleFor(x => x.Request.NationalId)
                 .NotEmpty().WithMessage("کد ملی الزامی است.")
-                .Matches("^[0-9]{10}$").WithMessage("کد ملی باید دقیقاً ۱۰ رقم باشد.");
+                .Must(NationalIdValidator.IsValid)
+                    .WithMessage("کد ملی معتبر نیست (باید ۱۰ رقم با رقمِ کنترلیِ درست باشد).");
 
             // رمز را ادمین هنگام ساخت تعیین می‌کند (دیگر رمز خودکار نداریم).
             RuleFor(x => x.Request.Password)
