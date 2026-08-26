@@ -1,5 +1,6 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { LoginPage } from './pages/LoginPage'
+import { ForgotPage } from './pages/ForgotPage'
 import { EmployeeDashboard } from './pages/employee/EmployeeDashboard'
 import { AdminDashboard } from './pages/admin/AdminDashboard'
 import { GatewayPage } from './pages/payment/GatewayPage'
@@ -9,6 +10,7 @@ export default function App() {
   return (
     <Routes>
       <Route path="/login" element={<LoginPage />} />
+      <Route path="/Forgot" element={<ForgotPage />} />
 
       <Route
         path="/employee/*"
