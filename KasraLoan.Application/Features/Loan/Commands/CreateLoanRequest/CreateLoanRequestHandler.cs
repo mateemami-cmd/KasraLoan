@@ -326,8 +326,10 @@ namespace KasraLoan.Application.Features.Loan.Commands.CreateLoanRequest
             if (travel.EndDate.Date <= travel.StartDate.Date)
                 throw new BusinessRuleException("تاریخ پایان سفر باید بعد از تاریخ شروع باشد.");
 
-            if (travel.StartDate.Date < DateTime.UtcNow.Date)
-                throw new BusinessRuleException("تاریخ شروع سفر نمی‌تواند در گذشته باشد.");
+            // شروعِ سفر باید از فردا به بعد باشد؛ امروز یا گذشته مجاز نیست (نمی‌شود قبل
+            // از سفر و در همان روز، وامِ سفر گرفت).
+            if (travel.StartDate.Date <= DateTime.UtcNow.Date)
+                throw new BusinessRuleException("تاریخ شروع سفر باید از فردا به بعد باشد.");
 
             return new LoanDetails
             {

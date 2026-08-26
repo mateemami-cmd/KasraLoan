@@ -17,6 +17,7 @@ import {
   App,
 } from 'antd'
 import { UploadOutlined } from '@ant-design/icons'
+import dayjs from 'dayjs'
 import { getLoanQuote, createLoanRequest } from '../../api/services'
 import type { LoanType, LoanQuote } from '../../api/types'
 
@@ -210,6 +211,10 @@ export function LoanRequestModal({
                     <DatePicker.RangePicker
                       style={{ width: '100%' }}
                       placeholder={['شروع سفر', 'پایان سفر']}
+                      // شروعِ سفر باید از فردا به بعد باشد؛ امروز و گذشته غیرفعال.
+                      disabledDate={(current) =>
+                        !!current && current < dayjs().add(1, 'day').startOf('day')
+                      }
                     />
                   </Form.Item>
                 </>
