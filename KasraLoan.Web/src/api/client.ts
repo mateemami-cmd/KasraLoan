@@ -5,10 +5,11 @@ export const api = axios.create({
   baseURL: '/api',
 })
 
-// توکن در localStorage است (نه sessionStorage) تا با بستن و باز کردنِ تب (تا وقتی
-// نشست منقضی نشده) لازم نباشد دوباره وارد شد. همه‌ی تب‌ها یک کاربرِ مشترک دارند.
+// توکن در sessionStorage است (نه localStorage) تا هر تبِ مرورگر نشستِ مستقلِ خودش
+// را داشته باشد: باز کردنِ /login در یک تبِ جدید صفحه‌ی ورود را نشان می‌دهد و به
+// خاطرِ ورودِ تبِ دیگر خودکار به داشبورد نمی‌رود. (با بستنِ تب، نشستِ آن تب پاک می‌شود.)
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('accessToken')
+  const token = sessionStorage.getItem('accessToken')
   if (token) {
     config.headers.Authorization = `Bearer ${token}`
   }
@@ -21,12 +22,12 @@ api.interceptors.request.use((config) => {
 let refreshing: Promise<string | null> | null = null
 
 async function doRefresh(): Promise<string | null> {
-  const refreshToken = localStorage.getItem('refreshToken')
+  const refreshToken = sessionStorage.getItem('refreshToken')
   if (!refreshToken) return null
   try {
     const res = await axios.post('/api/auth/refresh', { refreshToken })
-    localStorage.setItem('accessToken', res.data.accessToken)
-    localStorage.setItem('refreshToken', res.data.refreshToken)
+    sessionStorage.setItem('accessToken', res.data.accessToken)
+    sessionStorage.setItem('refreshToken', res.data.refreshToken)
     return res.data.accessToken as string
   } catch {
     return null
@@ -44,8 +45,8 @@ export function refreshAccessToken(): Promise<string | null> {
 }
 
 function clearAndRedirect() {
-  localStorage.removeItem('accessToken')
-  localStorage.removeItem('refreshToken')
+  sessionStorage.removeItem('accessToken')
+  sessionStorage.removeItem('refreshToken')
   if (window.location.pathname !== '/login') {
     window.location.href = '/login'
   }

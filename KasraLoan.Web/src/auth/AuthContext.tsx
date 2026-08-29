@@ -1,7 +1,6 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
 import { api, refreshAccessToken } from '../api/client'
 import { getDeviceId } from '../api/device'
-import { registerVisit } from '../api/services'
 import type { CurrentUser, LoginResponse, SessionInfo } from '../api/types'
 
 // هر چند دقیقه یک‌بار توکن را پشتِ‌صحنه تازه می‌کنیم تا مهلتِ بی‌کاریِ نشست جلو
@@ -28,38 +27,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<CurrentUser | null>(null)
   const [loading, setLoading] = useState(true)
 
-  // توکن در localStorage است (ماندگار) تا با بستن و باز کردنِ تب — تا وقتی نشست
-  // منقضی نشده — لازم نباشد دوباره وارد شد. اگر توکن منقضی باشد، اینترسپتورِ client
-  // خودش یک‌بار رفرش را امتحان می‌کند و در صورت شکست به صفحه‌ی ورود می‌برد.
+  // توکن در sessionStorage است (مخصوصِ همین تب)، نه localStorage. پس هر تب نشستِ
+  // مستقلِ خودش را دارد: باز کردنِ /login در یک تبِ جدید صفحه‌ی ورود را نشان می‌دهد و
+  // به‌خاطر ورودِ تبِ دیگر خودکار به داشبورد نمی‌رود. رفرشِ همین تب توکن را نگه می‌دارد
+  // (sessionStorage با refresh پاک نمی‌شود)، ولی با بستنِ تب نشست آن تب می‌رود.
   useEffect(() => {
-    const token = localStorage.getItem('accessToken')
+    const token = sessionStorage.getItem('accessToken')
     if (!token) {
       setLoading(false)
       return
     }
     api
       .get<CurrentUser>('/auth/me')
-      .then(async (res) => {
-        setUser(res.data)
-        // اگر این تب تازه باز شده و ورودش هنوز ثبت نشده (auto-resume با توکنِ مشترک)،
-        // یک ورود/نشستِ جدید ثبت می‌کنیم تا باز کردنِ تبِ جدید هم مثلِ یک ورودِ واقعی
-        // حساب شود. sessionStorage مخصوصِ همین تب است، پس رفرشِ همین تب دوباره ثبت
-        // نمی‌کند؛ ولی هر تبِ تازه یک بار ثبت می‌کند. (مارکر را قبل از درخواست ست می‌کنیم
-        // تا در StrictModeِ توسعه دوبار ثبت نشود.)
-        if (!sessionStorage.getItem('visitRegistered')) {
-          sessionStorage.setItem('visitRegistered', '1')
-          try {
-            const v = await registerVisit()
-            localStorage.setItem('accessToken', v.accessToken)
-            localStorage.setItem('refreshToken', v.refreshToken)
-          } catch {
-            /* مهم نیست؛ کاربر همچنان با توکنِ فعلی وارد است. */
-          }
-        }
-      })
+      .then((res) => setUser(res.data))
       .catch(() => {
-        localStorage.removeItem('accessToken')
-        localStorage.removeItem('refreshToken')
+        sessionStorage.removeItem('accessToken')
+        sessionStorage.removeItem('refreshToken')
       })
       .finally(() => setLoading(false))
   }, [])
@@ -93,11 +76,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return { status: 'choose', sessions: res.data.sessions ?? [] }
     }
 
-    localStorage.setItem('accessToken', res.data.accessToken)
-    localStorage.setItem('refreshToken', res.data.refreshToken)
-    // ورودِ با رمز خودش یک ورود است؛ مارکر را ست می‌کنیم تا رفرشِ همین تب دوباره
-    // به‌عنوان «ورودِ تبِ تازه» ثبت نشود.
-    sessionStorage.setItem('visitRegistered', '1')
+    sessionStorage.setItem('accessToken', res.data.accessToken)
+    sessionStorage.setItem('refreshToken', res.data.refreshToken)
 
     const me = await api.get<CurrentUser>('/auth/me')
     setUser(me.data)
@@ -111,13 +91,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   function logout() {
-    const refreshToken = localStorage.getItem('refreshToken')
+    const refreshToken = sessionStorage.getItem('refreshToken')
     if (refreshToken) {
       api.post('/auth/logout', { refreshToken }).catch(() => {})
     }
-    localStorage.removeItem('accessToken')
-    localStorage.removeItem('refreshToken')
-    sessionStorage.removeItem('visitRegistered')
+    sessionStorage.removeItem('accessToken')
+    sessionStorage.removeItem('refreshToken')
     setUser(null)
   }
 
