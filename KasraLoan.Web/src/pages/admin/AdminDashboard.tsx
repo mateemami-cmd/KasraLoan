@@ -36,6 +36,7 @@ import type { ColumnsType } from 'antd/es/table'
 import { DashboardLayout } from '../../components/DashboardLayout'
 import { ProfilePanel } from '../../components/ProfilePanel'
 import { isValidNationalId } from '../../utils/nationalId'
+import { EditEmployeeModal } from './EditEmployeeModal'
 import { useAuth } from '../../auth/AuthContext'
 import {
   getAllPermissionRequests,
@@ -1133,6 +1134,12 @@ interface EmployeeRow {
   username: string
   personnelNumber: string
   nationalId?: string | null
+  phoneNumber?: string | null
+  email?: string | null
+  hireDate?: string | null
+  marriageDate?: string | null
+  jobPositionId?: number | null
+  monthlySalary?: number | null
   role: string
   isSeniorAdmin: boolean
   managedLoanTypeId?: number | null
@@ -1157,6 +1164,12 @@ function PeopleSection({ role, title }: { role: 'Admin' | 'Employee'; title: str
   const [editNid, setEditNid] = useState<EmployeeRow | null>(null)
   const [nidValue, setNidValue] = useState('')
   const [nidSaving, setNidSaving] = useState(false)
+  // ویرایشِ کاملِ اطلاعاتِ کاربر (فقط ادمینِ ارشد — این بخش خودش پشتِ isSenior است).
+  const [editRow, setEditRow] = useState<EmployeeRow | null>(null)
+
+  function applyEdit(id: string, patch: Partial<EmployeeRow>) {
+    setRows((prev) => prev.map((x) => (x.id === id ? { ...x, ...patch } : x)))
+  }
 
   useEffect(() => {
     setLoading(true)
@@ -1318,32 +1331,35 @@ function PeopleSection({ role, title }: { role: 'Admin' | 'Employee'; title: str
           <Tag>غیرفعال</Tag>
         ),
     },
-    ...(role === 'Employee'
-      ? ([
-          {
-            title: 'عملیات',
-            render: (_: unknown, r: EmployeeRow) =>
-              r.isDeleted ? (
-                <Button size="small" loading={busyId === r.id} onClick={() => restoreRow(r)}>
-                  بازگردانی
+    {
+      title: 'عملیات',
+      render: (_: unknown, r: EmployeeRow) => (
+        <Space>
+          <Button size="small" onClick={() => setEditRow(r)}>
+            ویرایش
+          </Button>
+          {role === 'Employee' &&
+            (r.isDeleted ? (
+              <Button size="small" loading={busyId === r.id} onClick={() => restoreRow(r)}>
+                بازگردانی
+              </Button>
+            ) : (
+              <Popconfirm
+                title="حذف کارمند"
+                description="کارمند حذف می‌شود ولی سوابق و وام‌هایش حفظ می‌ماند. مطمئنید؟"
+                okText="حذف"
+                okButtonProps={{ danger: true }}
+                cancelText="انصراف"
+                onConfirm={() => removeRow(r)}
+              >
+                <Button danger size="small" loading={busyId === r.id}>
+                  حذف
                 </Button>
-              ) : (
-                <Popconfirm
-                  title="حذف کارمند"
-                  description="کارمند حذف می‌شود ولی سوابق و وام‌هایش حفظ می‌ماند. مطمئنید؟"
-                  okText="حذف"
-                  okButtonProps={{ danger: true }}
-                  cancelText="انصراف"
-                  onConfirm={() => removeRow(r)}
-                >
-                  <Button danger size="small" loading={busyId === r.id}>
-                    حذف
-                  </Button>
-                </Popconfirm>
-              ),
-          },
-        ] as ColumnsType<EmployeeRow>)
-      : []),
+              </Popconfirm>
+            ))}
+        </Space>
+      ),
+    },
   ]
 
   return (
@@ -1393,6 +1409,8 @@ function PeopleSection({ role, title }: { role: 'Admin' | 'Employee'; title: str
           style={{ direction: 'ltr', textAlign: 'right' }}
         />
       </Modal>
+
+      <EditEmployeeModal employee={editRow} onClose={() => setEditRow(null)} onSaved={applyEdit} />
     </>
   )
 }

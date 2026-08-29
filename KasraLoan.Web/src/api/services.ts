@@ -446,6 +446,28 @@ export async function setAccountStatus(employeeId: string, isActive: boolean) {
   return res.data as { employeeId: string; isActive: boolean; message: string }
 }
 
+/** ویرایشِ کاملِ اطلاعاتِ یک کارمند/ادمین توسط ادمینِ ارشد. */
+export interface UpdateEmployeePayload {
+  firstName: string
+  lastName: string
+  username: string
+  personnelNumber: string
+  nationalId: string
+  phoneNumber?: string | null
+  email?: string | null
+  hireDate: string
+  marriageDate?: string | null
+  role: string
+  isActive: boolean
+  jobPositionId?: number | null
+  monthlySalary?: number | null
+}
+
+export async function updateEmployeeByAdmin(employeeId: string, payload: UpdateEmployeePayload) {
+  const res = await api.put(`/employee/${employeeId}`, payload)
+  return res.data
+}
+
 /** تعیین/ویرایشِ کد ملیِ یک کارمند (دقیقاً ۱۰ رقم). */
 export async function setNationalId(employeeId: string, nationalId: string) {
   const res = await api.put(`/employee/${employeeId}/national-id`, { nationalId })
