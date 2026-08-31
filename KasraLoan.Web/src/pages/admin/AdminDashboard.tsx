@@ -49,7 +49,6 @@ import {
   getNextIdentifier,
   getAllEmployees,
   setAccountStatus,
-  setNationalId,
   deleteEmployee,
   restoreEmployee,
   setAdminScope,
@@ -1186,10 +1185,6 @@ function PeopleSection({ role, title }: { role: 'Admin' | 'Employee'; title: str
   const [busyId, setBusyId] = useState<string | null>(null)
   // نمای فعلی: همه / فعال / غیرفعال. «غیرفعال» شاملِ حذف‌شده‌ها هم هست.
   const [view, setView] = useState<'all' | 'active' | 'inactive'>('all')
-  // ویرایشِ کد ملی (برای جایگزینیِ مقادیرِ موقتِ کاربرانِ قدیمی).
-  const [editNid, setEditNid] = useState<EmployeeRow | null>(null)
-  const [nidValue, setNidValue] = useState('')
-  const [nidSaving, setNidSaving] = useState(false)
   // ویرایشِ کاملِ اطلاعاتِ کاربر (فقط ادمینِ ارشد — این بخش خودش پشتِ isSenior است).
   const [editRow, setEditRow] = useState<EmployeeRow | null>(null)
 
@@ -1203,31 +1198,6 @@ function PeopleSection({ role, title }: { role: 'Admin' | 'Employee'; title: str
       .then((data) => setRows(Array.isArray(data) ? data : data.items ?? []))
       .finally(() => setLoading(false))
   }, [])
-
-  function openEditNid(row: EmployeeRow) {
-    setEditNid(row)
-    setNidValue(row.nationalId ?? '')
-  }
-
-  async function saveNid() {
-    if (!editNid) return
-    if (!isValidNationalId(nidValue)) {
-      message.error('کد ملی معتبر نیست (۱۰ رقم با رقمِ کنترلیِ درست).')
-      return
-    }
-    setNidSaving(true)
-    try {
-      await setNationalId(editNid.id, nidValue)
-      setRows((prev) => prev.map((x) => (x.id === editNid.id ? { ...x, nationalId: nidValue } : x)))
-      message.success('کد ملی به‌روزرسانی شد.')
-      setEditNid(null)
-    } catch (err: unknown) {
-      const e = err as { response?: { data?: { message?: string } } }
-      message.error(e.response?.data?.message ?? 'خطا در به‌روزرسانی کد ملی.')
-    } finally {
-      setNidSaving(false)
-    }
-  }
 
   // فقط افراد با نقش موردنظر همین بخش نمایش داده می‌شوند، بعد بر اساس نما فیلتر می‌شوند.
   // ادمین خودش را در فهرست نمی‌بیند؛ فقط دیگران.
@@ -1300,14 +1270,7 @@ function PeopleSection({ role, title }: { role: 'Admin' | 'Employee'; title: str
     {
       title: 'کد ملی',
       dataIndex: 'nationalId',
-      render: (v: string | null | undefined, r: EmployeeRow) => (
-        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, direction: 'ltr' }}>
-          {v || '—'}
-          <Button type="link" size="small" onClick={() => openEditNid(r)}>
-            ویرایش
-          </Button>
-        </span>
-      ),
+      render: (v: string | null | undefined) => <span style={{ direction: 'ltr' }}>{v || '—'}</span>,
     },
     ...(role === 'Employee'
       ? ([
@@ -1412,30 +1375,6 @@ function PeopleSection({ role, title }: { role: 'Admin' | 'Employee'; title: str
           scroll={{ x: 'max-content' }}
         />
       </Card>
-
-      <Modal
-        open={!!editNid}
-        onCancel={() => setEditNid(null)}
-        onOk={saveNid}
-        confirmLoading={nidSaving}
-        title="ویرایش کد ملی"
-        okText="ذخیره"
-        cancelText="انصراف"
-        centered
-        destroyOnHidden
-      >
-        <div style={{ marginBottom: 8, color: 'var(--text-muted)' }}>
-          {editNid ? `${editNid.firstName} ${editNid.lastName}` : ''}
-        </div>
-        <Input
-          value={nidValue}
-          onChange={(e) => setNidValue(e.target.value.replace(/\D/g, '').slice(0, 10))}
-          maxLength={10}
-          inputMode="numeric"
-          placeholder="۱۰ رقم"
-          style={{ direction: 'ltr', textAlign: 'right' }}
-        />
-      </Modal>
 
       <EditEmployeeModal employee={editRow} onClose={() => setEditRow(null)} onSaved={applyEdit} />
     </>
