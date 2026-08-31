@@ -20,8 +20,8 @@ namespace KasraLoan.Infrastructure.Data.Seed
             var admin = new Employee
             {
                 Id = SeedIds.AdminAli,
-                FirstName = "Ali",
-                LastName = "Ahmadi",
+                FirstName = "علی",
+                LastName = "احمدی",
                 PersonnelNumber = "1001",
                 Username = "admin",
                 PasswordHash = BCrypt.Net.BCrypt.HashPassword(DefaultAdminPassword, workFactor: 12),

@@ -15,11 +15,13 @@ namespace KasraLoan.Application.Features.Employee.Commands.UpdateEmployeeByAdmin
         {
             RuleFor(x => x.Request.FirstName)
                 .NotEmpty().WithMessage("نام الزامی است.")
-                .MaximumLength(100);
+                .MaximumLength(100)
+                .Must(PersianText.IsPersianName).WithMessage("نام باید فارسی باشد (حروف انگلیسی مجاز نیست).");
 
             RuleFor(x => x.Request.LastName)
                 .NotEmpty().WithMessage("نام‌خانوادگی الزامی است.")
-                .MaximumLength(100);
+                .MaximumLength(100)
+                .Must(PersianText.IsPersianName).WithMessage("نام‌خانوادگی باید فارسی باشد (حروف انگلیسی مجاز نیست).");
 
             RuleFor(x => x.Request.PersonnelNumber)
                 .NotEmpty().WithMessage("شماره پرسنلی الزامی است.")

@@ -36,6 +36,7 @@ import type { ColumnsType } from 'antd/es/table'
 import { DashboardLayout } from '../../components/DashboardLayout'
 import { ProfilePanel } from '../../components/ProfilePanel'
 import { isValidNationalId } from '../../utils/nationalId'
+import { isPersianName } from '../../utils/persian'
 import { EditEmployeeModal } from './EditEmployeeModal'
 import { useAuth } from '../../auth/AuthContext'
 import {
@@ -958,12 +959,36 @@ function AddEmployeeSection() {
           <Form form={form} layout="vertical" onFinish={onFinish} initialValues={{ role: 'Employee' }}>
             <Row gutter={12}>
               <Col span={12}>
-                <Form.Item label="نام" name="firstName" rules={[{ required: true }]}>
+                <Form.Item
+                  label="نام"
+                  name="firstName"
+                  rules={[
+                    { required: true, message: 'نام را وارد کنید' },
+                    {
+                      validator: (_, v) =>
+                        !v || isPersianName(v)
+                          ? Promise.resolve()
+                          : Promise.reject(new Error('نام باید فارسی باشد')),
+                    },
+                  ]}
+                >
                   <Input />
                 </Form.Item>
               </Col>
               <Col span={12}>
-                <Form.Item label="نام خانوادگی" name="lastName" rules={[{ required: true }]}>
+                <Form.Item
+                  label="نام خانوادگی"
+                  name="lastName"
+                  rules={[
+                    { required: true, message: 'نام خانوادگی را وارد کنید' },
+                    {
+                      validator: (_, v) =>
+                        !v || isPersianName(v)
+                          ? Promise.resolve()
+                          : Promise.reject(new Error('نام خانوادگی باید فارسی باشد')),
+                    },
+                  ]}
+                >
                   <Input />
                 </Form.Item>
               </Col>
