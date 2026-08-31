@@ -1180,6 +1180,7 @@ interface EmployeeRow {
 
 function PeopleSection({ role, title }: { role: 'Admin' | 'Employee'; title: string }) {
   const { message } = App.useApp()
+  const { user } = useAuth()
   const [rows, setRows] = useState<EmployeeRow[]>([])
   const [loading, setLoading] = useState(true)
   const [busyId, setBusyId] = useState<string | null>(null)
@@ -1229,7 +1230,8 @@ function PeopleSection({ role, title }: { role: 'Admin' | 'Employee'; title: str
   }
 
   // فقط افراد با نقش موردنظر همین بخش نمایش داده می‌شوند، بعد بر اساس نما فیلتر می‌شوند.
-  const byRole = rows.filter((r) => r.role === role)
+  // ادمین خودش را در فهرست نمی‌بیند؛ فقط دیگران.
+  const byRole = rows.filter((r) => r.role === role && r.id !== user?.id)
   const filtered = byRole.filter((r) =>
     view === 'active'
       ? r.isActive && !r.isDeleted
@@ -1457,7 +1459,8 @@ function AccessesSection() {
     try {
       const data = await getAllEmployees()
       const rows: EmployeeRow[] = Array.isArray(data) ? data : data.items ?? []
-      setAdmins(rows.filter((r) => r.role === 'Admin'))
+      // ادمینِ جاری خودش را در فهرستِ دسترسی‌ها نمی‌بیند.
+      setAdmins(rows.filter((r) => r.role === 'Admin' && r.id !== user?.id))
     } finally {
       setLoading(false)
     }
