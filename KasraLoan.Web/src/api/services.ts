@@ -331,6 +331,22 @@ export async function getRequestPool(): Promise<RequestPoolItem[]> {
   return res.data.items
 }
 
+// ---------- Admin dashboard (آمار) ----------
+export interface AdminDashboardStats {
+  totalLoans: number
+  pendingLoans: number
+  approvedLoans: number
+  rejectedLoans: number
+  totalRequestedAmount: number
+  totalApprovedAmount: number
+}
+
+/** آمارِ کلیِ وام‌ها برای نمای کلیِ داشبورد ادمین. */
+export async function getAdminDashboard(): Promise<AdminDashboardStats> {
+  const res = await api.get<AdminDashboardStats>('/loan/dashboard')
+  return res.data
+}
+
 // ---------- Job positions ----------
 export interface JobPosition {
   id: number
