@@ -18,6 +18,9 @@ import {
   Segmented,
   Progress,
   Drawer,
+  Statistic,
+  Spin,
+  Empty,
   App,
 } from 'antd'
 import {
@@ -31,6 +34,10 @@ import {
   ArrowRightOutlined,
   LockOutlined,
   DatabaseOutlined,
+  PieChartOutlined,
+  ClockCircleOutlined,
+  CheckCircleOutlined,
+  CloseCircleOutlined,
 } from '@ant-design/icons'
 import type { ColumnsType } from 'antd/es/table'
 import { DashboardLayout } from '../../components/DashboardLayout'
@@ -63,8 +70,9 @@ import {
   confirmCheque,
   rejectCheque,
   getLoanDocuments,
+  getAdminDashboard,
 } from '../../api/services'
-import type { JobPosition, RequestPoolItem } from '../../api/services'
+import type { JobPosition, RequestPoolItem, AdminDashboardStats } from '../../api/services'
 import type {
   LoanType,
   LoanPermissionRequestItem,
@@ -88,7 +96,7 @@ export function AdminDashboard() {
   // ادمین ارشد به همه‌چیز دسترسی دارد؛ «ادمین وام» فقط به وامِ خودش.
   const isSenior = user?.isSeniorAdmin ?? false
 
-  const [section, setSection] = useState('loanRequests')
+  const [section, setSection] = useState(isSenior ? 'overview' : 'loanRequests')
   const [profileOpen, setProfileOpen] = useState(false)
   const [unread, setUnread] = useState(0)
 
@@ -123,7 +131,12 @@ export function AdminDashboard() {
     },
   ]
 
-  // «همه‌ی درخواست‌ها» (استخرِ درخواست‌ها) فقط برای ادمین ارشد و در صدرِ منو.
+  // «نمای کلی» (آمار) و «همه‌ی درخواست‌ها» فقط برای ادمین ارشد و در صدرِ منو.
+  const overviewItem = {
+    key: 'overview',
+    icon: <PieChartOutlined />,
+    label: 'نمای کلی',
+  }
   const requestPoolItem = {
     key: 'requestPool',
     icon: <DatabaseOutlined />,
@@ -131,7 +144,7 @@ export function AdminDashboard() {
   }
 
   const menuItems = isSenior
-    ? [requestPoolItem, ...loanMenu, ...seniorOnlyMenu]
+    ? [overviewItem, requestPoolItem, ...loanMenu, ...seniorOnlyMenu]
     : loanMenu
 
   return (
@@ -154,6 +167,7 @@ export function AdminDashboard() {
         />
       )}
 
+      {isSenior && section === 'overview' && <OverviewSection />}
       {isSenior && section === 'requestPool' && <RequestPoolSection />}
       {section === 'loanRequests' && <LoanRequestsSection />}
       {section === 'cheques' && <ChequeQueueSection />}
@@ -192,6 +206,236 @@ export function AdminDashboard() {
         <ProfilePanel />
       </Drawer>
     </DashboardLayout>
+  )
+}
+
+/**
+ * نمودار دوناتِ سبک و بدون‌وابستگی برای نمایشِ سهمِ سه وضعیتِ درخواست.
+ * با stroke-dasharray روی دایره‌ها رسم می‌شود؛ برای دموی سبک کافی است.
+ */
+function StatusDonut({
+  segments,
+}: {
+  segments: { label: string; value: number; color: string }[]
+}) {
+  const total = segments.reduce((s, x) => s + x.value, 0)
+  const size = 168
+  const stroke = 22
+  const r = (size - stroke) / 2
+  const c = 2 * Math.PI * r
+  let offset = 0
+
+  return (
+    <div style={{ display: 'flex', gap: 24, alignItems: 'center', flexWrap: 'wrap' }}>
+      <div style={{ position: 'relative', width: size, height: size }}>
+        <svg width={size} height={size} style={{ transform: 'rotate(-90deg)' }}>
+          <circle
+            cx={size / 2}
+            cy={size / 2}
+            r={r}
+            fill="none"
+            stroke="rgba(0,0,0,0.06)"
+            strokeWidth={stroke}
+          />
+          {total > 0 &&
+            segments.map((seg) => {
+              const len = (seg.value / total) * c
+              const dash = `${len} ${c - len}`
+              const el = (
+                <circle
+                  key={seg.label}
+                  cx={size / 2}
+                  cy={size / 2}
+                  r={r}
+                  fill="none"
+                  stroke={seg.color}
+                  strokeWidth={stroke}
+                  strokeDasharray={dash}
+                  strokeDashoffset={-offset}
+                />
+              )
+              offset += len
+              return el
+            })}
+        </svg>
+        <div
+          style={{
+            position: 'absolute',
+            inset: 0,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <span style={{ fontSize: 26, fontWeight: 700, lineHeight: 1 }}>
+            {total.toLocaleString('fa-IR')}
+          </span>
+          <span style={{ fontSize: 12, opacity: 0.65 }}>کل درخواست‌ها</span>
+        </div>
+      </div>
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+        {segments.map((seg) => {
+          const pct = total > 0 ? Math.round((seg.value / total) * 100) : 0
+          return (
+            <div key={seg.label} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span
+                style={{
+                  width: 12,
+                  height: 12,
+                  borderRadius: 3,
+                  background: seg.color,
+                  display: 'inline-block',
+                }}
+              />
+              <span style={{ minWidth: 72 }}>{seg.label}</span>
+              <span style={{ fontWeight: 600 }}>{seg.value.toLocaleString('fa-IR')}</span>
+              <span style={{ opacity: 0.55, fontSize: 12 }}>({pct.toLocaleString('fa-IR')}٪)</span>
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
+/**
+ * «نمای کلی» — آمارِ کلیِ وام‌ها برای ادمین ارشد: تعدادِ درخواست‌ها به تفکیکِ
+ * وضعیت، سهمِ هر وضعیت (دونات) و مبالغِ درخواستی/تأییدشده.
+ */
+function OverviewSection() {
+  const [stats, setStats] = useState<AdminDashboardStats | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [failed, setFailed] = useState(false)
+
+  useEffect(() => {
+    getAdminDashboard()
+      .then(setStats)
+      .catch(() => setFailed(true))
+      .finally(() => setLoading(false))
+  }, [])
+
+  if (loading) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', padding: 64 }}>
+        <Spin size="large" />
+      </div>
+    )
+  }
+
+  if (failed || !stats) {
+    return (
+      <Card>
+        <Empty description="آمار در دسترس نیست" />
+      </Card>
+    )
+  }
+
+  const approvalRate =
+    stats.totalRequestedAmount > 0
+      ? Math.round((stats.totalApprovedAmount / stats.totalRequestedAmount) * 100)
+      : 0
+
+  const cardStyle = { height: '100%' }
+
+  return (
+    <Space direction="vertical" size={16} style={{ width: '100%' }}>
+      <Row gutter={[16, 16]}>
+        <Col xs={12} md={6}>
+          <Card style={cardStyle}>
+            <Statistic
+              title="کل درخواست‌ها"
+              value={stats.totalLoans}
+              prefix={<AuditOutlined />}
+              formatter={(v) => Number(v).toLocaleString('fa-IR')}
+            />
+          </Card>
+        </Col>
+        <Col xs={12} md={6}>
+          <Card style={cardStyle}>
+            <Statistic
+              title="در انتظار"
+              value={stats.pendingLoans}
+              valueStyle={{ color: '#faad14' }}
+              prefix={<ClockCircleOutlined />}
+              formatter={(v) => Number(v).toLocaleString('fa-IR')}
+            />
+          </Card>
+        </Col>
+        <Col xs={12} md={6}>
+          <Card style={cardStyle}>
+            <Statistic
+              title="تأیید شده"
+              value={stats.approvedLoans}
+              valueStyle={{ color: '#52c41a' }}
+              prefix={<CheckCircleOutlined />}
+              formatter={(v) => Number(v).toLocaleString('fa-IR')}
+            />
+          </Card>
+        </Col>
+        <Col xs={12} md={6}>
+          <Card style={cardStyle}>
+            <Statistic
+              title="رد شده"
+              value={stats.rejectedLoans}
+              valueStyle={{ color: '#ff4d4f' }}
+              prefix={<CloseCircleOutlined />}
+              formatter={(v) => Number(v).toLocaleString('fa-IR')}
+            />
+          </Card>
+        </Col>
+      </Row>
+
+      <Row gutter={[16, 16]}>
+        <Col xs={24} lg={12}>
+          <Card title="وضعیتِ درخواست‌ها" style={cardStyle}>
+            <StatusDonut
+              segments={[
+                { label: 'در انتظار', value: stats.pendingLoans, color: '#faad14' },
+                { label: 'تأیید شده', value: stats.approvedLoans, color: '#52c41a' },
+                { label: 'رد شده', value: stats.rejectedLoans, color: '#ff4d4f' },
+              ]}
+            />
+          </Card>
+        </Col>
+        <Col xs={24} lg={12}>
+          <Card title="مبالغ" style={cardStyle}>
+            <Space direction="vertical" size={16} style={{ width: '100%' }}>
+              <Row gutter={16}>
+                <Col span={12}>
+                  <Statistic
+                    title="مبلغِ کلِ درخواستی"
+                    value={stats.totalRequestedAmount}
+                    formatter={(v) => Number(v).toLocaleString('fa-IR')}
+                    suffix="تومان"
+                  />
+                </Col>
+                <Col span={12}>
+                  <Statistic
+                    title="مبلغِ کلِ تأییدشده"
+                    value={stats.totalApprovedAmount}
+                    valueStyle={{ color: '#52c41a' }}
+                    formatter={(v) => Number(v).toLocaleString('fa-IR')}
+                    suffix="تومان"
+                  />
+                </Col>
+              </Row>
+              <div>
+                <div style={{ marginBottom: 4, opacity: 0.7 }}>
+                  نسبتِ مبلغِ تأییدشده به درخواستی
+                </div>
+                <Progress
+                  percent={approvalRate}
+                  strokeColor="#52c41a"
+                  format={(p) => `${(p ?? 0).toLocaleString('fa-IR')}٪`}
+                />
+              </div>
+            </Space>
+          </Card>
+        </Col>
+      </Row>
+    </Space>
   )
 }
 
