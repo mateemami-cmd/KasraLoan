@@ -44,7 +44,9 @@ export function DashboardLayout({
   const isRail = rail || collapsedRail
 
   return (
-    <Layout style={{ minHeight: '100vh' }}>
+    // ارتفاعِ ثابتِ صفحه: قابِ داشبورد هیچ‌وقت با محتوای بخش‌ها کوچک/بزرگ نمی‌شود؛
+    // به‌جای کش‌آمدنِ کلِ صفحه، فقط ناحیه‌ی محتوا (app-content) داخلی اسکرول می‌خورد.
+    <Layout style={{ height: '100vh', overflow: 'hidden' }}>
       <Sider
         theme="dark"
         width={isRail ? 84 : 456}
@@ -133,7 +135,7 @@ export function DashboardLayout({
         </div>
       </Sider>
 
-      <Layout>
+      <Layout style={{ minWidth: 0, overflow: 'hidden' }}>
         <Content className="app-content">{children}</Content>
       </Layout>
     </Layout>
