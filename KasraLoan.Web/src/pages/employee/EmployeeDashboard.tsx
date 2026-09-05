@@ -28,7 +28,6 @@ import {
 } from 'antd'
 import {
   BankOutlined,
-  ArrowRightOutlined,
   UploadOutlined,
   BellOutlined,
 } from '@ant-design/icons'
@@ -189,26 +188,13 @@ export function EmployeeDashboard() {
         open={profileOpen}
         onClose={() => setProfileOpen(false)}
         closable={false}
-        title={
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              width: '100%',
-            }}
-          >
-            <span>پروفایل</span>
-            <Button
-              type="text"
-              icon={<ArrowRightOutlined />}
-              onClick={() => setProfileOpen(false)}
-            />
-          </div>
-        }
-        styles={{ body: { display: 'flex', flexDirection: 'column' } }}
+        title={null}
+        styles={{
+          header: { display: 'none' },
+          body: { padding: 0, display: 'flex', flexDirection: 'column' },
+        }}
       >
-        <ProfilePanel />
+        <ProfilePanel onClose={() => setProfileOpen(false)} />
       </Drawer>
     </DashboardLayout>
   )

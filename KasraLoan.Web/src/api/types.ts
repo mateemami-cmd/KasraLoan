@@ -37,6 +37,7 @@ export interface CurrentUser {
   phoneNumber?: string | null
   additionalPhoneNumbers: string[]
   email?: string | null
+  additionalEmails: string[]
   score: number
   role: 'Admin' | 'Employee'
   /** برای ادمین‌ها: ارشد است یا ادمین وام. فرانت بر این اساس داشبورد را انتخاب می‌کند. */
@@ -245,4 +246,5 @@ export interface UpdateProfilePayload {
   phoneNumber?: string
   additionalPhoneNumbers?: string[]
   email?: string
+  additionalEmails?: string[]
 }

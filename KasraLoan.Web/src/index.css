@@ -146,3 +146,15 @@ body {
 .app-sider-collapsed .ant-menu-submenu-arrow {
   display: none !important;
 }
+
+/* ناحیه‌ی اسکرولِ پنلِ پروفایل: نوارِ اسکرول کاملاً پنهان می‌شود (اسکرول با
+   چرخِ ماوس همچنان کار می‌کند) تا آن نوارِ سفیدِ کادردارِ سمت چپ دیده نشود. */
+.profile-scroll {
+  scrollbar-width: none; /* فایرفاکس */
+  -ms-overflow-style: none; /* اج قدیمی */
+}
+.profile-scroll::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none; /* کرومیوم/وب‌کیت */
+}
