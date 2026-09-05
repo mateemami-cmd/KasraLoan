@@ -12,7 +12,8 @@ namespace KasraLoan.Application.Features.Employee.Commands.UpdateProfile
                     !string.IsNullOrWhiteSpace(r.NewPassword) ||
                     !string.IsNullOrWhiteSpace(r.PhoneNumber) ||
                     r.AdditionalPhoneNumbers != null ||
-                    !string.IsNullOrWhiteSpace(r.Email))
+                    !string.IsNullOrWhiteSpace(r.Email) ||
+                    r.AdditionalEmails != null)
                 .WithMessage("حداقل یکی از فیلدها (رمز عبور، شماره تماس، شماره‌های اضافه، ایمیل) باید ارسال شود.");
 
             When(x => !string.IsNullOrWhiteSpace(x.Request.NewPassword), () =>
@@ -44,6 +45,11 @@ namespace KasraLoan.Application.Features.Employee.Commands.UpdateProfile
                     .EmailAddress()
                     .WithMessage("ایمیل واردشده معتبر نیست.");
             });
+
+            RuleForEach(x => x.Request.AdditionalEmails)
+                .Where(e => !string.IsNullOrWhiteSpace(e))
+                .EmailAddress()
+                .WithMessage("هر ایمیل واردشده باید معتبر باشد.");
         }
     }
 }

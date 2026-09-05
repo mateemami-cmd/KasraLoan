@@ -65,6 +65,17 @@ namespace KasraLoan.Application.Features.Employee.Commands.UpdateProfile
                 updatedFields.Add("ایمیل");
             }
 
+            // مثل شماره‌های اضافه: اگر لیست ارسال شده باشد (حتی خالی) کاملاً جایگزین
+            // می‌شود؛ مقادیر خالی نادیده گرفته می‌شوند.
+            if (request.Request.AdditionalEmails != null)
+            {
+                employee.AdditionalEmails = request.Request.AdditionalEmails
+                    .Where(e => !string.IsNullOrWhiteSpace(e))
+                    .Select(e => e.Trim())
+                    .ToList();
+                updatedFields.Add("ایمیل‌های اضافه");
+            }
+
             await _employeeRepository.UpdateAsync(employee);
             await _employeeRepository.SaveChangesAsync();
 

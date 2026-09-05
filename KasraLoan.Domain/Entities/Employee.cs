@@ -41,6 +41,12 @@ namespace KasraLoan.Domain.Entities
 
         public string? Email { get; set; }
 
+        /// <summary>
+        /// ایمیل‌های اضافه (اختیاری). مثل شماره‌های اضافه؛ در PostgreSQL به‌صورت یک
+        /// ستون text[] ذخیره می‌شود. ایمیلِ اصلی (Email) را ادمین تعیین می‌کند.
+        /// </summary>
+        public List<string>? AdditionalEmails { get; set; }
+
         /// <summary>مسیر نسبی عکس پروفایل، مثلاً /uploads/xxxx.jpg (اختیاری).</summary>
         public string? ProfilePictureUrl { get; set; }
 

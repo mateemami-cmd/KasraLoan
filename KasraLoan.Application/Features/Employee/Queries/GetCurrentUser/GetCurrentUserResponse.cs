@@ -24,6 +24,8 @@ namespace KasraLoan.Application.Features.Employee.Queries.GetCurrentUser
 
         public string? Email { get; set; }
 
+        public List<string> AdditionalEmails { get; set; } = new();
+
         public int Score { get; set; }
 
         public string Role { get; set; } = string.Empty;

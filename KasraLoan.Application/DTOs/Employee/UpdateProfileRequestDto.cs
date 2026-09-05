@@ -20,5 +20,11 @@ namespace KasraLoan.Application.DTOs.Employee
         public List<string>? AdditionalPhoneNumbers { get; set; }
 
         public string? Email { get; set; }
+
+        /// <summary>
+        /// لیست کامل ایمیل‌های اضافه. اگر ارسال شود (حتی خالی)، جایگزین لیست فعلی می‌شود.
+        /// اگر null باشد، لیست دست‌نخورده می‌ماند.
+        /// </summary>
+        public List<string>? AdditionalEmails { get; set; }
     }
 }

@@ -59,6 +59,7 @@ namespace KasraLoan.Application.Features.Employee.Queries.GetCurrentUser
                 PhoneNumber = employee.PhoneNumber,
                 AdditionalPhoneNumbers = employee.AdditionalPhoneNumbers ?? new List<string>(),
                 Email = employee.Email,
+                AdditionalEmails = employee.AdditionalEmails ?? new List<string>(),
                 Role = employee.Role.ToString(),
                 IsSeniorAdmin = employee.IsSeniorAdmin,
                 ManagedLoanTypeId = employee.ManagedLoanTypeId,
