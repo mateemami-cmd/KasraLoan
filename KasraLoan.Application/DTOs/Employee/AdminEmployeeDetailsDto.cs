@@ -27,7 +27,11 @@ namespace KasraLoan.Application.DTOs.Employee
 
         public string? PhoneNumber { get; set; }
 
+        public List<string> AdditionalPhoneNumbers { get; set; } = new();
+
         public string? Email { get; set; }
+
+        public List<string> AdditionalEmails { get; set; } = new();
 
         public DateTime HireDate { get; set; }
 

@@ -15,7 +15,9 @@ export interface EditableEmployee {
   personnelNumber: string
   nationalId?: string | null
   phoneNumber?: string | null
+  additionalPhoneNumbers?: string[]
   email?: string | null
+  additionalEmails?: string[]
   hireDate?: string | null
   marriageDate?: string | null
   role: string
@@ -223,9 +225,12 @@ export function EditEmployeeModal({
             <Form.Item
               label="شماره تماس"
               name="phoneNumber"
-              rules={[{ pattern: /^09\d{9}$/, message: 'شماره موبایل معتبر نیست (مثال: 09123456789)' }]}
+              rules={[
+                { required: true, message: 'شماره تماس را وارد کنید' },
+                { pattern: /^09\d{9}$/, message: 'شماره موبایل معتبر نیست (مثال: 09123456789)' },
+              ]}
             >
-              <Input placeholder="اختیاری" style={{ direction: 'ltr', textAlign: 'right' }} />
+              <Input placeholder="مثلاً 09123456789" style={{ direction: 'ltr', textAlign: 'right' }} />
             </Form.Item>
           </Col>
         </Row>
@@ -243,6 +248,29 @@ export function EditEmployeeModal({
                   { value: 'Employee', label: 'کارمند' },
                   { value: 'Admin', label: 'ادمین' },
                 ]}
+              />
+            </Form.Item>
+          </Col>
+        </Row>
+
+        {/* شماره/ایمیلِ دومِ کارمند: خودِ کارمند از پروفایلش ثبت می‌کند؛ اینجا فقط
+            برای اطلاعِ ادمین نمایش داده می‌شود (فقط‌خواندنی). */}
+        <Row gutter={12}>
+          <Col span={12}>
+            <Form.Item label="شماره تماس دوم (ثبتِ کارمند)">
+              <Input
+                value={employee?.additionalPhoneNumbers?.join('، ') || 'ثبت‌نشده'}
+                disabled
+                style={{ direction: 'ltr', textAlign: 'right' }}
+              />
+            </Form.Item>
+          </Col>
+          <Col span={12}>
+            <Form.Item label="ایمیل دوم (ثبتِ کارمند)">
+              <Input
+                value={employee?.additionalEmails?.join('، ') || 'ثبت‌نشده'}
+                disabled
+                style={{ direction: 'ltr', textAlign: 'right' }}
               />
             </Form.Item>
           </Col>

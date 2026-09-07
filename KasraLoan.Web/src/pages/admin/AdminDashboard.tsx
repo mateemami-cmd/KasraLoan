@@ -1390,7 +1390,9 @@ interface EmployeeRow {
   personnelNumber: string
   nationalId?: string | null
   phoneNumber?: string | null
+  additionalPhoneNumbers?: string[]
   email?: string | null
+  additionalEmails?: string[]
   hireDate?: string | null
   marriageDate?: string | null
   jobPositionId?: number | null
@@ -1442,8 +1444,6 @@ function PeopleSection({ role, title }: { role: 'Admin' | 'Employee'; title: str
   )
   const activeCount = byRole.filter((r) => r.isActive && !r.isDeleted).length
   const inactiveCount = byRole.length - activeCount
-
-  const money = (v: number) => (v > 0 ? `${v.toLocaleString('fa-IR')} تومان` : '—')
 
   async function toggleAccount(row: EmployeeRow, isActive: boolean) {
     setBusyId(row.id)
@@ -1506,8 +1506,6 @@ function PeopleSection({ role, title }: { role: 'Admin' | 'Employee'; title: str
     ...(role === 'Employee'
       ? ([
           { title: 'سمت', dataIndex: 'jobPositionTitle', render: (v?: string) => v || '—' },
-          { title: 'حقوق', dataIndex: 'effectiveMonthlySalary', render: money },
-          { title: 'سقف قسط', dataIndex: 'maxMonthlyInstallment', render: money },
           {
             title: 'اشتغال',
             dataIndex: 'employmentStatus',
