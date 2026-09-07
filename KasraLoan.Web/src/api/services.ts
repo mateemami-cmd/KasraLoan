@@ -293,6 +293,8 @@ export interface CreateEmployeePayload {
   lastName: string
   /** کد ملی (دقیقاً ۱۰ رقم). الزامی. */
   nationalId: string
+  /** شماره تماسِ اصلی؛ الزامی و فقط توسط ادمین قابل تغییر. */
+  phoneNumber: string
   /** رمزی که ادمین برای کاربر تعیین می‌کند. */
   password: string
   /** فقط برای ادمین لازم است؛ برای کارمند خودکار (برابر نام کاربری) ساخته می‌شود. */

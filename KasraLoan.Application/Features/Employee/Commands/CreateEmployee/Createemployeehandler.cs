@@ -110,6 +110,7 @@ namespace KasraLoan.Application.Features.Employee.Commands.CreateEmployee
                 LastName = dto.LastName,
                 PersonnelNumber = personnelNumber,
                 NationalId = KasraLoan.Application.Common.NationalIdValidator.Normalize(dto.NationalId),
+                PhoneNumber = dto.PhoneNumber?.Trim(),
                 Username = username,
                 // رمز را ادمین تعیین می‌کند؛ فقط هشِ آن ذخیره می‌شود.
                 PasswordHash = _passwordHasher.Hash(dto.Password),

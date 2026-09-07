@@ -1136,6 +1136,7 @@ function AddEmployeeSection() {
     firstName: string
     lastName: string
     nationalId: string
+    phoneNumber: string
     password: string
     personnelNumber?: string
     username?: string
@@ -1153,6 +1154,7 @@ function AddEmployeeSection() {
         firstName: values.firstName,
         lastName: values.lastName,
         nationalId: values.nationalId,
+        phoneNumber: values.phoneNumber,
         password: values.password,
         // شماره پرسنلی و نام کاربری فقط برای ادمین دستی‌اند؛ برای کارمند سرور خودش
         // یک عددِ ۹ رقمیِ یکسان برای هر دو می‌سازد.
@@ -1237,6 +1239,17 @@ function AddEmployeeSection() {
               ]}
             >
               <Input maxLength={10} inputMode="numeric" placeholder="۱۰ رقم" style={{ direction: 'ltr', textAlign: 'right' }} />
+            </Form.Item>
+            <Form.Item
+              label="شماره تماس"
+              name="phoneNumber"
+              rules={[
+                { required: true, message: 'شماره تماس را وارد کنید' },
+                { pattern: /^09\d{9}$/, message: 'شماره موبایل معتبر نیست (مثال: 09123456789)' },
+              ]}
+              extra="شماره تماسِ اصلیِ کارمند؛ فقط ادمین می‌تواند آن را تغییر دهد."
+            >
+              <Input inputMode="numeric" placeholder="مثلاً 09123456789" style={{ direction: 'ltr', textAlign: 'right' }} />
             </Form.Item>
             <Form.Item
               label="رمز عبور"

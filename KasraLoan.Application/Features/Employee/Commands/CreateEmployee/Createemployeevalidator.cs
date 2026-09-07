@@ -30,6 +30,13 @@ namespace KasraLoan.Application.Features.Employee.Commands.CreateEmployee
                 .Must(NationalIdValidator.IsValid)
                     .WithMessage("کد ملی معتبر نیست (باید ۱۰ رقم با رقمِ کنترلیِ درست باشد).");
 
+            // شماره تماسِ اصلی هنگام ساخت الزامی است؛ کارمند بعداً نمی‌تواند آن را
+            // عوض کند (فقط ادمین) و در پروفایلش فقط‌خواندنی است.
+            RuleFor(x => x.Request.PhoneNumber)
+                .NotEmpty().WithMessage("شماره تماس الزامی است.")
+                .Matches(@"^09\d{9}$")
+                    .WithMessage("شماره تماس باید یک شماره موبایل معتبر ایران باشد (مثال: 09123456789).");
+
             // رمز را ادمین هنگام ساخت تعیین می‌کند (دیگر رمز خودکار نداریم).
             RuleFor(x => x.Request.Password)
                 .NotEmpty().WithMessage("رمز عبور الزامی است.")
