@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { Button, Upload, Image, App, Modal, Tag, Divider, Form, Input } from 'antd'
+import { Button, Upload, Image, App, Modal, Tag, Divider, Form, Input, Drawer } from 'antd'
 import {
   LogoutOutlined,
   DesktopOutlined,
@@ -94,9 +94,6 @@ export function ProfilePanel({ onClose }: Props) {
   }, [square, editing])
 
   if (!user) return null
-
-  // صفحه‌ی «ویرایش پروفایل» (مثل تلگرام): با زدنِ مداد باز می‌شود.
-  if (editing) return <EditProfileView onBack={() => setEditing(false)} />
 
   async function openSessions() {
     setSessionsOpen(true)
@@ -485,6 +482,24 @@ export function ProfilePanel({ onClose }: Props) {
       >
         <LoginHistoryTable history={loginHistory} loading={historyLoading} />
       </Modal>
+
+      {/* «ویرایش پروفایل» در یک درِ کشوییِ جدا از سمتِ چپِ سایت باز می‌شود
+          (نه روی خودِ پروفایل)، با همان عرض. */}
+      <Drawer
+        placement="left"
+        width={438}
+        open={editing}
+        onClose={() => setEditing(false)}
+        closable={false}
+        destroyOnHidden
+        title={null}
+        styles={{
+          header: { display: 'none' },
+          body: { padding: 0, display: 'flex', flexDirection: 'column' },
+        }}
+      >
+        <EditProfileView onBack={() => setEditing(false)} />
+      </Drawer>
     </div>
   )
 }

@@ -188,6 +188,7 @@ export function EmployeeDashboard() {
         open={profileOpen}
         onClose={() => setProfileOpen(false)}
         closable={false}
+        push={false}
         title={null}
         styles={{
           header: { display: 'none' },
