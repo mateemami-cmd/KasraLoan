@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { use, useEffect, useState } from 'react'
 import {
   Modal,
   Form,
@@ -460,7 +460,7 @@ export function LoanRequestModal({
                 </Upload>
 
                 <div style={{ color: 'var(--text-muted)', fontSize: 12, marginTop: 8 }}>
-                  حداکثر {MAX_FILES.toLocaleString('fa-IR')} فایل — عکس یا PDF، هر ترکیبی.
+                  حداکثر {MAX_FILES.toLocaleString('fa-IR')} فایل — عکس یا PDF، هم ترکیبی.
                   حداکثر حجم هر فایل ۵ مگابایت.
                 </div>
               </Card>
