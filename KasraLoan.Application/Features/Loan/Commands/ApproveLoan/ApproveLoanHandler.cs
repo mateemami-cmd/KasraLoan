@@ -26,6 +26,7 @@ namespace KasraLoan.Application.Features.Loan.Commands.ApproveLoan
         private readonly ILoanCalculationService _loanCalculationService;
         private readonly ILoanDocumentRepository _loanDocumentRepository;
         private readonly ICurrentUserService _currentUserService;
+        private readonly ILoanFundRepository _loanFundRepository;
 
         public ApproveLoanHandler(
             ILoanRequestRepository loanRequestRepository,
@@ -34,7 +35,8 @@ namespace KasraLoan.Application.Features.Loan.Commands.ApproveLoan
             INotificationService notificationService,
             ILoanCalculationService loanCalculationService,
             ILoanDocumentRepository loanDocumentRepository,
-            ICurrentUserService currentUserService)
+            ICurrentUserService currentUserService,
+            ILoanFundRepository loanFundRepository)
         {
             _loanRequestRepository = loanRequestRepository;
             _auditLogService = auditLogService;
@@ -43,6 +45,7 @@ namespace KasraLoan.Application.Features.Loan.Commands.ApproveLoan
             _loanCalculationService = loanCalculationService;
             _loanDocumentRepository = loanDocumentRepository;
             _currentUserService = currentUserService;
+            _loanFundRepository = loanFundRepository;
         }
 
         public async Task<ApproveLoanResponse> Handle(
@@ -70,6 +73,16 @@ namespace KasraLoan.Application.Features.Loan.Commands.ApproveLoan
                     "توسط کارمند بارگذاری شود.");
             }
 
+            // صندوق باید موجودیِ کافی برای پرداختِ مبلغِ تأییدشده داشته باشد.
+            var fund = await _loanFundRepository.GetAsync();
+            if (fund == null)
+                throw new BusinessRuleException("صندوقِ وام مقداردهی نشده است.");
+
+            if (fund.Balance < loan.ApprovedAmount)
+                throw new BusinessRuleException(
+                    $"موجودی صندوق ({fund.Balance:N0} تومان) برای پرداختِ این وام " +
+                    $"({loan.ApprovedAmount:N0} تومان) کافی نیست.");
+
             loan.Status = LoanStatus.Approved;
 
             loan.TotalPayableAmount = _loanCalculationService.CalculateTotalPayable(
@@ -82,6 +95,12 @@ namespace KasraLoan.Application.Features.Loan.Commands.ApproveLoan
                 loan.InstallmentCount);
 
             loan.ApprovedAt = DateTime.UtcNow;
+
+            // پرداختِ وام از صندوق: مبلغِ تأییدشده از موجودی کم می‌شود. چون هر دو
+            // ریپازیتوری روی همان DbContext کار می‌کنند، یک SaveChanges هر دو تغییر
+            // (وام و صندوق) را با هم ذخیره می‌کند.
+            fund.Balance -= loan.ApprovedAmount;
+            fund.UpdatedAt = DateTime.UtcNow;
 
             await _loanRequestRepository.SaveChangesAsync();
 

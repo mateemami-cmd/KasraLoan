@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using KasraLoan.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -12,9 +13,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace KasraLoan.Infrastructure.Migrations
 {
     [DbContext(typeof(KasraLoanDbContext))]
-    partial class KasraLoanDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260909082438_AddLoanFund")]
+    partial class AddLoanFund
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -369,9 +372,6 @@ namespace KasraLoan.Infrastructure.Migrations
                     b.Property<long>("Balance")
                         .HasColumnType("bigint");
 
-                    b.Property<string>("LastContributionPeriod")
-                        .HasColumnType("text");
-
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -383,7 +383,7 @@ namespace KasraLoan.Infrastructure.Migrations
                         new
                         {
                             Id = 1,
-                            Balance = 5000000000L,
+                            Balance = 1000000000L,
                             UpdatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)
                         });
                 });

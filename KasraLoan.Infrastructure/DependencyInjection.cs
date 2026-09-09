@@ -37,6 +37,8 @@ namespace KasraLoan.Infrastructure
 
             services.AddScoped<IPayrollCalendarService, PayrollCalendarService>();
 
+            services.AddScoped<IFundContributionService, FundContributionService>();
+
             services.AddScoped<ILoanSettlementService, LoanSettlementService>();
 
             services.AddScoped<IInstallmentPaymentRepository, InstallmentPaymentRepository>();
@@ -49,6 +51,8 @@ namespace KasraLoan.Infrastructure
             services.AddScoped<ILoanCalculationService, LoanCalculationService>();
 
             services.AddScoped<ILoanRequestRepository, LoanRequestRepository>();
+
+            services.AddScoped<ILoanFundRepository, LoanFundRepository>();
 
             services.AddScoped<ILoanRuleEngine, LoanRuleEngine>();
 

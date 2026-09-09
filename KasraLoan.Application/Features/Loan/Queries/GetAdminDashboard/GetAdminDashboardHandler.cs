@@ -11,15 +11,20 @@ namespace KasraLoan.Application.Features.Loan.Queries.GetAdminDashboard
     public class GetAdminDashboardHandler : IRequestHandler<GetAdminDashboardQuery, GetAdminDashboardResponse>
     {
         private readonly ILoanRequestRepository _loanRequestRepository;
+        private readonly ILoanFundRepository _loanFundRepository;
 
-        public GetAdminDashboardHandler(ILoanRequestRepository loanRequestRepository)
+        public GetAdminDashboardHandler(
+            ILoanRequestRepository loanRequestRepository,
+            ILoanFundRepository loanFundRepository)
         {
             _loanRequestRepository = loanRequestRepository;
+            _loanFundRepository = loanFundRepository;
         }
 
         public async Task<GetAdminDashboardResponse> Handle(GetAdminDashboardQuery request, CancellationToken cancellationToken)
         {
             var allLoans = await _loanRequestRepository.GetAllAsync();
+            var fund = await _loanFundRepository.GetAsync();
 
             return new GetAdminDashboardResponse
             {
@@ -28,7 +33,8 @@ namespace KasraLoan.Application.Features.Loan.Queries.GetAdminDashboard
                 ApprovedLoans = await _loanRequestRepository.GetApprovedCountAsync(),
                 RejectedLoans = await _loanRequestRepository.GetRejectedCountAsync(),
                 TotalRequestedAmount = await _loanRequestRepository.GetTotalRequestedAmountAsync(),
-                TotalApprovedAmount = await _loanRequestRepository.GetTotalApprovedAmountAsync()
+                TotalApprovedAmount = await _loanRequestRepository.GetTotalApprovedAmountAsync(),
+                FundBalance = fund?.Balance ?? 0
             };
         }
     }

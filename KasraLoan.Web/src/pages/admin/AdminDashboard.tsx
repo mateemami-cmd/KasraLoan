@@ -70,6 +70,7 @@ import {
   rejectCheque,
   getLoanDocuments,
   getAdminDashboard,
+  applyFundContribution,
 } from '../../api/services'
 import type { JobPosition, RequestPoolItem, AdminDashboardStats } from '../../api/services'
 import type {
@@ -292,16 +293,38 @@ function StatusDonut({
  * وضعیت، سهمِ هر وضعیت (دونات) و مبالغِ درخواستی/تأییدشده.
  */
 function OverviewSection() {
+  const { message } = App.useApp()
   const [stats, setStats] = useState<AdminDashboardStats | null>(null)
   const [loading, setLoading] = useState(true)
   const [failed, setFailed] = useState(false)
+  const [contributing, setContributing] = useState(false)
 
-  useEffect(() => {
-    getAdminDashboard()
+  function load() {
+    return getAdminDashboard()
       .then(setStats)
       .catch(() => setFailed(true))
       .finally(() => setLoading(false))
+  }
+
+  useEffect(() => {
+    load()
   }, [])
+
+  async function handleContribute() {
+    setContributing(true)
+    try {
+      const res = await applyFundContribution()
+      message.success(
+        `واریز انجام شد: ${res.amountAdded.toLocaleString('fa-IR')} تومان از ${res.employeeCount.toLocaleString('fa-IR')} کارمند.`,
+      )
+      await load()
+    } catch (err: unknown) {
+      const e = err as { response?: { data?: { message?: string } } }
+      message.error(e.response?.data?.message ?? 'خطا در واریز به صندوق.')
+    } finally {
+      setContributing(false)
+    }
+  }
 
   if (loading) {
     return (
@@ -328,6 +351,41 @@ function OverviewSection() {
 
   return (
     <Space direction="vertical" size={16} style={{ width: '100%' }}>
+      {/* موجودیِ صندوق: منبعی که وام‌های تأییدشده از آن پرداخت می‌شوند. */}
+      <Card
+        style={{
+          background: 'linear-gradient(135deg, rgba(22,119,255,0.16), rgba(105,177,255,0.06))',
+          borderColor: 'rgba(22,119,255,0.35)',
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap' }}>
+          <div>
+            <Statistic
+              title="موجودی صندوق وام"
+              value={stats.fundBalance}
+              prefix={<BankOutlined />}
+              suffix="تومان"
+              formatter={(v) => Number(v).toLocaleString('fa-IR')}
+              valueStyle={{ color: '#1677ff', fontSize: 30, fontWeight: 700 }}
+            />
+            <div style={{ color: 'var(--text-muted)', fontSize: 12, marginTop: 4 }}>
+              با تأیید هر وام مبلغش از صندوق کسر، و اولِ هر ماهِ شمسی ۳٪ حقوقِ کارمندان به آن واریز می‌شود.
+            </div>
+          </div>
+          <Popconfirm
+            title="واریزِ ماهانه به صندوق"
+            description="۳٪ حقوقِ همه‌ی کارمندانِ فعال به صندوق اضافه می‌شود. ادامه می‌دهید؟"
+            okText="بله، واریز کن"
+            cancelText="انصراف"
+            onConfirm={handleContribute}
+          >
+            <Button type="primary" ghost icon={<BankOutlined />} loading={contributing}>
+              واریزِ ماهانه (۳٪ حقوق)
+            </Button>
+          </Popconfirm>
+        </div>
+      </Card>
+
       <Row gutter={[16, 16]}>
         <Col xs={12} md={6}>
           <Card style={cardStyle}>

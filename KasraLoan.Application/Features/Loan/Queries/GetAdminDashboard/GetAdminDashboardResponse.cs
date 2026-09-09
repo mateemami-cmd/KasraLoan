@@ -19,5 +19,8 @@ namespace KasraLoan.Application.Features.Loan.Queries.GetAdminDashboard
         public decimal TotalRequestedAmount { get; set; }
 
         public decimal TotalApprovedAmount { get; set; }
+
+        /// <summary>موجودیِ فعلیِ صندوقِ وام (تومان).</summary>
+        public long FundBalance { get; set; }
     }
 }

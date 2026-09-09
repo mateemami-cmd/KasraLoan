@@ -29,6 +29,7 @@ namespace KasraLoan.Infrastructure.Data
         public DbSet<EmploymentStatusChange> EmploymentStatusChanges { get; set; }
         public DbSet<InstallmentPayment> InstallmentPayments { get; set; }
         public DbSet<LoginHistory> LoginHistories { get; set; }
+        public DbSet<LoanFund> LoanFunds { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -198,6 +199,18 @@ namespace KasraLoan.Infrastructure.Data
                     .WithMany()
                     .HasForeignKey(x => x.EmployeeId)
                     .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            // صندوقِ وام: یک ردیفِ ثابت با موجودیِ پایه‌ی ۱ میلیارد تومان.
+            modelBuilder.Entity<LoanFund>(entity =>
+            {
+                entity.HasKey(x => x.Id);
+                entity.HasData(new LoanFund
+                {
+                    Id = 1,
+                    Balance = 5_000_000_000,
+                    UpdatedAt = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc)
+                });
             });
 
             modelBuilder.Entity<LoanPermissionRequest>(entity =>

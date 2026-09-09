@@ -341,11 +341,28 @@ export interface AdminDashboardStats {
   rejectedLoans: number
   totalRequestedAmount: number
   totalApprovedAmount: number
+  /** موجودیِ فعلیِ صندوقِ وام (تومان). */
+  fundBalance: number
 }
 
 /** آمارِ کلیِ وام‌ها برای نمای کلیِ داشبورد ادمین. */
 export async function getAdminDashboard(): Promise<AdminDashboardStats> {
   const res = await api.get<AdminDashboardStats>('/loan/dashboard')
+  return res.data
+}
+
+export interface FundContributionResult {
+  applied: boolean
+  amountAdded: number
+  employeeCount: number
+  period: string
+  newBalance: number
+  message: string
+}
+
+/** اجرای دستیِ واریزِ ماهانه به صندوق (۳٪ حقوقِ کارمندان) — فقط ادمین ارشد. */
+export async function applyFundContribution(): Promise<FundContributionResult> {
+  const res = await api.post<FundContributionResult>('/fund/contribute')
   return res.data
 }
 

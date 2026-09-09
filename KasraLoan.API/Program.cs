@@ -67,6 +67,9 @@ namespace KasraLoan.API
 
                 builder.Services.AddInfrastructure();
 
+                // زمان‌بندِ واریزِ ماهانه‌ی صندوق (۳٪ حقوق، اولِ هر ماهِ شمسی).
+                builder.Services.AddHostedService<KasraLoan.API.BackgroundJobs.MonthlyFundContributionWorker>();
+
                 // تنظیماتِ SMTP برای ایمیل (رمزِ موقتِ فراموشیِ رمز عبور). مقادیرِ
                 // حساس در User Secrets می‌آیند.
                 builder.Services.Configure<KasraLoan.Infrastructure.Services.EmailSettings>(
