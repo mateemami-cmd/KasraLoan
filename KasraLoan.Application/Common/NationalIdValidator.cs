@@ -32,24 +32,19 @@ namespace KasraLoan.Application.Common
         /// <summary>آیا فقط ۱۰ رقم است (بدونِ بررسیِ رقمِ کنترلی)؟ — برای مقایسه/جست‌وجو.</summary>
         public static bool HasTenDigits(string? input) => Normalize(input).Length == 10;
 
-        /// <summary>آیا یک کد ملیِ ساختاراً معتبر است (۱۰ رقم + رقمِ کنترلیِ درست)؟</summary>
+        /// <summary>
+        /// آیا کد ملی قابل‌قبول است: فقط ۱۰ رقم و نه همه‌ارقام‌یکسان (مثل 1111111111).
+        /// فعلاً رقمِ کنترلیِ رسمی بررسی نمی‌شود (به‌درخواستِ کارفرما برای سهولتِ ثبت).
+        /// </summary>
         public static bool IsValid(string? input)
         {
             var code = Normalize(input);
             if (code.Length != 10) return false;
 
-            // ارقامِ یکسان (مثل 1111111111) هرچند از فرمول می‌گذرند، نامعتبرند.
+            // ارقامِ یکسان (مثل 1111111111) نامعتبرند.
             if (code.Distinct().Count() == 1) return false;
 
-            var sum = 0;
-            for (var i = 0; i < 9; i++)
-                sum += (code[i] - '0') * (10 - i);
-
-            var remainder = sum % 11;
-            var check = code[9] - '0';
-
-            return (remainder < 2 && check == remainder)
-                || (remainder >= 2 && check == 11 - remainder);
+            return true;
         }
     }
 }

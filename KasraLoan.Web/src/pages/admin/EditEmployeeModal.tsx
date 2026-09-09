@@ -190,7 +190,7 @@ export function EditEmployeeModal({
                   validator: (_, value) =>
                     !value || isValidNationalId(value)
                       ? Promise.resolve()
-                      : Promise.reject(new Error('کد ملی معتبر نیست (۱۰ رقم با رقمِ کنترلیِ درست).')),
+                      : Promise.reject(new Error('کد ملی باید ۱۰ رقم باشد و همه‌ی ارقام یکسان نباشند.')),
                 },
               ]}
             >

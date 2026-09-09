@@ -18,14 +18,13 @@ export function hasTenDigits(input: string | null | undefined): boolean {
   return normalizeNationalId(input).length === 10
 }
 
-/** کد ملیِ ساختاراً معتبر (۱۰ رقم + رقمِ کنترلیِ درست). */
+/**
+ * کد ملیِ قابل‌قبول: فقط ۱۰ رقم و نه همه‌ارقام‌یکسان (مثل 1111111111).
+ * فعلاً رقمِ کنترلیِ رسمی بررسی نمی‌شود (به‌درخواستِ کارفرما برای سهولتِ ثبت).
+ */
 export function isValidNationalId(input: string | null | undefined): boolean {
   const code = normalizeNationalId(input)
   if (code.length !== 10) return false
   if (/^(\d)\1{9}$/.test(code)) return false // ارقامِ یکسان
-  let sum = 0
-  for (let i = 0; i < 9; i++) sum += Number(code[i]) * (10 - i)
-  const r = sum % 11
-  const check = Number(code[9])
-  return (r < 2 && check === r) || (r >= 2 && check === 11 - r)
+  return true
 }
