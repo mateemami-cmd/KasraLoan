@@ -8,8 +8,7 @@ using System.Threading.Tasks;
 
 namespace KasraLoan.Application.Features.JobPositions.Queries.GetAllJobPositions
 {
-    public class GetAllJobPositionsHandler
-        : IRequestHandler<GetAllJobPositionsQuery, GetAllJobPositionsResponse>
+    public class GetAllJobPositionsHandler : IRequestHandler<GetAllJobPositionsQuery, GetAllJobPositionsResponse>
     {
         private readonly IJobPositionRepository _jobPositionRepository;
 
@@ -18,9 +17,7 @@ namespace KasraLoan.Application.Features.JobPositions.Queries.GetAllJobPositions
             _jobPositionRepository = jobPositionRepository;
         }
 
-        public async Task<GetAllJobPositionsResponse> Handle(
-            GetAllJobPositionsQuery request,
-            CancellationToken cancellationToken)
+        public async Task<GetAllJobPositionsResponse> Handle(GetAllJobPositionsQuery request, CancellationToken cancellationToken)
         {
             var positions = await _jobPositionRepository.GetAllAsync(request.ActiveOnly);
 
