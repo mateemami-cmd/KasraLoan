@@ -35,6 +35,17 @@ namespace KasraLoan.API.Controllers
             return Ok(result);
         }
 
+        //[HttpGet]
+        //public async Task<IActionResult> GetRandom([FromQuery] bool activeOnly = true)
+        //{
+        //    var result = await _mediator.Send(new GetAllLoanTypesQuery
+        //    {
+        //        ActiveOnly = activeOnly
+        //    });
+
+        //    return Ok(result);
+        //} 
+
         /// <summary>
         /// فعال یا غیرفعال کردن یک نوع وام توسط ادمین.
         /// </summary>
