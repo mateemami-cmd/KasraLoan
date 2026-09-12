@@ -15,6 +15,7 @@ public class LoginHandlerTests
     private readonly Mock<IPasswordHasher> _passwordHasher;
     private readonly Mock<IJwtService> _jwtService;
     private readonly Mock<IRefreshTokenRepository> _refreshTokenRepository;
+    private readonly Mock<ILoginHistoryRepository> _loginHistoryRepository;
 
     private readonly LoginHandler _handler;
 
@@ -28,11 +29,14 @@ public class LoginHandlerTests
 
         _refreshTokenRepository = new Mock<IRefreshTokenRepository>();
 
+        _loginHistoryRepository = new Mock<ILoginHistoryRepository>();
+
         _handler = new LoginHandler(
             _employeeRepository.Object,
             _passwordHasher.Object,
             _jwtService.Object,
-            _refreshTokenRepository.Object);
+            _refreshTokenRepository.Object,
+            _loginHistoryRepository.Object);
     }
 
     [Fact]

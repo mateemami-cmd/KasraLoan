@@ -24,6 +24,7 @@ public class ApproveLoanDocumentRuleTests
     private readonly Mock<INotificationService> _notifications = new();
     private readonly Mock<ILoanDocumentRepository> _documents = new();
     private readonly Mock<ICurrentUserService> _currentUser = new();
+    private readonly Mock<ILoanFundRepository> _fund = new();
 
     private readonly ApproveLoanHandler _sut;
 
@@ -32,6 +33,10 @@ public class ApproveLoanDocumentRuleTests
         // ادمین ارشد فرض می‌شود؛ به همه‌ی انواع وام دسترسی دارد.
         _currentUser.Setup(x => x.CanManageLoanType(It.IsAny<int>())).Returns(true);
 
+        // صندوق با موجودیِ کافی تا کسرِ مبلغِ تأییدشده مشکلی ایجاد نکند.
+        _fund.Setup(x => x.GetAsync())
+            .ReturnsAsync(new LoanFund { Id = 1, Balance = 5_000_000_000 });
+
         _sut = new ApproveLoanHandler(
             _loans.Object,
             _audit.Object,
@@ -39,7 +44,8 @@ public class ApproveLoanDocumentRuleTests
             _notifications.Object,
             new LoanCalculationService(),
             _documents.Object,
-            _currentUser.Object);
+            _currentUser.Object,
+            _fund.Object);
     }
 
     private LoanRequest GivenPendingLoan(bool requiresDocument)
