@@ -131,6 +131,9 @@ namespace KasraLoan.Application.Features.Loan.Commands.CreateLoanRequest
                 throw new BusinessRuleException(ruleResult.Message);
             }
 
+            // ضمانت: فعلاً فقط وام ازدواج ضامن (کارمندِ فعال) و تأییدِ چک/سفته می‌خواهد.
+            var guarantorId = await ValidateAndGetGuarantorAsync(loanType, request.Request, employeeId);
+
             // مبلغ تأییدشده هرگز نباید بیشتر از مبلغ درخواستی کارمند باشد،
             // حتی اگر سقف مجاز قانون بیشتر از آن باشد.
             // نکته: مبالغ از نوع long هستند؛ cast به int برای وام‌های بزرگ‌تر از
@@ -165,7 +168,9 @@ namespace KasraLoan.Application.Features.Loan.Commands.CreateLoanRequest
                 Status = Domain.Enums.LoanStatus.Pending,
                 CreatedAt = DateTime.UtcNow,
                 RequiresDocument = ruleResult.RequiresDocument,
-                RequiredDocumentDescription = ruleResult.RequiredDocumentDescription
+                RequiredDocumentDescription = ruleResult.RequiredDocumentDescription,
+                GuarantorEmployeeId = guarantorId,
+                GuaranteeChequeAcknowledged = guarantorId != null && request.Request.GuaranteeChequeAcknowledged
             };
 
 
@@ -202,8 +207,43 @@ namespace KasraLoan.Application.Features.Loan.Commands.CreateLoanRequest
             };
         }
 
-        /// <summary>حداکثر تعداد فایل پیوست برای یک درخواست.</summary>
-        private const int MaxAttachments = 2;
+        /// <summary>
+        /// اعتبارسنجیِ ضامن و تأییدِ چک/سفته. فعلاً فقط وام ازدواج ضامن می‌خواهد؛
+        /// ضامن باید کارمندِ فعال (نه ادمین، نه غیرفعال/حذف‌شده، نه خودِ متقاضی) باشد.
+        /// خروجی: شناسه‌ی ضامنِ معتبر، یا null برای وام‌هایی که ضامن نمی‌خواهند.
+        /// </summary>
+        private async Task<Guid?> ValidateAndGetGuarantorAsync(
+            LoanType loanType, CreateLoanRequestDto dto, Guid requesterId)
+        {
+            if (loanType.Type != LoanTypeEnum.MarriageLoan)
+                return null;
+
+            if (!dto.GuaranteeChequeAcknowledged)
+                throw new BusinessRuleException(
+                    "برای وام ازدواج باید سپردنِ چک/سفته‌ی ضمانت به مبلغ وام را تأیید کنید.");
+
+            if (dto.GuarantorEmployeeId == null || dto.GuarantorEmployeeId == Guid.Empty)
+                throw new BusinessRuleException("برای وام ازدواج انتخابِ یک ضامن الزامی است.");
+
+            if (dto.GuarantorEmployeeId == requesterId)
+                throw new BusinessRuleException("خودتان نمی‌توانید ضامنِ وامِ خودتان باشید.");
+
+            var guarantor = await _employeeRepository.GetByIdAsync(dto.GuarantorEmployeeId.Value);
+
+            if (guarantor == null || guarantor.IsDeleted)
+                throw new BusinessRuleException("ضامنِ انتخاب‌شده یافت نشد.");
+
+            if (guarantor.Role != UserRole.Employee)
+                throw new BusinessRuleException("ضامن باید یک کارمند باشد (ادمین‌ها نمی‌توانند ضامن شوند).");
+
+            if (!guarantor.IsActive || guarantor.EmploymentStatus != EmploymentStatus.Active)
+                throw new BusinessRuleException("ضامن باید یک کارمندِ فعال باشد.");
+
+            return guarantor.Id;
+        }
+
+        /// <summary>حداکثر تعداد فایل پیوست برای یک درخواست (شناسنامه، سند ازدواج، چک/سفته).</summary>
+        private const int MaxAttachments = 3;
 
         private const long MaxAttachmentBytes = 5 * 1024 * 1024;
 

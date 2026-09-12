@@ -138,6 +138,13 @@ namespace KasraLoan.Infrastructure.Data
                 .WithMany(x => x.LoanRequests)
                 .HasForeignKey(x => x.LoanTypeId);
 
+            // ضامنِ وام؛ اختیاری و بدونِ حذفِ آبشاری (کارمندِ ضامن مستقل از وام است).
+            modelBuilder.Entity<LoanRequest>()
+                .HasOne(x => x.Guarantor)
+                .WithMany()
+                .HasForeignKey(x => x.GuarantorEmployeeId)
+                .OnDelete(DeleteBehavior.Restrict);
+
             // جزئیات مخصوص هر نوع وام در یک ستون jsonb؛ در کد کلاس است، در
             // دیتابیس یک ستون. با اضافه شدن انواع دیگر، فقط زیرشاخه اضافه می‌شود
             // و مایگریشن جدید لازم نیست.

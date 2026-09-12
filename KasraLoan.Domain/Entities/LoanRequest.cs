@@ -74,6 +74,15 @@ namespace KasraLoan.Domain.Entities
         /// <summary>آیا کل مانده یکجا مطالبه شده است.</summary>
         public bool IsSettlementDemanded => SettlementDemandedAt.HasValue;
 
+        // ───── ضمانت (فعلاً فقط برای وام ازدواج) ─────
+        /// <summary>کارمندِ فعالی که ضامنِ این وام است.</summary>
+        public Guid? GuarantorEmployeeId { get; set; }
+
+        public Employee? Guarantor { get; set; }
+
+        /// <summary>آیا متقاضی سپردنِ چک/سفته‌ی ضمانت به مبلغ وام را پذیرفته است.</summary>
+        public bool GuaranteeChequeAcknowledged { get; set; }
+
         public Employee Employee { get; set; }
 
         public LoanType LoanType { get; set; }

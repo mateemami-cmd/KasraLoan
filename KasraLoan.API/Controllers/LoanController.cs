@@ -12,6 +12,7 @@ using KasraLoan.API.Models;
 using KasraLoan.Application.Features.Loan.Queries.GetMyLoans;
 using KasraLoan.Application.Features.Loan.Queries.GetMyLoans.GetAllLoans;
 using KasraLoan.Application.Features.Loan.Queries.GetRequestPool;
+using KasraLoan.Application.Features.Loan.Queries.GetGuarantorCandidates;
 using KasraLoan.Application.Interfaces.Services;
 using KasraLoan.API.Authorization;
 using KasraLoan.Domain.Enums;
@@ -198,6 +199,19 @@ namespace KasraLoan.API.Controllers
             });
 
             return Ok(result);
+        }
+
+        /// <summary>
+        /// کارمندانِ فعالی که می‌توانند ضامنِ وام شوند (برای سرچ در فرمِ وام ازدواج).
+        /// خودِ درخواست‌دهنده، ادمین‌ها و افرادِ غیرفعال/حذف‌شده در فهرست نمی‌آیند.
+        /// </summary>
+        [HttpGet("guarantors")]
+        [Authorize]
+        public async Task<IActionResult> GetGuarantorCandidates([FromQuery] string? q = null)
+        {
+            var result = await _mediator.Send(new GetGuarantorCandidatesQuery { Search = q });
+
+            return Ok(new { items = result });
         }
 
         [HttpGet("my-loans")]

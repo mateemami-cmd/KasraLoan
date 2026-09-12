@@ -27,6 +27,12 @@ namespace KasraLoan.Application.DTOs.Loans
 
         /// <summary>جزئیات مخصوص وام پرداخت فوری.</summary>
         public ImmediatePaymentDetailsDto? ImmediatePayment { get; set; }
+
+        /// <summary>شناسه‌ی کارمندِ ضامن (فعلاً فقط برای وام ازدواج الزامی است).</summary>
+        public Guid? GuarantorEmployeeId { get; set; }
+
+        /// <summary>تأییدِ سپردنِ چک/سفته‌ی ضمانت به مبلغ وام (برای وام ازدواج الزامی).</summary>
+        public bool GuaranteeChequeAcknowledged { get; set; }
     }
 
     /// <summary>ورودی فرم وام پرداخت فوری.</summary>
