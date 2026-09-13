@@ -83,9 +83,9 @@ namespace KasraLoan.Domain.Entities
         /// <summary>آیا متقاضی سپردنِ چک/سفته‌ی ضمانت به مبلغ وام را پذیرفته است.</summary>
         public bool GuaranteeChequeAcknowledged { get; set; }
 
-        public Employee Employee { get; set; }
+        public Employee Employee { get; set; } = null!;
 
-        public LoanType LoanType { get; set; }
+        public LoanType LoanType { get; set; } = null!;
 
         public ICollection<LoanInstallment> LoanInstallments { get; set; } = new List<LoanInstallment>();
 

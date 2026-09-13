@@ -10,9 +10,9 @@ namespace KasraLoan.Application.LoanRules
 {
     public class LoanRuleContext
     {
-        public Employee Employee { get; set; }
+        public Employee Employee { get; set; } = null!;
 
-        public LoanType LoanType { get; set; }
+        public LoanType LoanType { get; set; } = null!;
 
         public string LoanTypeName => LoanType.Name;
 

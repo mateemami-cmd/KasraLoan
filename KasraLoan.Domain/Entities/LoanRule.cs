@@ -22,6 +22,6 @@ namespace KasraLoan.Domain.Entities
 
         public bool IsActive { get; set; }
 
-        public LoanType LoanType { get; set; }
+        public LoanType LoanType { get; set; } = null!;
     }
 }

@@ -128,7 +128,7 @@ namespace KasraLoan.Application.Features.Loan.Commands.CreateLoanRequest
 
             if (!ruleResult.IsAllowed)
             {
-                throw new BusinessRuleException(ruleResult.Message);
+                throw new BusinessRuleException(ruleResult.Message ?? "درخواست وام مجاز نیست.");
             }
 
             // ضمانت: فعلاً فقط وام ازدواج ضامن (کارمندِ فعال) و تأییدِ چک/سفته می‌خواهد.

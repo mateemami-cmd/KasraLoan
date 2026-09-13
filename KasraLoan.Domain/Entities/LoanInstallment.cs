@@ -13,7 +13,7 @@ namespace KasraLoan.Domain.Entities
 
         // ارتباط با درخواست وام
         public Guid LoanRequestId { get; set; }
-        public LoanRequest LoanRequest { get; set; }
+        public LoanRequest LoanRequest { get; set; } = null!;
 
         // شماره قسط (1، 2، 3، ...)
         public int InstallmentNumber { get; set; }

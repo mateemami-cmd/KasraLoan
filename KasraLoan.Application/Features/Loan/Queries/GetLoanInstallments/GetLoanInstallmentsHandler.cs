@@ -34,7 +34,8 @@ namespace KasraLoan.Application.Features.Loan.Queries.GetLoanInstallments
             return new ApiResponse<List<GetLoanInstallmentsResponse>>
             {
                 IsSuccess = true,
-                Data = result.Data.Select(x => new GetLoanInstallmentsResponse
+                // در مسیرِ موفق، Data همیشه مقدار دارد؛ null-forgiving برای رفعِ هشدار.
+                Data = result.Data!.Select(x => new GetLoanInstallmentsResponse
                 {
                     Id = x.Id,
                     InstallmentNumber = x.InstallmentNumber,
